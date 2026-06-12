@@ -113,6 +113,58 @@
 
   .nav { display: flex; gap: clamp(24px, 4vw, 56px); }
 
+  /* ---------- кнопка play/pause ---------- */
+  .play {
+    position: fixed;
+    top: clamp(20px, 4vh, 44px);
+    left: clamp(24px, 4vw, 64px);
+    z-index: 17;
+    width: clamp(42px, 5vw, 50px);
+    height: clamp(42px, 5vw, 50px);
+    border-radius: 50%;
+    border: 1px solid rgba(242, 245, 255, 0.25);
+    background: rgba(242, 245, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .play svg { width: 38%; height: 38%; fill: currentColor; }
+  .play .ic-pause { display: none; }
+  .play.playing .ic-play { display: none; }
+  .play.playing .ic-pause { display: block; }
+
+  .play:hover {
+    border-color: rgba(242, 245, 255, 0.55);
+    background: rgba(242, 245, 255, 0.1);
+  }
+
+  .play:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+
+  /* сияние до первого нажатия */
+  .play.idle {
+    animation: glow 2.6s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(255, 150, 60, 0), 0 0 14px rgba(255, 150, 60, 0.18);
+      border-color: rgba(242, 245, 255, 0.25);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(255, 150, 60, 0.07), 0 0 26px rgba(255, 150, 60, 0.45);
+      border-color: rgba(255, 180, 110, 0.6);
+    }
+  }
+
+  /* на releases/contacts маленький TYRAZH сдвигается, чтобы не лечь на кнопку */
+  .brand { margin-left: calc(clamp(42px, 5vw, 50px) + clamp(14px, 1.6vw, 20px)); }
+
   .nav button {
     background: none;
     border: none;
@@ -345,6 +397,13 @@
   <div class="vignette"></div>
   <div class="grain"></div>
 
+  <button class="play idle" id="playBtn" aria-label="Play / pause">
+    <svg class="ic-play" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 4.5v15c0 .83.92 1.33 1.62.88l11.16-7.5a1.06 1.06 0 0 0 0-1.76L8.62 3.62A1.06 1.06 0 0 0 7 4.5Z"/></svg>
+    <svg class="ic-pause" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 4h3.4v16H6.5zM14.1 4h3.4v16h-3.4z"/></svg>
+  </button>
+
+  <audio id="track" src="promo.mp3" loop preload="auto"></audio>
+
   <header>
     <button class="brand" data-go="home">TYRAZH</button>
     <nav class="nav">
@@ -508,6 +567,69 @@
     build();
   }
 
+  /* ---------- звук ---------- */
+  const audio = document.getElementById('track');
+  const playBtn = document.getElementById('playBtn');
+  let actx = null, analyser = null, freq = null;
+  let bassAvg = 0.12;          // плавающее среднее баса
+  let pulse = 0;               // сила текущего удара (0..1)
+  let energy = 0;              // сглаженная громкость
+  let lastBeat = 0;
+
+  function initAudio() {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = actx.createMediaElementSource(audio);
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.6;
+    src.connect(analyser);
+    analyser.connect(actx.destination);
+    freq = new Uint8Array(analyser.frequencyBinCount);
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (!actx) initAudio();
+    if (actx.state === 'suspended') actx.resume();
+    playBtn.classList.remove('idle');
+
+    if (audio.paused) {
+      audio.play();
+      playBtn.classList.add('playing');
+    } else {
+      audio.pause();
+      playBtn.classList.remove('playing');
+    }
+  });
+
+  function readAudio() {
+    if (!analyser || audio.paused) {
+      pulse *= 0.94;
+      energy *= 0.97;
+      return;
+    }
+    analyser.getByteFrequencyData(freq);
+
+    // бас: ~30–160 Гц (бины 1–4 при fft 256 и 44.1кГц)
+    let bass = 0;
+    for (let i = 1; i <= 4; i++) bass += freq[i];
+    bass /= (4 * 255);
+
+    // общая энергия
+    let sum = 0;
+    for (let i = 0; i < freq.length; i++) sum += freq[i];
+    const now = sum / (freq.length * 255);
+    energy += (now - energy) * 0.1;
+
+    // детектор удара: бас резко выше своего среднего
+    bassAvg += (bass - bassAvg) * 0.04;
+    const t = performance.now();
+    if (bass > bassAvg * 1.35 && bass > 0.25 && t - lastBeat > 220) {
+      pulse = Math.min(1, (bass - bassAvg) * 3);
+      lastBeat = t;
+    }
+    pulse *= 0.92; // затухание между ударами
+  }
+
   const mouse = { x: -9999, y: -9999 };
 
   window.addEventListener('pointermove', e => {
@@ -539,6 +661,10 @@
       return;
     }
 
+    readAudio();
+
+    const cx = W * 0.56, cyc = H * 0.48;
+
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
 
@@ -561,6 +687,16 @@
         p.vx += (ox - p.x) * SPRING;
         p.vy += (oy - p.y) * SPRING;
 
+        // удар баса: волна от центра облака
+        if (pulse > 0.02) {
+          const bdx = p.x - cx;
+          const bdy = p.y - cyc;
+          const bd = Math.sqrt(bdx * bdx + bdy * bdy) || 1;
+          const f = pulse * 1.6;
+          p.vx += (bdx / bd) * f;
+          p.vy += (bdy / bd) * f;
+        }
+
         p.vx *= DAMP;
         p.vy *= DAMP;
         p.x += p.vx;
@@ -574,8 +710,10 @@
       const disp = Math.sqrt(ddx * ddx + ddy * ddy);
       const k = Math.min(disp / 70, 1);
 
-      const size  = p.base * (1 - k) + 2.2 * k;
-      const alpha = 0.013 * (1 - k) + 0.5 * k;
+      // дыхание под громкость + вспышка на ударе
+      const breathe = 1 + energy * 0.35 + pulse * 0.25;
+      const size  = (p.base * (1 - k) + 2.2 * k) * breathe;
+      const alpha = (0.013 * (1 - k) + 0.5 * k) * (1 + energy * 0.6 + pulse * 0.5);
 
       ctx.globalAlpha = alpha;
       ctx.drawImage(sprite, p.x - size / 2, p.y - size / 2, size, size);
