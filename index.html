@@ -9,11 +9,12 @@
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,200;125,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,200;125,300;125,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --green: #f2f5ff;
+    --ink: #f2f5ff;
     --bg: #0a1230;
+    --ease: cubic-bezier(0.65, 0, 0.18, 1);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,9 +28,10 @@
   body {
     font-family: 'Archivo', sans-serif;
     font-stretch: 125%;
+    color: var(--ink);
   }
 
-  /* ---------- фон ---------- */
+  /* ---------- общий фон ---------- */
   .bg {
     position: fixed;
     inset: -15%;
@@ -50,7 +52,7 @@
   .grain {
     position: fixed;
     inset: 0;
-    z-index: 5;
+    z-index: 20;
     pointer-events: none;
     opacity: 0.07;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -59,137 +61,414 @@
   .vignette {
     position: fixed;
     inset: 0;
-    z-index: 2;
+    z-index: 4;
     pointer-events: none;
     background: radial-gradient(ellipse 95% 85% at 50% 50%, transparent 60%, rgba(3, 6, 18, 0.5) 100%);
   }
 
-  /* ---------- пятно-частицы ---------- */
+  /* ---------- частицы (живут на home) ---------- */
   canvas#cloud {
     position: fixed;
     inset: 0;
     z-index: 1;
     display: block;
+    transition: opacity 0.7s ease;
   }
+
+  body[data-view="releases"] canvas#cloud,
+  body[data-view="contacts"] canvas#cloud { opacity: 0; }
 
   /* ---------- навигация ---------- */
-  .nav {
+  header {
     position: fixed;
-    top: clamp(22px, 4.5vh, 48px);
-    right: clamp(24px, 4vw, 64px);
-    z-index: 4;
+    top: 0; left: 0; right: 0;
+    z-index: 15;
     display: flex;
-    gap: clamp(28px, 4vw, 56px);
-    opacity: 0;
-    animation: fadeIn 1.2s ease 1s forwards;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(22px, 4.5vh, 48px) clamp(24px, 4vw, 64px) 0;
   }
 
-  .nav a {
+  .brand {
+    font-weight: 200;
+    font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-stretch: inherit;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  body[data-view="releases"] .brand,
+  body[data-view="contacts"] .brand {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav { display: flex; gap: clamp(24px, 4vw, 56px); }
+
+  .nav button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-stretch: inherit;
     font-weight: 300;
     font-size: clamp(1rem, 1.8vw, 1.5rem);
     letter-spacing: 0.02em;
-    text-decoration: none;
-    color: var(--green);
-    transition: opacity 0.3s ease;
+    color: var(--ink);
+    padding: 0 0 3px;
+    border-bottom: 1px solid transparent;
+    transition: opacity 0.3s ease, border-color 0.3s ease;
   }
 
-  .nav a.active { border-bottom: 1px solid rgba(242, 245, 255, 0.5); }
+  .nav button:hover { opacity: 0.65; }
 
-  .nav a:hover,
-  .nav a:focus-visible { opacity: 0.65; }
-
-  .nav a:focus-visible {
-    outline: 1px solid var(--green);
+  .nav button:focus-visible {
+    outline: 1px solid var(--ink);
     outline-offset: 4px;
   }
 
-  /* ---------- логотип ---------- */
-  .logo {
+  .nav button.active { border-bottom-color: rgba(242, 245, 255, 0.5); }
+
+  /* ---------- лента секций ---------- */
+  .track {
     position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    width: 300vw;
+    transform: translateX(0);
+    transition: transform 1s var(--ease);
+    will-change: transform;
+  }
+
+  body[data-view="releases"] .track { transform: translateX(-100vw); }
+  body[data-view="contacts"] .track { transform: translateX(-200vw); }
+
+  .view {
+    position: relative;
+    width: 100vw;
+    height: 100%;
+    flex-shrink: 0;
+  }
+
+  /* ---------- HOME ---------- */
+  .logo {
+    position: absolute;
     left: clamp(24px, 5vw, 90px);
     top: 50%;
     transform: translateY(-58%);
-    z-index: 3;
     font-weight: 200;
     font-size: clamp(3rem, 11vw, 10.5rem);
     letter-spacing: 0.04em;
-    color: var(--green);
     user-select: none;
     pointer-events: none;
     white-space: nowrap;
+    text-shadow: 0 0 24px rgba(8, 14, 38, 0.8), 0 0 60px rgba(8, 14, 38, 0.5);
     opacity: 0;
     animation: fadeIn 1.6s ease 0.3s forwards;
   }
 
-  /* ---------- копирайт ---------- */
   .footer {
-    position: fixed;
+    position: absolute;
     right: clamp(24px, 4vw, 64px);
     bottom: clamp(20px, 4vh, 40px);
-    z-index: 4;
     text-align: right;
     font-weight: 300;
     font-size: clamp(0.62rem, 1vw, 0.8rem);
     line-height: 1.6;
     letter-spacing: 0.02em;
-    color: var(--green);
     opacity: 0;
     animation: fadeIn 1.2s ease 1.4s forwards;
   }
 
   @keyframes fadeIn { to { opacity: 1; } }
 
+  /* ---------- RELEASES ---------- */
+  .view-inner {
+    height: 100%;
+    overflow-y: auto;
+    padding: calc(clamp(22px, 4.5vh, 48px) + clamp(50px, 9vh, 90px)) clamp(24px, 4vw, 64px) clamp(60px, 10vh, 120px);
+  }
+
+  .page-title {
+    font-weight: 200;
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    letter-spacing: 0.04em;
+    margin: 0 auto clamp(32px, 6vh, 64px);
+    max-width: 1280px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+    gap: clamp(20px, 3vw, 36px);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .release {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .cover {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid rgba(242, 245, 255, 0.1);
+    background: rgba(242, 245, 255, 0.04);
+  }
+
+  .cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+  }
+
+  a.release:hover .cover img,
+  a.release:focus-visible .cover img {
+    transform: scale(1.05);
+    filter: brightness(1.08);
+  }
+
+  a.release:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+
+  .release.placeholder { cursor: default; pointer-events: none; }
+
+  .blur-fill {
+    position: absolute;
+    inset: -12%;
+    background:
+      radial-gradient(ellipse 55% 45% at 30% 35%, rgba(90, 130, 220, 0.45), transparent 70%),
+      radial-gradient(ellipse 50% 55% at 72% 68%, rgba(40, 70, 150, 0.5), transparent 70%),
+      radial-gradient(ellipse 45% 40% at 60% 25%, rgba(140, 160, 230, 0.25), transparent 70%),
+      linear-gradient(150deg, #16235a 0%, #0c1538 60%, #101e4e 100%);
+    filter: blur(26px) saturate(1.1);
+    animation: blobShift 14s ease-in-out infinite alternate;
+  }
+
+  @keyframes blobShift {
+    0%   { transform: translate(0%, 0%) scale(1); }
+    100% { transform: translate(4%, -3%) scale(1.08); }
+  }
+
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .placeholder .meta { opacity: 0.45; }
+
+  .title {
+    font-weight: 300;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    letter-spacing: 0.02em;
+  }
+
+  .year {
+    font-weight: 300;
+    font-size: clamp(0.75rem, 1.1vw, 0.85rem);
+    opacity: 0.55;
+    white-space: nowrap;
+  }
+
+  /* ---------- CONTACTS ---------- */
+  .links {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 clamp(24px, 5vw, 90px);
+  }
+
+  .links a {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(14px, 2vw, 28px);
+    padding: clamp(14px, 2.6vh, 26px) 0;
+    border-bottom: 1px solid rgba(242, 245, 255, 0.12);
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 200;
+    font-size: clamp(1.8rem, 6vw, 4.2rem);
+    letter-spacing: 0.04em;
+    transition: opacity 0.3s ease, padding-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .links a:hover,
+  .links a:focus-visible { padding-left: clamp(10px, 1.6vw, 22px); }
+
+  .links a:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+
+  .links .arrow {
+    font-size: 0.5em;
+    opacity: 0.55;
+    transition: opacity 0.3s ease;
+  }
+
+  .links a:hover .arrow { opacity: 1; }
+
+  .links .handle {
+    margin-left: auto;
+    font-weight: 300;
+    font-size: clamp(0.8rem, 1.6vw, 1.05rem);
+    opacity: 0.5;
+    letter-spacing: 0.02em;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bg { animation: none; }
-    .nav, .logo, .footer { animation: none; opacity: 1; }
+    .bg, .blur-fill { animation: none; }
+    .logo, .footer { animation: none; opacity: 1; }
+    .track { transition: none; }
   }
 </style>
 </head>
-<body>
+<body data-view="home">
   <div class="bg"></div>
   <canvas id="cloud"></canvas>
   <div class="vignette"></div>
   <div class="grain"></div>
 
-  <h1 class="logo">TYRAZH</h1>
+  <header>
+    <button class="brand" data-go="home">TYRAZH</button>
+    <nav class="nav">
+      <button data-go="home" class="active">home</button>
+      <button data-go="releases">releases</button>
+      <button data-go="contacts">contacts</button>
+    </nav>
+  </header>
 
-  <nav class="nav">
-    <a href="index.html" class="active">home</a>
-    <a href="releases.html">releases</a>
-    <a href="contacts.html">contacts</a>
-  </nav>
+  <div class="track">
 
-  <div class="footer">
-    &copy; 2026 TYRAZH&nbsp; /&nbsp; All rights reserved.<br>
-    Artwork, music and visuals are property of their respective owners.<br>
-    Made in Ukraine
+    <!-- HOME -->
+    <section class="view" id="view-home">
+      <h1 class="logo">TYRAZH</h1>
+      <div class="footer">
+        &copy; 2026 TYRAZH&nbsp; /&nbsp; All rights reserved.<br>
+        Artwork, music and visuals are property of their respective owners.<br>
+        Made in Ukraine
+      </div>
+    </section>
+
+    <!-- RELEASES -->
+    <section class="view" id="view-releases">
+      <div class="view-inner">
+        <h2 class="page-title">Releases</h2>
+        <div class="grid">
+
+          <div class="release placeholder">
+            <div class="cover"><div class="blur-fill"></div></div>
+            <div class="meta">
+              <span class="title">Coming soon</span>
+              <span class="year">2026</span>
+            </div>
+          </div>
+
+          <!-- активная карточка релиза (раскомментируй, когда будет готово):
+          <a class="release" href="radar/">
+            <div class="cover">
+              <img src="covers/radar.jpg" alt="Sимптом — RADAR" loading="lazy">
+            </div>
+            <div class="meta">
+              <span class="title">Sимптом — RADAR</span>
+              <span class="year">2026</span>
+            </div>
+          </a>
+          -->
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACTS -->
+    <section class="view" id="view-contacts">
+      <div class="links">
+        <a href="https://instagram.com/" target="_blank" rel="noopener">
+          instagram <span class="arrow">&#8599;</span>
+          <span class="handle">@tyrazh</span>
+        </a>
+        <a href="https://t.me/" target="_blank" rel="noopener">
+          telegram <span class="arrow">&#8599;</span>
+          <span class="handle">@tyrazh</span>
+        </a>
+        <a href="https://youtube.com/" target="_blank" rel="noopener">
+          youtube <span class="arrow">&#8599;</span>
+          <span class="handle">@tyrazh</span>
+        </a>
+      </div>
+    </section>
+
   </div>
 
 <script>
 (() => {
+  /* ---------- переключение секций ---------- */
+  const views = ['home', 'releases', 'contacts'];
+  const buttons = document.querySelectorAll('[data-go]');
+
+  function go(view, push) {
+    if (!views.includes(view)) view = 'home';
+    document.body.dataset.view = view;
+    document.querySelectorAll('.nav button').forEach(b =>
+      b.classList.toggle('active', b.dataset.go === view)
+    );
+    if (push !== false) {
+      try {
+        history.replaceState(null, '', view === 'home' ? '#' : '#' + view);
+      } catch (e) { /* предпросмотр в песочнице — игнорируем */ }
+    }
+  }
+
+  buttons.forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+
+  // открыть нужную секцию по ссылке вида tyrazh.com#contacts
+  try {
+    const initial = location.hash.replace('#', '');
+    if (initial) go(initial, false);
+  } catch (e) {}
+
+  window.addEventListener('hashchange', () => {
+    go(location.hash.replace('#', '') || 'home', false);
+  });
+
+  /* ---------- частицы ---------- */
   const canvas = document.getElementById('cloud');
   const ctx = canvas.getContext('2d');
   let W, H, dpr;
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // мягкий спрайт для частиц
   const sprite = document.createElement('canvas');
   const SS = 64;
   sprite.width = sprite.height = SS;
   const sctx = sprite.getContext('2d');
   const grad = sctx.createRadialGradient(SS/2, SS/2, 0, SS/2, SS/2, SS/2);
-  grad.addColorStop(0, 'rgba(200, 212, 235, 1)');
-  grad.addColorStop(0.5, 'rgba(190, 205, 232, 0.45)');
-  grad.addColorStop(1, 'rgba(180, 198, 228, 0)');
+  grad.addColorStop(0, 'rgba(255, 158, 70, 1)');
+  grad.addColorStop(0.5, 'rgba(255, 132, 48, 0.45)');
+  grad.addColorStop(1, 'rgba(255, 110, 30, 0)');
   sctx.fillStyle = grad;
   sctx.fillRect(0, 0, SS, SS);
 
   const particles = [];
-  const N = 750;
+  const N = 975; // +30%
 
   function gauss() {
-    // приближение нормального распределения
     return (Math.random() + Math.random() + Math.random() + Math.random() - 2) / 2;
   }
 
@@ -203,11 +482,16 @@
       const hx = cx + gauss() * rx;
       const hy = cy + gauss() * ry;
       particles.push({
-        hx, hy,            // дом
-        x: hx, y: hy,      // текущая позиция
+        hx, hy,
+        x: hx, y: hy,
         vx: 0, vy: 0,
-        base: 26 + Math.random() * 30,   // размер в "тумане"
-        seed: Math.random() * Math.PI * 2
+        base: 26 + Math.random() * 30,
+        seed: Math.random() * Math.PI * 2,
+        // индивидуальные параметры парения
+        ax: 5 + Math.random() * 9,      // амплитуда дрейфа по x
+        ay: 4 + Math.random() * 7,      // по y
+        sx: 0.25 + Math.random() * 0.4, // скорость дрейфа
+        sy: 0.2  + Math.random() * 0.35
       });
     }
   }
@@ -238,21 +522,32 @@
   window.addEventListener('resize', resize);
   resize();
 
-  const R = 150;        // радиус действия мыши
-  const FORCE = 9;      // сила разлёта
-  const SPRING = 0.015; // возврат домой
-  const DAMP = 0.90;    // затухание
+  // скорость в 2 раза меньше
+  const R = 150;
+  const FORCE = 4.5;
+  const SPRING = 0.0075;
+  const DAMP = 0.92;
 
   let t = 0;
 
   function frame() {
     t += 0.008;
+
+    // не считаем физику, когда облако скрыто
+    if (document.body.dataset.view !== 'home') {
+      requestAnimationFrame(frame);
+      return;
+    }
+
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
 
     for (const p of particles) {
+      // парящая "домашняя" точка — пылинка медленно плывёт
+      const ox = p.hx + Math.sin(t * p.sx + p.seed) * p.ax;
+      const oy = p.hy + Math.cos(t * p.sy + p.seed * 1.7) * p.ay;
+
       if (!reduced) {
-        // отталкивание от курсора
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
         const d2 = dx * dx + dy * dy;
@@ -263,24 +558,24 @@
           p.vy += (dy / d) * f;
         }
 
-        // пружина к дому + лёгкое дыхание тумана
-        p.vx += (p.hx - p.x) * SPRING + Math.sin(t * 2 + p.seed) * 0.01;
-        p.vy += (p.hy - p.y) * SPRING + Math.cos(t * 1.6 + p.seed) * 0.008;
+        p.vx += (ox - p.x) * SPRING;
+        p.vy += (oy - p.y) * SPRING;
 
         p.vx *= DAMP;
         p.vy *= DAMP;
         p.x += p.vx;
         p.y += p.vy;
+      } else {
+        p.x = ox; p.y = oy;
       }
 
-      // насколько частица "сорвана" с места
-      const ddx = p.x - p.hx;
-      const ddy = p.y - p.hy;
+      const ddx = p.x - ox;
+      const ddy = p.y - oy;
       const disp = Math.sqrt(ddx * ddx + ddy * ddy);
-      const k = Math.min(disp / 70, 1); // 0 = туман, 1 = песчинка
+      const k = Math.min(disp / 70, 1);
 
       const size  = p.base * (1 - k) + 2.2 * k;
-      const alpha = 0.028 * (1 - k) + 0.85 * k;
+      const alpha = 0.013 * (1 - k) + 0.5 * k;
 
       ctx.globalAlpha = alpha;
       ctx.drawImage(sprite, p.x - size / 2, p.y - size / 2, size, size);
