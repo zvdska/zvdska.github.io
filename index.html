@@ -75,8 +75,7 @@
     transition: opacity 0.7s ease;
   }
 
-  body[data-view="releases"] canvas#cloud,
-  body[data-view="contacts"] canvas#cloud { opacity: 0; }
+  body[data-view="releases"] canvas#cloud { opacity: 0; }
 
   /* ---------- навигация ---------- */
   header {
@@ -105,8 +104,7 @@
     pointer-events: none;
   }
 
-  body[data-view="releases"] .brand,
-  body[data-view="contacts"] .brand {
+  body[data-view="releases"] .brand {
     opacity: 1;
     pointer-events: auto;
   }
@@ -143,14 +141,13 @@
     inset: 0;
     z-index: 5;
     display: flex;
-    width: 300vw;
+    width: 200vw;
     transform: translateX(0);
     transition: transform 1s var(--ease);
     will-change: transform;
   }
 
   body[data-view="releases"] .track { transform: translateX(-100vw); }
-  body[data-view="contacts"] .track { transform: translateX(-200vw); }
 
   .view {
     position: relative;
@@ -287,51 +284,6 @@
     white-space: nowrap;
   }
 
-  /* ---------- CONTACTS ---------- */
-  .links {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 clamp(24px, 5vw, 90px);
-  }
-
-  .links a {
-    display: flex;
-    align-items: baseline;
-    gap: clamp(14px, 2vw, 28px);
-    padding: clamp(14px, 2.6vh, 26px) 0;
-    border-bottom: 1px solid rgba(242, 245, 255, 0.12);
-    text-decoration: none;
-    color: var(--ink);
-    font-weight: 200;
-    font-size: clamp(1.8rem, 6vw, 4.2rem);
-    letter-spacing: 0.04em;
-    transition: opacity 0.3s ease, padding-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .links a:hover,
-  .links a:focus-visible { padding-left: clamp(10px, 1.6vw, 22px); }
-
-  .links a:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
-
-  .links .arrow {
-    font-size: 0.5em;
-    opacity: 0.55;
-    transition: opacity 0.3s ease;
-  }
-
-  .links a:hover .arrow { opacity: 1; }
-
-  .links .handle {
-    margin-left: auto;
-    font-weight: 300;
-    font-size: clamp(0.8rem, 1.6vw, 1.05rem);
-    opacity: 0.5;
-    letter-spacing: 0.02em;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .bg, .blur-fill { animation: none; }
     .logo, .footer { animation: none; opacity: 1; }
@@ -352,7 +304,6 @@
     <nav class="nav">
       <button data-go="home" class="active">home</button>
       <button data-go="releases">releases</button>
-      <button data-go="contacts">contacts</button>
     </nav>
   </header>
 
@@ -382,6 +333,26 @@
             </div>
           </div>
 
+          <div class="release">
+            <div class="cover">
+              <img src="covers/mc-coming.jpg" alt="Grebz — MC COMING" loading="lazy">
+            </div>
+            <div class="meta">
+              <span class="title">Grebz — MC COMING</span>
+              <span class="year">2023</span>
+            </div>
+          </div>
+
+          <div class="release">
+            <div class="cover">
+              <img src="covers/style-in-mc.jpg" alt="Grebz — STYLE IN MC" loading="lazy">
+            </div>
+            <div class="meta">
+              <span class="title">Grebz — STYLE IN MC</span>
+              <span class="year">2023</span>
+            </div>
+          </div>
+
           <!-- активная карточка релиза (раскомментируй, когда будет готово):
           <a class="release" href="radar/">
             <div class="cover">
@@ -398,30 +369,12 @@
       </div>
     </section>
 
-    <!-- CONTACTS -->
-    <section class="view" id="view-contacts">
-      <div class="links">
-        <a href="https://instagram.com/" target="_blank" rel="noopener">
-          instagram <span class="arrow">&#8599;</span>
-          <span class="handle">@tyrazh</span>
-        </a>
-        <a href="https://t.me/" target="_blank" rel="noopener">
-          telegram <span class="arrow">&#8599;</span>
-          <span class="handle">@tyrazh</span>
-        </a>
-        <a href="https://youtube.com/" target="_blank" rel="noopener">
-          youtube <span class="arrow">&#8599;</span>
-          <span class="handle">@tyrazh</span>
-        </a>
-      </div>
-    </section>
-
   </div>
 
 <script>
 (() => {
   /* ---------- переключение секций ---------- */
-  const views = ['home', 'releases', 'contacts'];
+  const views = ['home', 'releases'];
   const buttons = document.querySelectorAll('[data-go]');
 
   function go(view, push) {
@@ -439,7 +392,7 @@
 
   buttons.forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
-  // открыть нужную секцию по ссылке вида tyrazh.com#contacts
+  // открыть нужную секцию по ссылке вида tyrazh.com#releases
   try {
     const initial = location.hash.replace('#', '');
     if (initial) go(initial, false);
