@@ -23,6 +23,14 @@
         url("StadiumDisplay-Regular.ttf") format("truetype");
     font-weight:400;font-style:normal;font-display:swap;
   }
+  @font-face{
+    font-family:"Proxima Nova";
+    src:url("ProximaNova-Extrabold.woff2") format("woff2"),
+        url("ProximaNova-Extrabold.woff") format("woff"),
+        url("ProximaNova-Extrabold.otf") format("opentype"),
+        url("ProximaNova-Extrabold.ttf") format("truetype");
+    font-weight:800;font-style:normal;font-display:swap;
+  }
 
   :root{
     --ink:#0b0b12;
@@ -106,7 +114,8 @@
   .panel--orange .slide--main .slide__bg{background-image:url("43пц.png");background-position:left center}
   .panel--orange .slide--list .slide__bg{background-image:url("234256.png");background-position:right center}
   .panel--light .slide--main .slide__bg{background-image:url("rapper_back.png");background-position:left center}
-  .panel--light .slide--list .slide__bg{background-image:url("rapper_back.png");background-position:left center}
+  .panel--light .slide--list .slide__bg{background-image:url("trackrapper.png");background-position:left center}
+  .panel--light .slide--list::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.2) 48%,transparent 72%);pointer-events:none}
 
   /* main slide content alignment */
   .panel--blue  .slide--main{justify-content:flex-start}
@@ -144,13 +153,13 @@
   .btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
 
   /* ---------- playlist slide ---------- */
-  .slide--list{justify-content:flex-start;align-items:stretch;padding-top:74px;padding-bottom:90px}
+  .slide--list{justify-content:flex-start;align-items:stretch;padding-top:66px;padding-bottom:84px}
   .tracklist{position:relative;z-index:2;width:min(940px,62%);display:flex;flex-direction:column}
-  .tracks{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:center;gap:clamp(0px,.4vh,8px)}
+  .tracks{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:center;gap:0}
   .tracks li{display:flex;align-items:center;cursor:default;transition:opacity .2s ease, transform .25s ease}
   .tracks li:hover{opacity:.65;transform:translateX(8px)}
   .t-name{font-family:"Stadium Display","Anton",sans-serif;font-weight:400;
-    font-size:clamp(34px, min(11.5vh, 12vw), 129px);line-height:.88;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
+    font-size:clamp(15px, min(calc(78vh / var(--n,8)), 12vw), 120px);line-height:1.0;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
   .soon{font-family:"Stadium Display","Anton",sans-serif;font-size:clamp(30px,5vw,60px);text-transform:uppercase;opacity:.7}
 
   /* ---------- deck controls ---------- */
@@ -163,11 +172,11 @@
   .deck__dots{pointer-events:auto;display:flex;gap:10px;align-items:center}
   .dot{width:9px;height:9px;border-radius:999px;border:none;background:rgba(255,255,255,.4);cursor:pointer;padding:0;transition:background .25s,transform .25s}
   .dot.is-active{background:#fff;transform:scale(1.3)}
-  .panel--light .slide--list{justify-content:flex-end}
-  .panel--light .tracklist{text-align:right}
-  .panel--light .tracks li{justify-content:flex-end}
-  .panel--light .tracks li:hover{transform:translateX(-8px)}
-  .panel--light .t-name{color:#0b0b12}
+  .panel--light .slide--list{justify-content:flex-start}
+  .panel--light .tracklist{text-align:left}
+  .panel--light .tracks li{justify-content:flex-start}
+  .panel--light .tracks li:hover{transform:translateX(8px)}
+  .panel--light .t-name{font-family:"Proxima Nova","Montserrat",system-ui,sans-serif;font-weight:800;color:#fff}
   .panel--light .soon{color:#0b0b12}
   .panel--light .deck__arrow{border-color:rgba(0,0,0,.32);background:rgba(255,255,255,.55);color:#0b0b12}
   .panel--light .deck__arrow:hover{background:rgba(255,255,255,.85)}
@@ -196,7 +205,8 @@
     .tracks li,.panel--orange .tracks li{justify-content:center}
     .tracklist__eyebrow,.panel--orange .tracklist__eyebrow{justify-content:center}
     .panel--light .slide__bg{filter:blur(16px) brightness(1.04);background-position:30% center}
-    .panel--light .slide::before{background:rgba(255,255,255,.62)}
+    .panel--light .slide--main::before{background:rgba(255,255,255,.62)}
+    .panel--light .slide--list::before{background:rgba(0,0,0,.5)}
     .nav__links{gap:12px}
     .nav__links a{font-size:clamp(14px,3.4vw,20px)}
   }
@@ -277,7 +287,25 @@
       <div class="slide slide--list">
         <div class="slide__bg"></div>
         <div class="tracklist">
-          <div class="soon">Треклист скоро</div>
+          <ol class="tracks" style="--n:17">
+            <li><span class="t-name">0. Grebz</span></li>
+            <li><span class="t-name">Zashkwar II</span></li>
+            <li><span class="t-name">Несправедливо</span></li>
+            <li><span class="t-name">Лол лайф</span></li>
+            <li><span class="t-name">Грибомбудь</span></li>
+            <li><span class="t-name">Фэйк</span></li>
+            <li><span class="t-name">Рынок</span></li>
+            <li><span class="t-name">Скит</span></li>
+            <li><span class="t-name">По ремонту</span></li>
+            <li><span class="t-name">911</span></li>
+            <li><span class="t-name">Автомобиль</span></li>
+            <li><span class="t-name">Каракум</span></li>
+            <li><span class="t-name">Барабаш</span></li>
+            <li><span class="t-name">Скрепка</span></li>
+            <li><span class="t-name">Тише мыши</span></li>
+            <li><span class="t-name">Контракты</span></li>
+            <li><span class="t-name">Боб</span></li>
+          </ol>
         </div>
       </div>
     </div>
@@ -324,7 +352,7 @@
       <div class="slide slide--list">
         <div class="slide__bg"></div>
         <div class="tracklist">
-          <ol class="tracks">
+          <ol class="tracks" style="--n:8">
             <li><span class="t-name">КЛОК</span></li>
             <li><span class="t-name">FBI</span></li>
             <li><span class="t-name">МАМА ГОВОРИЛА</span></li>
@@ -378,7 +406,7 @@
       <div class="slide slide--list">
         <div class="slide__bg"></div>
         <div class="tracklist">
-          <ol class="tracks">
+          <ol class="tracks" style="--n:8">
             <li><span class="t-name">Юрфак</span></li>
             <li><span class="t-name">Mr.Jay</span></li>
             <li><span class="t-name">Папа говорил</span></li>
