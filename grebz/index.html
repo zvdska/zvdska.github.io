@@ -94,7 +94,7 @@
   .panel--blue .slide--main .slide__bg{background-image:url("mcback.png");background-position:right center}
   .panel--blue .slide--list .slide__bg{background-image:url("123245.png");background-position:right center}
   .panel--orange .slide--main .slide__bg{background-image:url("43пц.png");background-position:left center}
-  .panel--orange .slide--list .slide__bg{background-image:url("43пц.png");background-position:left center}
+  .panel--orange .slide--list .slide__bg{background-image:url("234256.png");background-position:right center}
 
   /* main slide content alignment */
   .panel--blue  .slide--main{justify-content:flex-start}
@@ -126,17 +126,13 @@
   .btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
 
   /* ---------- playlist slide ---------- */
-  .panel--blue  .slide--list{justify-content:flex-start}
-  .panel--orange .slide--list{justify-content:flex-end}
-  .tracklist{position:relative;z-index:2;width:min(680px,56%)}
-  .panel--orange .tracklist{text-align:right}
-  .tracks{list-style:none;display:flex;flex-direction:column;gap:clamp(2px,.5vw,8px)}
-  .tracks li{display:flex;align-items:baseline;gap:20px;cursor:default;transition:opacity .2s ease, transform .25s ease}
-  .panel--orange .tracks li{flex-direction:row-reverse}
-  .tracks li:hover{opacity:.65;transform:translateX(6px)}
-  .panel--orange .tracks li:hover{transform:translateX(-6px)}
+  .slide--list{justify-content:flex-start;align-items:stretch;padding-top:104px;padding-bottom:104px}
+  .tracklist{position:relative;z-index:2;width:min(940px,62%);display:flex;flex-direction:column}
+  .tracks{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:0}
+  .tracks li{display:flex;align-items:center;cursor:default;transition:opacity .2s ease, transform .25s ease}
+  .tracks li:hover{opacity:.65;transform:translateX(8px)}
   .t-name{font-family:"Stadium Display","Anton",sans-serif;font-weight:400;
-    font-size:clamp(26px,4.4vw,58px);line-height:1.04;text-transform:uppercase;letter-spacing:.01em}
+    font-size:clamp(24px, min(8.2vh, 8.6vw), 92px);line-height:1.0;text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
   .soon{font-family:"Stadium Display","Anton",sans-serif;font-size:clamp(30px,5vw,60px);text-transform:uppercase;opacity:.7}
 
   /* ---------- deck controls ---------- */
@@ -282,7 +278,16 @@
       <div class="slide slide--list">
         <div class="slide__bg"></div>
         <div class="tracklist">
-          <div class="soon">Треклист скоро</div>
+          <ol class="tracks">
+            <li><span class="t-name">Юрфак</span></li>
+            <li><span class="t-name">Mr.Jay</span></li>
+            <li><span class="t-name">Папа говорил</span></li>
+            <li><span class="t-name">Сахарные губы</span></li>
+            <li><span class="t-name">Ремни</span></li>
+            <li><span class="t-name">Скажите cheese</span></li>
+            <li><span class="t-name">Апупенно</span></li>
+            <li><span class="t-name">Сталь МС</span></li>
+          </ol>
         </div>
       </div>
     </div>
