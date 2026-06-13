@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GREBZ</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiMwMDAiLz4KPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiPgo8cmVjdCB4PSIyOCIgeT0iMjgiIHdpZHRoPSI0NCIgaGVpZ2h0PSI0NCIvPgo8cGF0aCBkPSJNMzAuMSAzOS41IEw1MCA1Mi42IEw2OS45IDM5LjUiLz4KPGxpbmUgeDE9IjMwLjEiIHkxPSI1My4xIiB4Mj0iNjkuOSIgeTI9IjUzLjEiLz4KPGxpbmUgeDE9IjQwLjA1IiB5MT0iNTMuMSIgeDI9IjQwLjA1IiB5Mj0iNzAuNCIvPgo8bGluZSB4MT0iNTAiIHkxPSI1My4xIiB4Mj0iNTAiIHkyPSI3MC40Ii8+CjxsaW5lIHgxPSI1OS45NSIgeTE9IjUzLjEiIHgyPSI1OS45NSIgeTI9IjcwLjQiLz4KPC9nPgo8L3N2Zz4=">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="favicon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -50,20 +54,19 @@
   .nav__links a:hover{opacity:1}
   @media(max-width:560px){.nav__links{display:none}}
 
-  /* ---------- intro / split signature ---------- */
+  /* ---------- intro / dust-assembled logo ---------- */
   .intro{
     min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
     text-align:center;position:relative;overflow:hidden;
-    background:linear-gradient(118deg,var(--blue-1) 0%,var(--blue-2) 47%,var(--orange-1) 53%,var(--orange-2) 100%);
+    background:radial-gradient(circle at 50% 42%, #17171f 0%, #08080d 58%, #050509 100%);
   }
-  .intro::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(118deg,transparent 49.4%,rgba(255,255,255,.55) 50%,transparent 50.6%);
-    mix-blend-mode:overlay;pointer-events:none;
-  }
-  .intro__eyebrow{position:relative;z-index:2;font-size:13px;letter-spacing:.42em;text-transform:uppercase;margin-bottom:18px;opacity:.92}
-  .intro__name{position:relative;z-index:2;font-family:"Anton",sans-serif;font-size:clamp(78px,22vw,300px);line-height:.82;letter-spacing:.01em;text-transform:uppercase;text-shadow:0 8px 40px rgba(0,0,0,.28)}
-  .intro__sub{position:relative;z-index:2;margin-top:22px;font-size:clamp(13px,1.6vw,16px);letter-spacing:.18em;text-transform:uppercase;opacity:.9}
+  .hero-logo{position:relative;width:clamp(300px,64vmin,560px);height:clamp(300px,64vmin,560px);margin-bottom:4px}
+  .dust{position:absolute;inset:0;width:100%;height:100%;display:block;transition:opacity .6s ease}
+  .hero-mark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58%;height:58%;color:#fff;opacity:0;transition:opacity .6s ease}
+  .hero-logo.assembled .dust{opacity:0;transition:opacity .6s ease}
+  .hero-logo.assembled .hero-mark{opacity:1}
+  .intro__name{position:relative;z-index:2;font-family:"Anton",sans-serif;font-size:clamp(40px,8vw,104px);line-height:.86;letter-spacing:.02em;text-transform:uppercase}
+  .intro__sub{position:relative;z-index:2;margin-top:16px;font-size:clamp(12px,1.5vw,15px);letter-spacing:.26em;text-transform:uppercase;opacity:.7}
   .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.85;display:flex;flex-direction:column;align-items:center;gap:8px}
   .scrollcue span{display:block;width:1px;height:34px;background:#fff;opacity:.6;animation:drop 1.8s infinite}
   @keyframes drop{0%{transform:scaleY(.2);transform-origin:top;opacity:0}40%{opacity:.8}100%{transform:scaleY(1);transform-origin:top;opacity:0}}
@@ -177,13 +180,13 @@
 
   <header class="nav" id="nav">
     <a class="nav__brand" href="#" aria-label="GREBZ">
-      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="miter" aria-hidden="true">
-        <rect x="8" y="8" width="84" height="84"/>
-        <path d="M12 30 L50 55 L88 30"/>
-        <line x1="12" y1="56" x2="88" y2="56"/>
-        <line x1="31" y1="56" x2="31" y2="89"/>
-        <line x1="50" y1="56" x2="50" y2="89"/>
-        <line x1="69" y1="56" x2="69" y2="89"/>
+      <svg viewBox="24 24 52 52" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="miter" aria-hidden="true">
+        <rect x="28" y="28" width="44" height="44"/>
+        <path d="M28 30.61 L49.88 48.82 L71.88 30.61"/>
+        <line x1="27.88" y1="50" x2="71.88" y2="50"/>
+        <line x1="40.05" y1="50.82" x2="40.05" y2="70.4"/>
+        <line x1="50" y1="50" x2="50" y2="70.4"/>
+        <line x1="59.95" y1="50" x2="59.95" y2="70.4"/>
       </svg>
     </a>
     <nav class="nav__links">
@@ -194,9 +197,17 @@
 
   <!-- INTRO -->
   <section class="intro">
-    <div class="intro__eyebrow">Kyiv · Hip-Hop</div>
-    <h1 class="intro__name">GREBZ</h1>
-    <div class="intro__sub">Two releases</div>
+    <div class="hero-logo" id="heroLogo">
+      <canvas class="dust" id="dust"></canvas>
+      <svg class="hero-mark" viewBox="24 24 52 52" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="miter" aria-hidden="true">
+        <rect x="28" y="28" width="44" height="44"/>
+        <path d="M28 30.61 L49.88 48.82 L71.88 30.61"/>
+        <line x1="27.88" y1="50" x2="71.88" y2="50"/>
+        <line x1="40.05" y1="50.82" x2="40.05" y2="70.4"/>
+        <line x1="50" y1="50" x2="50" y2="70.4"/>
+        <line x1="59.95" y1="50" x2="59.95" y2="70.4"/>
+      </svg>
+    </div>
     <div class="scrollcue">Scroll<span></span></div>
   </section>
 
@@ -300,13 +311,13 @@
 
   <footer class="foot">
     <div class="foot__brand">
-      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="miter" aria-hidden="true">
-        <rect x="8" y="8" width="84" height="84"/>
-        <path d="M12 30 L50 55 L88 30"/>
-        <line x1="12" y1="56" x2="88" y2="56"/>
-        <line x1="31" y1="56" x2="31" y2="89"/>
-        <line x1="50" y1="56" x2="50" y2="89"/>
-        <line x1="69" y1="56" x2="69" y2="89"/>
+      <svg viewBox="24 24 52 52" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="miter" aria-hidden="true">
+        <rect x="28" y="28" width="44" height="44"/>
+        <path d="M28 30.61 L49.88 48.82 L71.88 30.61"/>
+        <line x1="27.88" y1="50" x2="71.88" y2="50"/>
+        <line x1="40.05" y1="50.82" x2="40.05" y2="70.4"/>
+        <line x1="50" y1="50" x2="50" y2="70.4"/>
+        <line x1="59.95" y1="50" x2="59.95" y2="70.4"/>
       </svg>
     </div>
     <p class="foot__copy">© 2026 GREBZ. All rights reserved. All content, graphics, and materials on this website are the property of GREBZ. Unauthorized use or duplication without express permission is prohibited.</p>
@@ -369,7 +380,97 @@
     updateFade();
   }
 
-  // ---- 3D tilt on covers (skip on reduced motion / touch) ----
+  // ---- hero logo: assemble from white dust, then static ----
+  (function(){
+    const wrap = document.getElementById('heroLogo');
+    const canvas = document.getElementById('dust');
+    if(!wrap || !canvas) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ wrap.classList.add('assembled'); return; }
+
+    const ctx = canvas.getContext('2d');
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    let W=0, H=0, particles=[];
+
+    // logo path geometry (viewBox window 24..76 = 52 units)
+    function strokeLogo(c, scale, ox, oy, lw){
+      c.strokeStyle='#fff'; c.lineWidth=lw; c.lineJoin='miter'; c.lineCap='butt';
+      const X=v=>ox+v*scale, Y=v=>oy+v*scale;
+      c.strokeRect(X(28),Y(28),44*scale,44*scale);
+      c.beginPath(); c.moveTo(X(28),Y(30.61)); c.lineTo(X(49.88),Y(48.82)); c.lineTo(X(71.88),Y(30.61)); c.stroke();
+      c.beginPath(); c.moveTo(X(27.88),Y(50)); c.lineTo(X(71.88),Y(50)); c.stroke();
+      [[40.05,50.82],[50,50],[59.95,50]].forEach(([x,y0])=>{ c.beginPath(); c.moveTo(X(x),Y(y0)); c.lineTo(X(x),Y(70.4)); c.stroke(); });
+    }
+
+    function build(){
+      const size = wrap.clientWidth;
+      W = canvas.width = Math.round(size*dpr);
+      H = canvas.height = Math.round(size*dpr);
+      canvas.style.width = size+'px'; canvas.style.height = size+'px';
+
+      // draw the logo to an offscreen buffer and sample target points
+      const logoBox = size*0.58;                       // matches .hero-mark width 58%
+      const scale = (logoBox/52)*dpr;
+      const ox = (W - logoBox*dpr)/2 - 24*scale;
+      const oy = (H - logoBox*dpr)/2 - 24*scale;
+      const lw = 3.6*scale;
+
+      const off = document.createElement('canvas'); off.width=W; off.height=H;
+      const octx = off.getContext('2d');
+      strokeLogo(octx, scale, ox, oy, lw);
+      const data = octx.getImageData(0,0,W,H).data;
+
+      const pts=[]; const step=Math.max(2, Math.round(3*dpr));
+      for(let y=0;y<H;y+=step){ for(let x=0;x<W;x+=step){
+        if(data[(y*W+x)*4+3] > 110) pts.push([x,y]);
+      }}
+      // cap point count for performance
+      const MAX=2600;
+      if(pts.length>MAX){ for(let i=pts.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[pts[i],pts[j]]=[pts[j],pts[i]];} pts.length=MAX; }
+
+      const cx=W/2, cy=H/2;
+      particles = pts.map(([tx,ty])=>{
+        const a=Math.random()*Math.PI*2;
+        const r=(0.32+Math.random()*0.72)*(W/2);
+        return {
+          sx: cx+Math.cos(a)*r + (Math.random()-.5)*40,
+          sy: cy+Math.sin(a)*r + (Math.random()-.5)*40,
+          tx, ty,
+          delay: Math.random()*420,
+          dur: 760+Math.random()*760,
+          sz: (Math.random()*1+1)*dpr
+        };
+      });
+    }
+
+    const easeOutCubic = t => 1-Math.pow(1-t,3);
+    let start=null, done=false;
+    function frame(now){
+      if(start===null) start=now;
+      const t=now-start;
+      ctx.clearRect(0,0,W,H);
+      let allDone=true;
+      for(const p of particles){
+        const lt=Math.max(0, Math.min(1, (t-p.delay)/p.dur));
+        if(lt<1) allDone=false;
+        const e=easeOutCubic(lt);
+        const x=p.sx+(p.tx-p.sx)*e;
+        const y=p.sy+(p.ty-p.sy)*e;
+        ctx.globalAlpha=0.15+0.85*e;
+        ctx.fillStyle='#fff';
+        ctx.fillRect(x, y, p.sz, p.sz);
+      }
+      ctx.globalAlpha=1;
+      if(!allDone){ requestAnimationFrame(frame); }
+      else if(!done){ done=true; wrap.classList.add('assembled'); }
+    }
+
+    build();
+    requestAnimationFrame(frame);
+    // rebuild on resize only before assembly completes (keep final static)
+    window.addEventListener('resize', ()=>{ if(!done){ build(); } }, {passive:true});
+  })();
+
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   if(!reduce && !coarse){
