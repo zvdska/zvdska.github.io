@@ -63,14 +63,14 @@
     text-align:center;position:relative;overflow:hidden;
     background:radial-gradient(circle at 50% 42%, #17171f 0%, #08080d 58%, #050509 100%);
   }
-  .hero-logo{position:relative;width:clamp(300px,64vmin,560px);height:clamp(300px,64vmin,560px);margin-bottom:4px;display:flex;align-items:center;justify-content:center}
-  .intro-video{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;opacity:1;transition:opacity .6s ease}
+  .intro-video{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;opacity:1;transition:opacity .6s ease}
+  .hero-logo{position:relative;z-index:2;width:clamp(300px,64vmin,560px);height:clamp(300px,64vmin,560px);margin-bottom:4px;display:flex;align-items:center;justify-content:center}
   .hero-mark{position:relative;z-index:2;width:58%;height:58%;color:#fff;opacity:0;
     transform:perspective(900px) rotateX(0) rotateY(0);transform-style:preserve-3d;
     transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .6s ease;will-change:transform}
   .hero-mark.tilting{transition:transform .08s linear, opacity .6s ease}
-  .hero-logo.assembled .intro-video{opacity:0;pointer-events:none}
-  .hero-logo.assembled .hero-mark{opacity:1}
+  .intro.played .intro-video{opacity:0;pointer-events:none}
+  .intro.played .hero-mark{opacity:1}
   .intro__name{position:relative;z-index:2;font-family:"Anton",sans-serif;font-size:clamp(40px,8vw,104px);line-height:.86;letter-spacing:.02em;text-transform:uppercase}
   .intro__sub{position:relative;z-index:2;margin-top:16px;font-size:clamp(12px,1.5vw,15px);letter-spacing:.26em;text-transform:uppercase;opacity:.7}
   .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.85;display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -229,11 +229,11 @@
 
   <!-- INTRO -->
   <section class="intro">
+    <video class="intro-video" id="introVideo" muted playsinline autoplay preload="auto">
+      <source src="YJFFY-HD_1080p.mp4" type="video/mp4">
+      <source src="YJFFY-HD_1080p.mov" type="video/quicktime">
+    </video>
     <div class="hero-logo" id="heroLogo">
-      <video class="intro-video" id="introVideo" muted playsinline autoplay preload="auto">
-        <source src="YJFFY-HD_1080p.mp4" type="video/mp4">
-        <source src="YJFFY-HD_1080p.mov" type="video/quicktime">
-      </video>
       <svg class="hero-mark" viewBox="24 24 52 52" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linejoin="miter" aria-hidden="true">
         <rect x="28" y="28" width="44" height="44"/>
         <path d="M28 30.61 L49.88 48.82 L71.88 30.61"/>
@@ -489,12 +489,12 @@
 
   // ---- intro: play video, then reveal the white logo (mouse-tilt enabled) ----
   (function(){
-    const wrap = document.getElementById('heroLogo');
+    const intro = document.querySelector('.intro');
     const video = document.getElementById('introVideo');
-    if(!wrap) return;
+    if(!intro) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let revealed=false;
-    const reveal = ()=>{ if(revealed) return; revealed=true; wrap.classList.add('assembled'); };
+    const reveal = ()=>{ if(revealed) return; revealed=true; intro.classList.add('played'); };
     if(reduce || !video){ if(video) video.style.display='none'; reveal(); return; }
     video.addEventListener('ended', reveal);
     video.addEventListener('error', reveal);
