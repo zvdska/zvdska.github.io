@@ -262,6 +262,16 @@
     .nav{display:none}
     .scrollcue{display:none}
     .foot{padding-bottom:104px}
+    /* ---- release sections stack as rounded cards ---- */
+    .panel{
+      position:sticky; top:12px;
+      height:86svh; margin:0 10px 24px;
+      border-radius:28px; overflow:hidden;
+      transform-origin:50% 0; will-change:transform,filter;
+      box-shadow:0 -10px 36px rgba(0,0,0,.32), 0 24px 56px rgba(0,0,0,.5);
+      isolation:isolate;
+    }
+    .deck{height:100%}
     .dock{
       display:flex;align-items:center;gap:6px;
       position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;
@@ -277,7 +287,7 @@
     .dock.shrink{padding:5px 9px;gap:4px}
     .dock.shrink .dock__item{width:44px;height:44px}
     .dock.shrink .dock__item svg{height:19px}
-    .slide{padding:90px 22px 110px}
+    .slide{padding:56px 20px 66px}
     /* blur the figure background so the cover and tracklist read clearly */
     .slide__bg{background-size:cover;filter:blur(16px) brightness(.82);transform:scale(1.14)}
     .slide::before{content:"";position:absolute;inset:0;z-index:1;background:rgba(7,7,14,.40);pointer-events:none}
@@ -568,7 +578,34 @@
     targets.forEach(t=>dobs.observe(t));
   })();
 
-  // ---- РЕППЕР: desktop mouse parallax (soundtrack cover + tilted tracklist) ----
+  // ---- mobile: release sections stack as cards (scale + dim under the next) ----
+  (function(){
+    const mq = matchMedia('(max-width:820px)');
+    const reduce = matchMedia('(prefers-reduced-motion:reduce)');
+    const panels = [...document.querySelectorAll('.panel')];
+    if(!panels.length) return;
+    const STICK = 12;
+    function update(){
+      if(!mq.matches || reduce.matches){ panels.forEach(p=>{ p.style.transform=''; p.style.filter=''; }); return; }
+      const vh = window.innerHeight;
+      panels.forEach((panel,i)=>{
+        const next = panels[i+1];
+        let p = 0;
+        if(next){
+          const nt = next.getBoundingClientRect().top;
+          const start = vh, end = STICK + 12;
+          p = Math.min(1, Math.max(0, (start - nt)/(start - end)));
+        }
+        panel.style.transform = `translateY(${p*-14}px) scale(${1 - p*0.09})`;
+        panel.style.filter = `brightness(${1 - p*0.42})`;
+      });
+    }
+    let t=false;
+    window.addEventListener('scroll', ()=>{ if(!t){t=true;requestAnimationFrame(()=>{update();t=false;});} }, {passive:true});
+    window.addEventListener('resize', update);
+    if(mq.addEventListener) mq.addEventListener('change', update);
+    update();
+  })();
   (function(){
     const panel = document.getElementById('rapper');
     if(!panel || matchMedia('(pointer:coarse)').matches) return;
