@@ -31,6 +31,13 @@
         url("ProximaNova-Extrabold.ttf") format("truetype");
     font-weight:800;font-style:normal;font-display:swap;
   }
+  @font-face{
+    font-family:"Versus Ultra";
+    src:url("Versus-Ultra.woff2") format("woff2"),
+        url("Versus-Ultra.otf") format("opentype"),
+        url("Versus-Ultra.ttf") format("truetype");
+    font-weight:400;font-style:normal;font-display:swap;
+  }
 
   :root{
     --ink:#0b0b12;
@@ -184,6 +191,57 @@
   .panel--light .dot{background:rgba(0,0,0,.28)}
   .panel--light .dot.is-active{background:#0b0b12}
 
+  /* ---------- РЕППЕР · NFS Unbound soundtrack slide ---------- */
+  .slide--ost{position:relative;display:block;padding:0;overflow:hidden}
+  .ost__bg{position:absolute;inset:0;z-index:0;background:#54545f center/cover no-repeat}
+  .ost__bg{background-image:url("nfs_bg.png")}            /* swap-in; until then the colour + texture below stand in */
+  .ost__bg::after{content:"";position:absolute;inset:0;mix-blend-mode:multiply;background:
+     repeating-linear-gradient(118deg, rgba(0,0,0,.22) 0 3px, transparent 3px 30px),
+     linear-gradient(160deg, rgba(0,0,0,.30), rgba(0,0,0,.6))}
+  .slide--ost img{ -webkit-user-drag:none;user-select:none }
+  /* nfs layers are now transparent PNGs; no blend needed */
+  .vs-font{font-family:"Versus Ultra","Anton",sans-serif;font-weight:400;text-transform:uppercase}
+
+  .ost__content{position:absolute;z-index:3;left:clamp(28px,5vw,80px);top:50%;transform:translateY(-50%);
+    width:min(48%,640px);display:flex;flex-direction:column;align-items:flex-start;gap:16px;color:#fff}
+  .ost__lockup{width:min(360px,68%);height:auto;display:block}
+  .ost__sub{font-size:clamp(26px,3.4vw,54px);line-height:.9;letter-spacing:.005em}
+  .ost__name-wrap{position:relative;display:inline-block;margin:.08em 0 .02em}
+  .ost__name{position:relative;z-index:2;display:block;font-size:clamp(58px,8vw,138px);line-height:.82;color:#37dc37}
+  .ost__circle{position:absolute;z-index:1;left:50%;top:52%;transform:translate(-50%,-50%);width:138%;height:auto;pointer-events:none}
+  .ost__listen-wrap{position:relative;display:inline-block;margin-top:.25em}
+  .ost__brush{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:120%;height:auto;pointer-events:none}
+  .ost__listen{position:relative;z-index:2;display:block;font-size:clamp(22px,2.3vw,40px);line-height:1;color:#0b0b10;padding:.14em .55em}
+  .ost__links{display:flex;align-items:center;gap:18px;margin-top:8px}
+  .ost__links a{line-height:0;transition:transform .2s ease}
+  .ost__links a:hover{transform:scale(1.09)}
+  .ost__links img{height:46px;width:auto;display:block}
+
+  .ost__media{position:absolute;z-index:2;right:clamp(28px,5vw,80px);top:50%;
+    width:min(40%,520px);aspect-ratio:1/1;border-radius:10px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    transform:translateY(-50%) perspective(900px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg)) translate3d(var(--mx,0px),var(--my,0px),0);
+    transition:transform .18s ease-out;will-change:transform}
+  .ost__media .ost__video,.ost__media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .ost__cover{position:absolute;inset:0;z-index:2}
+
+  .ost__scribble{position:absolute;z-index:2;height:auto;pointer-events:none}
+  .ost__diamond{width:clamp(74px,7vw,150px);top:11%;left:40%}
+  .ost__arrow{width:clamp(58px,4.4vw,110px);bottom:18%;left:43%}
+  .ost__star{width:clamp(74px,7vw,150px);bottom:9%;left:5%}
+
+  /* ---------- РЕППЕР · tilted tracklist (slide 3) + parallax ---------- */
+  .panel--light .slide--list .tracklist{transform-origin:left center;
+    transform:rotate(-6deg) translate3d(var(--tlx,0px),var(--tly,0px),0);
+    transition:transform .25s ease-out;will-change:transform}
+  .track-copy{position:absolute;left:clamp(20px,5vw,80px);bottom:36px;z-index:3;max-width:640px;
+    font-size:12px;line-height:1.7;letter-spacing:.01em;color:rgba(255,255,255,.62);pointer-events:none}
+  .track-copy b{font-weight:700;color:rgba(255,255,255,.8)}
+  .track-marks{position:absolute;right:clamp(20px,5vw,80px);bottom:30px;z-index:3;display:flex;align-items:center;gap:14px;color:#fff}
+  .track-marks .cd{font:700 9px/1.05 Arial,sans-serif;text-align:center;letter-spacing:.04em;opacity:.85}
+  .track-marks .padv{border:2px solid #fff;padding:3px 6px;font:800 9px/1 Arial,sans-serif;text-align:center;letter-spacing:.02em}
+  .track-marks .padv small{display:block;font-weight:600;font-size:7px;letter-spacing:.06em;margin-top:1px}
+
   /* ---------- footer ---------- */
   .foot{padding:24px clamp(20px,5vw,60px) 28px;background:#06060a;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px 28px;border-top:1px solid rgba(255,255,255,.08)}
   .foot__brand{line-height:0;color:#fff}
@@ -195,14 +253,9 @@
   .dock__item{position:relative;z-index:1;display:grid;place-items:center;color:rgba(255,255,255,.72);text-decoration:none;
     transition:width .32s ease,height .32s ease,color .25s ease}
   .dock__item svg{height:22px;width:auto;max-width:30px;transition:height .3s ease}
-  /* active turns dark over the bright gel; darkening is delayed so the icon stays
-     visible on the dark glass while the blob is still travelling, then darkens as it arrives */
-  .dock__item.is-active{color:#0d0d12;transition:width .32s ease,height .32s ease,color .3s ease .26s}
-  .dock__goo{position:absolute;top:-24px;left:-24px;width:calc(100% + 48px);height:calc(100% + 48px);
-    pointer-events:none;z-index:0;filter:url(#dockGoo) drop-shadow(0 0 5px rgba(255,255,255,.3));opacity:.3}
-  .dock__blob{position:absolute;top:24px;left:24px;width:54px;height:54px;border-radius:999px;background:#fff;will-change:transform}
-  .dock__blob--main{transition:transform .52s cubic-bezier(.34,1.18,.5,1), width .4s ease, height .4s ease}
-  .dock__blob--drop{opacity:0;transition:transform .46s cubic-bezier(.45,0,.32,1), opacity .26s ease}
+  /* active = the logo simply lights up; inactive = dimmed */
+  .dock__item{color:rgba(255,255,255,.5)}
+  .dock__item.is-active{color:#fff}
 
   /* ---------- responsive ---------- */
   @media(max-width:820px){
@@ -244,6 +297,26 @@
     .panel--light .links{justify-content:center}
     .panel--light .tracklist{text-align:center}
     .panel--light .tracks li{justify-content:center}
+    /* tracklist: no tilt on mobile, copyright/marks hidden (desktop-only) */
+    .panel--light .slide--list .tracklist{transform:none!important}
+    .track-copy,.track-marks{display:none}
+    /* soundtrack slide -> vertical NFS social-bio composition */
+    .slide--ost{padding:0}
+    .slide--ost::before{display:none}
+    .ost__media{display:none}
+    .ost__content{position:static;width:auto;inset:auto;transform:none;display:block}
+    .ost__lockup{position:absolute;left:50%;top:8.5%;transform:translateX(-50%);width:52%}
+    .ost__sub{position:absolute;left:50%;top:20.5%;transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:clamp(20px,6.6vw,38px)}
+    .ost__name-wrap{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);margin:0}
+    .ost__name{font-size:clamp(58px,16vw,118px)}
+    .ost__circle{width:168%}
+    .ost__listen-wrap{position:absolute;left:50%;top:78.5%;transform:translate(-50%,-50%);margin:0}
+    .ost__brush{width:142%}
+    .ost__links{position:absolute;left:50%;top:86%;transform:translateX(-50%);gap:26px;margin:0}
+    .ost__links img{height:52px}
+    .ost__diamond{top:11%;left:auto;right:5%;width:21%}
+    .ost__arrow{top:54%;bottom:auto;left:auto;right:13%;width:18%}
+    .ost__star{bottom:9%;left:5%;width:21%}
     .nav{padding-left:16px;padding-right:16px}
     .nav__brand svg{height:26px}
     .nav__links{gap:clamp(8px,2.4vw,16px)}
@@ -323,6 +396,32 @@
           </div>
         </div>
       </div>
+      <div class="slide slide--ost">
+        <div class="ost__bg"></div>
+        <div class="ost__media">
+          <video class="ost__video" src="nfs_ost.mp4" poster="rapper_cover.jpeg" muted loop autoplay playsinline></video>
+          <a class="ost__cover" target="_blank" rel="noopener" href="https://music.apple.com/ua/album/%D1%80%D0%B5%D0%BF%D0%BF%D0%B5q/1817224361?l=ru" aria-label="Слушать саундтрек"></a>
+        </div>
+        <div class="ost__content">
+          <img class="ost__lockup blend" src="nfs_lockup.png" alt="NFS Unbound">
+          <div class="ost__sub vs-font">Official Soundtrack</div>
+          <div class="ost__name-wrap">
+            <span class="ost__name vs-font">GREBZ</span>
+            <img class="ost__circle blend" src="nfs_circle.png" alt="" aria-hidden="true">
+          </div>
+          <div class="ost__listen-wrap">
+            <img class="ost__brush blend" src="nfs_brush.png" alt="" aria-hidden="true">
+            <span class="ost__listen vs-font">Listen now</span>
+          </div>
+          <div class="ost__links">
+            <a target="_blank" rel="noopener" href="https://open.spotify.com/album/6hWxDwzE9VlyPyOVxBILfc" aria-label="Spotify"><img class="blend" src="nfs_spotify.png" alt="Spotify"></a>
+            <a target="_blank" rel="noopener" href="https://music.apple.com/ua/album/%D1%80%D0%B5%D0%BF%D0%BF%D0%B5q/1817224361?l=ru" aria-label="Apple Music"><img class="blend" src="nfs_apple.png" alt="Apple Music"></a>
+          </div>
+        </div>
+        <img class="ost__scribble ost__diamond blend" src="nfs_diamond.png" alt="" aria-hidden="true">
+        <img class="ost__scribble ost__arrow blend" src="nfs_arrow.png" alt="" aria-hidden="true">
+        <img class="ost__scribble ost__star blend" src="nfs_star.png" alt="" aria-hidden="true">
+      </div>
       <div class="slide slide--list">
         <div class="slide__bg"></div>
         <div class="tracklist">
@@ -346,11 +445,16 @@
             <li><span class="t-name">Боб</span></li>
           </ol>
         </div>
+        <div class="track-copy">©&nbsp;Grebz, 2026.<br>All rights reserved. Unauthorized copying, rental, public performance, and broadcasting<br>without the permission of the rights holder is prohibited.</div>
+        <div class="track-marks">
+          <div class="cd">COMPACT<br>DISC<br>DIGITAL AUDIO</div>
+          <div class="padv">PARENTAL ADVISORY<small>EXPLICIT CONTENT</small></div>
+        </div>
       </div>
     </div>
     <div class="deck__nav">
       <button class="deck__arrow" data-dir="prev" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="deck__dots"><button class="dot is-active" aria-label="Слайд 1"></button><button class="dot" aria-label="Слайд 2"></button></div>
+      <div class="deck__dots"><button class="dot is-active" aria-label="Слайд 1"></button><button class="dot" aria-label="Слайд 2"></button><button class="dot" aria-label="Слайд 3"></button></div>
       <button class="deck__arrow" data-dir="next" aria-label="Вперёд"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
   </section>
@@ -502,84 +606,59 @@
   onScroll();
   window.addEventListener('scroll', onScroll, {passive:true});
 
-  // ---- mobile dock: liquid metaball morph + shrink on scroll ----
+  // ---- mobile dock: active logo lights up + shrink on scroll ----
   (function(){
     const dock = document.getElementById('dock');
     if(!dock) return;
-
-    // inject goo (metaball) SVG filter once
-    if(!document.getElementById('dockGoo')){
-      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.setAttribute('width','0'); svg.setAttribute('height','0');
-      svg.setAttribute('aria-hidden','true'); svg.style.position='absolute';
-      svg.innerHTML = '<defs><filter id="dockGoo"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter></defs>';
-      document.body.appendChild(svg);
-    }
-
-    // gooey layer with a resting blob + a transient droplet
-    const goo  = document.createElement('div'); goo.className='dock__goo'; goo.setAttribute('aria-hidden','true');
-    const main = document.createElement('span'); main.className='dock__blob dock__blob--main';
-    const drop = document.createElement('span'); drop.className='dock__blob dock__blob--drop';
-    goo.appendChild(main); goo.appendChild(drop);
-    dock.insertBefore(goo, dock.firstChild);
-
     const items = {};
     dock.querySelectorAll('.dock__item').forEach(a=> items[a.dataset.sec]=a);
-    let active='top', ready=false, cur={x:0,y:0,w:54,h:54};
-
-    const rectOf = el => ({x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight});
-    const setBlob = (b,r)=>{ b.style.width=r.w+'px'; b.style.height=r.h+'px'; b.style.transform=`translate(${r.x}px,${r.y}px)`; };
-
-    function place(){                              // snap, no animation (load / resize / shrink)
-      const el=items[active]; if(!el||!el.offsetWidth) return;
-      const r=rectOf(el);
-      main.style.transition='none'; setBlob(main,r);
-      requestAnimationFrame(()=>{ main.style.transition=''; ready=true; });
-      cur=r;
-    }
-    function morph(){                              // droplet buds off, flies over, merges
-      const el=items[active]; if(!el||!el.offsetWidth) return;
-      if(!ready){ place(); return; }
-      const r=rectOf(el);
-      drop.style.transition='none'; setBlob(drop,cur); drop.style.opacity='1';
-      requestAnimationFrame(()=>{
-        drop.style.transition='';
-        setBlob(drop,r);                           // droplet travels to target
-        setTimeout(()=>{ setBlob(main,r); }, 120); // body follows -> neck stretches & pinches
-        setTimeout(()=>{ drop.style.opacity='0'; }, 480);
-      });
-      cur=r;
-    }
     const setActive = sec => {
       if(!items[sec]) return;
-      active = sec;
-      for(const k in items) items[k].classList.toggle('is-active', k===active);
-      morph();
+      for(const k in items) items[k].classList.toggle('is-active', k===sec);
     };
-
     let lastY = window.scrollY, ticking=false;
     window.addEventListener('scroll', ()=>{
       if(ticking) return; ticking=true;
       requestAnimationFrame(()=>{
-        const y=window.scrollY, was=dock.classList.contains('shrink');
+        const y=window.scrollY;
         if(y > lastY && y > 80) dock.classList.add('shrink');
         else if(y < lastY) dock.classList.remove('shrink');
-        if(dock.classList.contains('shrink')!==was) setTimeout(()=>{ ready=false; place(); },340);
         lastY=y; ticking=false;
       });
     }, {passive:true});
-    window.addEventListener('resize', ()=>{ ready=false; place(); }, {passive:true});
-
     const targets=['top','rapper','mc-coming','style-in-mc'].map(id=>document.getElementById(id)).filter(Boolean);
     const dobs=new IntersectionObserver(es=>{
       es.forEach(e=>{ if(e.isIntersecting && e.intersectionRatio>=0.5) setActive(e.target.id); });
     },{threshold:[0.5]});
     targets.forEach(t=>dobs.observe(t));
-
-    requestAnimationFrame(place);
   })();
 
-  // active tab highlight
+  // ---- РЕППЕР: desktop mouse parallax (soundtrack cover + tilted tracklist) ----
+  (function(){
+    const panel = document.getElementById('rapper');
+    if(!panel || matchMedia('(pointer:coarse)').matches) return;
+    const media = panel.querySelector('.ost__media');
+    const tl    = panel.querySelector('.slide--list .tracklist');
+    panel.addEventListener('mousemove', e=>{
+      const r = panel.getBoundingClientRect();
+      const nx = ((e.clientX - r.left)/r.width  - .5) * 2;   // -1..1
+      const ny = ((e.clientY - r.top )/r.height - .5) * 2;
+      if(media){
+        media.style.setProperty('--mx',(nx*16)+'px');
+        media.style.setProperty('--my',(ny*16)+'px');
+        media.style.setProperty('--ry',(nx*7)+'deg');
+        media.style.setProperty('--rx',(-ny*7)+'deg');
+      }
+      if(tl){
+        tl.style.setProperty('--tlx',(nx*26)+'px');
+        tl.style.setProperty('--tly',(ny*16)+'px');
+      }
+    });
+    panel.addEventListener('mouseleave', ()=>{
+      if(media){ media.style.setProperty('--mx','0px'); media.style.setProperty('--my','0px'); media.style.setProperty('--ry','0deg'); media.style.setProperty('--rx','0deg'); }
+      if(tl){ tl.style.setProperty('--tlx','0px'); tl.style.setProperty('--tly','0px'); }
+    });
+  })();
   const tabLinks = {
     'rapper': document.querySelector('.nav__links a[href="#rapper"]'),
     'mc-coming': document.querySelector('.nav__links a[href="#mc-coming"]'),
