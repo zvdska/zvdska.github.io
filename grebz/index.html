@@ -77,8 +77,10 @@
     transform:perspective(900px) rotateX(0) rotateY(0);transform-style:preserve-3d;
     transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .6s ease;will-change:transform}
   .hero-mark.tilting{transition:transform .08s linear, opacity .6s ease}
-  .intro.played .intro-video{opacity:0;pointer-events:none}
-  .intro.played .hero-mark{opacity:1}
+  .intro.mobile-intro .intro-video{opacity:0;transition:opacity 1.2s ease}
+  .intro.mobile-intro.video-shown .intro-video{opacity:1}
+  .intro.video-out .intro-video{opacity:0;pointer-events:none}
+  .intro.logo-in .hero-mark{opacity:1}
   .intro__name{position:relative;z-index:2;font-family:"Anton",sans-serif;font-size:clamp(40px,8vw,104px);line-height:.86;letter-spacing:.02em;text-transform:uppercase}
   .intro__sub{position:relative;z-index:2;margin-top:16px;font-size:clamp(12px,1.5vw,15px);letter-spacing:.26em;text-transform:uppercase;opacity:.7}
   .scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:.85;display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -207,6 +209,10 @@
     .panel--light .slide__bg{filter:blur(16px) brightness(1.04);background-position:30% center}
     .panel--light .slide--main::before{background:rgba(255,255,255,.62)}
     .panel--light .slide--list::before{background:rgba(0,0,0,.5)}
+    .panel--light .slide__inner{align-items:center;text-align:center}
+    .panel--light .links{justify-content:center}
+    .panel--light .tracklist{text-align:center}
+    .panel--light .tracks li{justify-content:center}
     .nav__links{gap:12px}
     .nav__links a{font-size:clamp(14px,3.4vw,20px)}
   }
@@ -515,21 +521,39 @@
     updateFade();
   }
 
-  // ---- intro: play video, then reveal the white logo (mouse-tilt enabled) ----
+  // ---- intro: video then logo ----
   (function(){
     const intro = document.querySelector('.intro');
     const video = document.getElementById('introVideo');
     if(!intro) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let revealed=false;
-    const reveal = ()=>{ if(revealed) return; revealed=true; intro.classList.add('played'); };
-    if(reduce || !video){ if(video) video.style.display='none'; reveal(); return; }
-    video.addEventListener('ended', reveal);
-    video.addEventListener('error', reveal);
-    const pp = video.play();
-    if(pp && pp.catch) pp.catch(()=>reveal());          // autoplay blocked -> show logo
-    setTimeout(()=>{ if(video.paused || video.currentTime===0) reveal(); }, 2600); // not playing -> show logo
-    setTimeout(reveal, 20000);                           // hard safety cap
+    const isMobile = window.matchMedia('(max-width:820px)').matches;
+    let logoShown=false;
+    const showLogo = ()=>{ if(logoShown) return; logoShown=true; intro.classList.add('logo-in'); };
+    if(reduce || !video){ if(video) video.style.display='none'; showLogo(); return; }
+
+    if(isMobile){
+      // looping vertical clip, fades in from black, logo appears after 3s on top
+      video.loop = true;
+      video.removeAttribute('autoplay');
+      video.src = 'paralax_grebz_mobile.mp4';
+      video.load();
+      intro.classList.add('mobile-intro');
+      const fadeIn = ()=> requestAnimationFrame(()=> intro.classList.add('video-shown'));
+      const p = video.play();
+      if(p && p.then) p.then(fadeIn).catch(()=>{ fadeIn(); });
+      else fadeIn();
+      setTimeout(showLogo, 3000);
+    } else {
+      // desktop: play once, fade video out, reveal logo
+      const finish = ()=>{ intro.classList.add('video-out'); showLogo(); };
+      video.addEventListener('ended', finish);
+      video.addEventListener('error', finish);
+      const p = video.play();
+      if(p && p.catch) p.catch(finish);
+      setTimeout(()=>{ if(video.paused || video.currentTime===0) finish(); }, 2600);
+      setTimeout(finish, 20000);
+    }
   })();
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
