@@ -94,14 +94,13 @@
   .panel--light{background:#fff;--deep:#0b0b12}
 
   .deck{
-    display:flex;width:100%;height:100svh;
-    overflow-x:auto;overflow-y:hidden;
-    scroll-snap-type:x mandatory;scroll-behavior:smooth;
-    -webkit-overflow-scrolling:touch;touch-action:pan-x;
-    scrollbar-width:none;
+    position:relative;width:100%;height:100svh;overflow:hidden;
+    touch-action:pan-y;
     transition:opacity .25s linear, transform .25s linear;will-change:opacity,transform;
   }
-  .deck::-webkit-scrollbar{display:none}
+  .deck__track{display:flex;width:100%;height:100%;
+    transition:transform .45s cubic-bezier(.22,.61,.36,1);will-change:transform}
+  .deck.dragging .deck__track{transition:none}
   .slide{
     position:relative;flex:0 0 100%;height:100%;
     scroll-snap-align:start;scroll-snap-stop:always;
@@ -191,8 +190,40 @@
   .foot__brand svg{height:40px;width:auto;display:block}
   .foot__copy{margin-left:auto;text-align:right;max-width:560px;font-size:11px;line-height:1.7;letter-spacing:.01em;opacity:.55}
 
+  /* ---------- mobile dock (Liquid Glass) ---------- */
+  .dock{display:none}
+  .dock__item{position:relative;z-index:1;display:grid;place-items:center;color:rgba(255,255,255,.72);text-decoration:none;
+    transition:width .32s ease,height .32s ease,color .25s ease}
+  .dock__item svg{height:22px;width:auto;max-width:30px;transition:height .3s ease}
+  /* active turns dark over the bright gel; darkening is delayed so the icon stays
+     visible on the dark glass while the blob is still travelling, then darkens as it arrives */
+  .dock__item.is-active{color:#0d0d12;transition:width .32s ease,height .32s ease,color .3s ease .26s}
+  .dock__goo{position:absolute;top:-24px;left:-24px;width:calc(100% + 48px);height:calc(100% + 48px);
+    pointer-events:none;z-index:0;filter:url(#dockGoo) drop-shadow(0 0 5px rgba(255,255,255,.3));opacity:.3}
+  .dock__blob{position:absolute;top:24px;left:24px;width:54px;height:54px;border-radius:999px;background:#fff;will-change:transform}
+  .dock__blob--main{transition:transform .52s cubic-bezier(.34,1.18,.5,1), width .4s ease, height .4s ease}
+  .dock__blob--drop{opacity:0;transition:transform .46s cubic-bezier(.45,0,.32,1), opacity .26s ease}
+
   /* ---------- responsive ---------- */
   @media(max-width:820px){
+    .nav{display:none}
+    .scrollcue{display:none}
+    .foot{padding-bottom:104px}
+    .dock{
+      display:flex;align-items:center;gap:6px;
+      position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;
+      padding:9px 13px;border-radius:999px;
+      background:rgba(24,24,30,.42);
+      -webkit-backdrop-filter:blur(22px) saturate(1.8);
+      backdrop-filter:blur(22px) saturate(1.8);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 10px 34px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.28), inset 0 0 0 1px rgba(255,255,255,.05);
+      transition:padding .32s ease, gap .32s ease;
+    }
+    .dock__item{width:54px;height:54px;border-radius:999px}
+    .dock.shrink{padding:5px 9px;gap:4px}
+    .dock.shrink .dock__item{width:44px;height:44px}
+    .dock.shrink .dock__item svg{height:19px}
     .slide{padding:90px 22px 110px}
     /* blur the figure background so the cover and tracklist read clearly */
     .slide__bg{background-size:cover;filter:blur(16px) brightness(.82);transform:scale(1.14)}
@@ -246,7 +277,7 @@
   </header>
 
   <!-- INTRO -->
-  <section class="intro">
+  <section class="intro" id="top">
     <video class="intro-video" id="introVideo" muted playsinline autoplay preload="auto">
       <source src="YJFFY-HD_1080p.mp4" type="video/mp4">
       <source src="YJFFY-HD_1080p.mov" type="video/quicktime">
@@ -448,12 +479,105 @@
     <p class="foot__copy">© 2026 GREBZ. All rights reserved. All content, graphics, and materials on this website are the property of GREBZ. Unauthorized use or duplication without express permission is prohibited.</p>
   </footer>
 
+  <!-- mobile dock (Liquid Glass) -->
+  <nav class="dock" id="dock" aria-label="Навигация">
+    <a class="dock__item is-active" href="#top" data-sec="top" aria-label="Главная">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.4 12 5l8 6.4"/><path d="M6 10.2V19h12v-8.8"/></svg>
+    </a>
+    <a class="dock__item" href="#rapper" data-sec="rapper" aria-label="Реппер">
+      <svg viewBox="0 0 2212.07 2212.07" fill="currentColor" aria-hidden="true"><path d="M0,0v2212.07h2212.07V0H0ZM502.54,2050.66H161.41v-864.45h341.13v864.45ZM502.54,1024.8H161.41v-380.45l643.69,380.45h-302.56ZM1019.55,2050.66h-353.74v-864.45h353.74v864.45ZM1535.75,2050.66h-354.8v-864.45h354.8v864.45ZM2050.66,2050.66h-351.64v-864.45h351.64v864.45ZM2050.66,1024.8h-655.25l655.25-387.28v387.28ZM2050.66,450.02l-950.41,561.74L161.41,456.86V161.41h1889.25v288.62Z"/></svg>
+    </a>
+    <a class="dock__item" href="#mc-coming" data-sec="mc-coming" aria-label="MC Coming">
+      <svg viewBox="0 0 2468.57 2137.84" fill="currentColor" aria-hidden="true"><path d="M1234.29,2137.84L0,0h2468.57l-1234.29,2137.84ZM229.96,132.77l1004.32,1739.54L2238.61,132.77H229.96Z"/><rect x="453.04" y="638.6" width="1562.5" height="132.77"/><rect x="1167.9" y="704.98" width="132.77" height="1244.57"/><rect x="844.93" y="724.24" width="132.77" height="722.01"/><rect x="1490.87" y="716.6" width="132.77" height="731.78"/><rect x="608.25" y="-258.65" width="132.77" height="1288.66" transform="translate(5.32 780.53) rotate(-60.29)"/><rect x="1149.61" y="319.3" width="1288.66" height="132.77" transform="translate(44.64 939.71) rotate(-29.71)"/></svg>
+    </a>
+    <a class="dock__item" href="#style-in-mc" data-sec="style-in-mc" aria-label="Style In MC">
+      <svg viewBox="0 0 2474.54 2143.01" fill="currentColor" aria-hidden="true"><rect x="454.13" y="1362.37" width="1566.27" height="133.09"/><path d="M1946.9,1229.08l-66.54-115.26L1237.27,0l-643.02,1113.83-66.54,115.19L0,2143.01h2474.54l-527.63-913.93ZM643.29,1295.03l66.54-115.26,527.43-913.59,527.5,913.59,66.48,115.26,412.78,714.89H230.58l412.71-714.89Z"/><rect x="971.58" y="702.52" width="133.09" height="737.97" transform="translate(-426.65 788.18) rotate(-34.96)"/><rect x="1067.43" y="1004.96" width="737.97" height="133.09" transform="translate(-264.8022 1634.7726) rotate(-55.0409)"/><polygon points="763.56 2102.92 476.06 1487.37 544.01 1455.64 763.18 1924.87 1007.15 1396.58 1288.01 2035.22 1219.35 2065.41 1005.48 1579.08 763.56 2102.92"/><polygon points="1710.97 2102.92 1469.06 1579.08 1255.18 2065.41 1186.53 2035.22 1467.39 1396.58 1711.36 1924.87 1930.52 1455.64 1998.48 1487.37 1710.97 2102.92"/></svg>
+    </a>
+  </nav>
+
 <script>
   // header background on scroll
   const nav = document.getElementById('nav');
   const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
   onScroll();
   window.addEventListener('scroll', onScroll, {passive:true});
+
+  // ---- mobile dock: liquid metaball morph + shrink on scroll ----
+  (function(){
+    const dock = document.getElementById('dock');
+    if(!dock) return;
+
+    // inject goo (metaball) SVG filter once
+    if(!document.getElementById('dockGoo')){
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('width','0'); svg.setAttribute('height','0');
+      svg.setAttribute('aria-hidden','true'); svg.style.position='absolute';
+      svg.innerHTML = '<defs><filter id="dockGoo"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter></defs>';
+      document.body.appendChild(svg);
+    }
+
+    // gooey layer with a resting blob + a transient droplet
+    const goo  = document.createElement('div'); goo.className='dock__goo'; goo.setAttribute('aria-hidden','true');
+    const main = document.createElement('span'); main.className='dock__blob dock__blob--main';
+    const drop = document.createElement('span'); drop.className='dock__blob dock__blob--drop';
+    goo.appendChild(main); goo.appendChild(drop);
+    dock.insertBefore(goo, dock.firstChild);
+
+    const items = {};
+    dock.querySelectorAll('.dock__item').forEach(a=> items[a.dataset.sec]=a);
+    let active='top', ready=false, cur={x:0,y:0,w:54,h:54};
+
+    const rectOf = el => ({x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight});
+    const setBlob = (b,r)=>{ b.style.width=r.w+'px'; b.style.height=r.h+'px'; b.style.transform=`translate(${r.x}px,${r.y}px)`; };
+
+    function place(){                              // snap, no animation (load / resize / shrink)
+      const el=items[active]; if(!el||!el.offsetWidth) return;
+      const r=rectOf(el);
+      main.style.transition='none'; setBlob(main,r);
+      requestAnimationFrame(()=>{ main.style.transition=''; ready=true; });
+      cur=r;
+    }
+    function morph(){                              // droplet buds off, flies over, merges
+      const el=items[active]; if(!el||!el.offsetWidth) return;
+      if(!ready){ place(); return; }
+      const r=rectOf(el);
+      drop.style.transition='none'; setBlob(drop,cur); drop.style.opacity='1';
+      requestAnimationFrame(()=>{
+        drop.style.transition='';
+        setBlob(drop,r);                           // droplet travels to target
+        setTimeout(()=>{ setBlob(main,r); }, 120); // body follows -> neck stretches & pinches
+        setTimeout(()=>{ drop.style.opacity='0'; }, 480);
+      });
+      cur=r;
+    }
+    const setActive = sec => {
+      if(!items[sec]) return;
+      active = sec;
+      for(const k in items) items[k].classList.toggle('is-active', k===active);
+      morph();
+    };
+
+    let lastY = window.scrollY, ticking=false;
+    window.addEventListener('scroll', ()=>{
+      if(ticking) return; ticking=true;
+      requestAnimationFrame(()=>{
+        const y=window.scrollY, was=dock.classList.contains('shrink');
+        if(y > lastY && y > 80) dock.classList.add('shrink');
+        else if(y < lastY) dock.classList.remove('shrink');
+        if(dock.classList.contains('shrink')!==was) setTimeout(()=>{ ready=false; place(); },340);
+        lastY=y; ticking=false;
+      });
+    }, {passive:true});
+    window.addEventListener('resize', ()=>{ ready=false; place(); }, {passive:true});
+
+    const targets=['top','rapper','mc-coming','style-in-mc'].map(id=>document.getElementById(id)).filter(Boolean);
+    const dobs=new IntersectionObserver(es=>{
+      es.forEach(e=>{ if(e.isIntersecting && e.intersectionRatio>=0.5) setActive(e.target.id); });
+    },{threshold:[0.5]});
+    targets.forEach(t=>dobs.observe(t));
+
+    requestAnimationFrame(place);
+  })();
 
   // active tab highlight
   const tabLinks = {
@@ -469,28 +593,76 @@
   }, {threshold:[0, 0.5, 1]});
   document.querySelectorAll('.panel').forEach(p=>tabObs.observe(p));
 
-  // ---- horizontal swipe deck per release ----
+  // ---- horizontal slider per release (transform-based, axis-locked: no scroll conflict) ----
   document.querySelectorAll('.panel').forEach(panel=>{
     const deck   = panel.querySelector('.deck');
-    const slides = [...panel.querySelectorAll('.slide')];
+    if(!deck) return;
+    const slides = [...deck.querySelectorAll('.slide')];
+    if(!slides.length) return;
+    // wrap slides into a track we translate (deck itself stays overflow:hidden, no native scroll)
+    const track = document.createElement('div');
+    track.className = 'deck__track';
+    while(deck.firstChild) track.appendChild(deck.firstChild);
+    deck.appendChild(track);
+
     const dots   = [...panel.querySelectorAll('.dot')];
     const arrows = [...panel.querySelectorAll('.deck__arrow')];
-    const current = () => Math.round(deck.scrollLeft / deck.clientWidth);
-    const go = i => {
-      i = Math.max(0, Math.min(slides.length-1, i));
-      deck.scrollTo({left:i*deck.clientWidth, behavior:'smooth'});
-    };
-    arrows.forEach(a=>a.addEventListener('click',()=>go(current()+(a.dataset.dir==='next'?1:-1))));
-    dots.forEach((d,i)=>d.addEventListener('click',()=>go(i)));
+    let index = 0;
+
     const sync = ()=>{
-      const c = current();
-      dots.forEach((d,i)=>d.classList.toggle('is-active', i===c));
-      if(arrows[0]) arrows[0].style.opacity = c===0 ? .3 : 1;
-      if(arrows[1]) arrows[1].style.opacity = c===slides.length-1 ? .3 : 1;
+      dots.forEach((d,i)=>d.classList.toggle('is-active', i===index));
+      if(arrows[0]) arrows[0].style.opacity = index===0 ? .3 : 1;
+      if(arrows[1]) arrows[1].style.opacity = index===slides.length-1 ? .3 : 1;
     };
-    let t=false;
-    deck.addEventListener('scroll',()=>{ if(!t){t=true;requestAnimationFrame(()=>{sync();t=false;});} },{passive:true});
-    sync();
+    const go = i => {
+      index = Math.max(0, Math.min(slides.length-1, i));
+      track.style.transform = `translateX(${-index*100}%)`;
+      sync();
+    };
+    arrows.forEach(a=>a.addEventListener('click',()=>go(index+(a.dataset.dir==='next'?1:-1))));
+    dots.forEach((d,i)=>d.addEventListener('click',()=>go(i)));
+    window.addEventListener('resize', ()=>{
+      track.style.transition='none';
+      track.style.transform=`translateX(${-index*100}%)`;
+      requestAnimationFrame(()=>{ track.style.transition=''; });
+    }, {passive:true});
+
+    // touch: lock to one axis per gesture. horizontal -> we drag; vertical -> page scrolls natively
+    let startX=0,startY=0,dx=0,locked=null,dragging=false,w=0;
+    deck.addEventListener('touchstart', e=>{
+      if(e.touches.length>1) return;
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY;
+      dx=0; locked=null; dragging=true; w=deck.clientWidth;
+      deck.classList.add('dragging');
+    }, {passive:true});
+    deck.addEventListener('touchmove', e=>{
+      if(!dragging) return;
+      const mdx=e.touches[0].clientX-startX, mdy=e.touches[0].clientY-startY;
+      if(locked===null && (Math.abs(mdx)>8 || Math.abs(mdy)>8))
+        locked = Math.abs(mdx)>Math.abs(mdy) ? 'x' : 'y';
+      if(locked==='x'){
+        e.preventDefault();                       // own the horizontal gesture
+        dx=mdx;
+        let pos=-index*w+dx;
+        if((index===0 && dx>0) || (index===slides.length-1 && dx<0)) pos=-index*w+dx*0.35; // end resistance
+        track.style.transform=`translateX(${pos}px)`;
+      }
+      // locked==='y' -> do nothing, browser scrolls the page vertically
+    }, {passive:false});
+    const end = ()=>{
+      if(!dragging) return; dragging=false;
+      deck.classList.remove('dragging');
+      if(locked==='x'){
+        if(dx <= -w*0.18) go(index+1);
+        else if(dx >= w*0.18) go(index-1);
+        else go(index);
+      }
+      locked=null; dx=0;
+    };
+    deck.addEventListener('touchend', end);
+    deck.addEventListener('touchcancel', end);
+
+    go(0);
   });
 
   // ---- smooth vertical fade in/out of each release as it enters/leaves ----
@@ -585,5 +757,7 @@
     });
   }
 </script>
+<!-- Cloudflare Web Analytics — замени ТВОЙ-ТОКЕН на token из дашборда (Web Analytics → Add a site → Manage site) -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ТВОЙ-ТОКЕН"}'></script>
 </body>
 </html>
