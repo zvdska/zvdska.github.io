@@ -22,7 +22,7 @@
   --card-h:80svh;         /* висота картки у стопці */
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
 body{
   background:var(--ink);color:var(--text);
   font-family:'Archivo',system-ui,sans-serif;line-height:1.5;
@@ -37,7 +37,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* ── шапка ── */
 header{position:fixed;top:0;left:0;right:0;z-index:40;background:transparent;
-  transition:transform .35s cubic-bezier(.2,.7,.2,1),background-color .25s ease,border-color .25s ease;
+  transition:transform .5s cubic-bezier(.16,1,.3,1),background-color .3s ease,border-color .3s ease;
   border-bottom:1px solid transparent}
 header.hide{transform:translateY(-100%)}
 header.solid{background:#fff;border-bottom-color:#ececec}
@@ -420,7 +420,7 @@ footer .mono{font-size:11px;color:var(--muted);letter-spacing:.1em}
     </section>
 
     <footer class="foot-white">
-      <div class="foot-cr">© 2026 KRBK — всі права захищені</div>
+      <div class="foot-cr">© 2026 KRBK</div>
       <div class="foot-soc">
         <a href="https://www.instagram.com/korobokpavel_?igsh=MXdiYnB6bG00Y3AzNw==" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
         <a href="https://youtube.com/@krbkofficial?si=Y6Iir_9s2kCORZhC" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.6 2.6 0 0 0 2.4 7.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 4.8 2.6 2.6 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8A27 27 0 0 0 22 12a27 27 0 0 0-.4-4.8ZM10 15V9l5 3-5 3Z"/></svg></a>
@@ -772,7 +772,7 @@ function buildHero(){
   const track=$("#hcTrack"),bars=$("#hcBars");
   track.innerHTML=HERO.map((s,i)=>{
     const media=s.kind==="video"
-      ? `<video class="hc-media" src="${s.src}" poster="${s.poster||''}" muted loop playsinline preload="metadata"></video>`
+      ? `<video class="hc-media" src="${s.src}" poster="${s.poster||''}" muted playsinline preload="metadata"></video>`
       : `<img class="hc-media" src="${s.src||imgFor(s)}" alt="${s.title||''}">`;
     return `<div class="hc-slide" data-i="${i}">${media}<div class="scrim"></div>
       <div class="hc-info">${s.eyebrow?`<div class="hc-eyebrow">${s.eyebrow}</div>`:''}
