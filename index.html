@@ -38,9 +38,15 @@
   body::before {
     content: "";
     position: fixed;
-    inset: 0;
+    inset: -40px;
     z-index: 0;
     background: url('bg.jpg') center center / cover no-repeat;
+    filter: blur(0px) brightness(1);
+    transition: filter 0.9s ease;
+  }
+
+  body[data-view="releases"]::before {
+    filter: blur(28px) brightness(0.55);
   }
 
   body {
