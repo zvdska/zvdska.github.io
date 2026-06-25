@@ -4,16 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TYRAZH</title>
-<meta name="description" content="TYRAZH — label hub">
+<meta name="description" content="TYRAZH — label">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,200;125,300;125,400&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Gigantic';
+    src: url('fonts/Gigantic.woff') format('woff');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Mutabor';
+    src: url('fonts/Mutabor.woff') format('woff');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+
   :root {
-    --ink: #f2f5ff;
-    --bg: #0a1230;
+    --blue: #1d2bbf;
+    --red: #f0331c;
+    --ink: #ffffff;
     --ease: cubic-bezier(0.65, 0, 0.18, 1);
   }
 
@@ -22,60 +31,32 @@
   html, body {
     height: 100%;
     overflow: hidden;
-    background: var(--bg);
+    background: var(--blue);
   }
 
   body {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
+    font-family: 'Mutabor', sans-serif;
     color: var(--ink);
   }
 
-  /* ---------- общий фон ---------- */
-  .bg {
+  /* ---------- видео-фон ---------- */
+  .bgvideo {
     position: fixed;
-    inset: -15%;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     z-index: 0;
-    background:
-      radial-gradient(ellipse 70% 55% at 18% 12%, rgba(28, 48, 110, 0.85), transparent 70%),
-      radial-gradient(ellipse 55% 60% at 85% 80%, rgba(16, 36, 96, 0.7), transparent 70%),
-      radial-gradient(ellipse 60% 50% at 70% 25%, rgba(10, 20, 58, 0.9), transparent 75%),
-      linear-gradient(155deg, #0b1434 0%, #081026 55%, #0a1638 100%);
-    animation: drift 26s ease-in-out infinite alternate;
   }
 
-  @keyframes drift {
-    0%   { transform: translate(0%, 0%) scale(1); }
-    100% { transform: translate(-2%, 1.5%) scale(1.05); }
-  }
-
-  .grain {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    pointer-events: none;
-    opacity: 0.07;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .vignette {
-    position: fixed;
-    inset: 0;
-    z-index: 4;
-    pointer-events: none;
-    background: radial-gradient(ellipse 95% 85% at 50% 50%, transparent 60%, rgba(3, 6, 18, 0.5) 100%);
-  }
-
-  /* ---------- частицы (живут на home) ---------- */
-  canvas#cloud {
+  /* лёгкое затемнение, чтобы текст читался */
+  .scrim {
     position: fixed;
     inset: 0;
     z-index: 1;
-    display: block;
-    transition: opacity 0.7s ease;
+    background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.25) 100%);
+    pointer-events: none;
   }
-
-  body[data-view="releases"] canvas#cloud { opacity: 0; }
 
   /* ---------- навигация ---------- */
   header {
@@ -89,16 +70,13 @@
   }
 
   .brand {
-    font-weight: 200;
-    font-size: clamp(1.2rem, 2.4vw, 1.8rem);
-    letter-spacing: 0.06em;
+    font-family: 'Gigantic', sans-serif;
+    font-size: clamp(1.3rem, 2.6vw, 2rem);
+    letter-spacing: 0.02em;
     color: var(--ink);
-    text-decoration: none;
-    cursor: pointer;
     background: none;
     border: none;
-    font-family: inherit;
-    font-stretch: inherit;
+    cursor: pointer;
     opacity: 0;
     transition: opacity 0.5s ease;
     pointer-events: none;
@@ -109,31 +87,25 @@
     pointer-events: auto;
   }
 
-  .nav { display: flex; gap: clamp(24px, 4vw, 56px); }
+  .nav { display: flex; gap: clamp(20px, 3.5vw, 48px); }
 
   .nav button {
     background: none;
     border: none;
     cursor: pointer;
-    font-family: inherit;
-    font-stretch: inherit;
-    font-weight: 300;
-    font-size: clamp(1rem, 1.8vw, 1.5rem);
-    letter-spacing: 0.02em;
+    font-family: 'Mutabor', sans-serif;
+    font-size: clamp(1rem, 1.8vw, 1.4rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--ink);
-    padding: 0 0 3px;
+    padding: 0 0 4px;
     border-bottom: 1px solid transparent;
     transition: opacity 0.3s ease, border-color 0.3s ease;
   }
 
-  .nav button:hover { opacity: 0.65; }
-
-  .nav button:focus-visible {
-    outline: 1px solid var(--ink);
-    outline-offset: 4px;
-  }
-
-  .nav button.active { border-bottom-color: rgba(242, 245, 255, 0.5); }
+  .nav button:hover { opacity: 0.6; }
+  .nav button:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+  .nav button.active { border-bottom-color: rgba(255,255,255,0.6); }
 
   /* ---------- лента секций ---------- */
   .track {
@@ -159,18 +131,18 @@
   /* ---------- HOME ---------- */
   .logo {
     position: absolute;
-    left: clamp(24px, 5vw, 90px);
+    left: 0; right: 0;
     top: 50%;
-    transform: translateY(-58%);
-    font-weight: 200;
-    font-size: clamp(3rem, 11vw, 10.5rem);
-    letter-spacing: 0.04em;
+    transform: translateY(-50%);
+    text-align: center;
+    font-family: 'Gigantic', sans-serif;
+    font-size: clamp(4rem, 21vw, 20rem);
+    line-height: 0.9;
+    letter-spacing: 0.01em;
+    color: var(--red);
     user-select: none;
     pointer-events: none;
     white-space: nowrap;
-    text-shadow: 0 0 24px rgba(8, 14, 38, 0.8), 0 0 60px rgba(8, 14, 38, 0.5);
-    opacity: 0;
-    animation: fadeIn 1.6s ease 0.3s forwards;
   }
 
   .footer {
@@ -178,15 +150,12 @@
     right: clamp(24px, 4vw, 64px);
     bottom: clamp(20px, 4vh, 40px);
     text-align: right;
-    font-weight: 300;
-    font-size: clamp(0.62rem, 1vw, 0.8rem);
+    font-size: clamp(0.6rem, 1vw, 0.78rem);
+    letter-spacing: 0.06em;
     line-height: 1.6;
-    letter-spacing: 0.02em;
-    opacity: 0;
-    animation: fadeIn 1.2s ease 1.4s forwards;
+    text-transform: uppercase;
+    opacity: 0.85;
   }
-
-  @keyframes fadeIn { to { opacity: 1; } }
 
   /* ---------- RELEASES ---------- */
   .view-inner {
@@ -196,9 +165,10 @@
   }
 
   .page-title {
-    font-weight: 200;
-    font-size: clamp(2.2rem, 6vw, 4.5rem);
-    letter-spacing: 0.04em;
+    font-family: 'Gigantic', sans-serif;
+    font-size: clamp(2.4rem, 7vw, 5.5rem);
+    letter-spacing: 0.01em;
+    color: var(--red);
     margin: 0 auto clamp(32px, 6vh, 64px);
     max-width: 1280px;
   }
@@ -222,8 +192,8 @@
     aspect-ratio: 1 / 1;
     overflow: hidden;
     border-radius: 14px;
-    border: 1px solid rgba(242, 245, 255, 0.1);
-    background: rgba(242, 245, 255, 0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
   }
 
   .cover img {
@@ -242,62 +212,17 @@
 
   a.release:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 
-  .release.placeholder { cursor: default; pointer-events: none; }
-
-  .blur-fill {
-    position: absolute;
-    inset: -12%;
-    background:
-      radial-gradient(ellipse 55% 45% at 30% 35%, rgba(90, 130, 220, 0.45), transparent 70%),
-      radial-gradient(ellipse 50% 55% at 72% 68%, rgba(40, 70, 150, 0.5), transparent 70%),
-      radial-gradient(ellipse 45% 40% at 60% 25%, rgba(140, 160, 230, 0.25), transparent 70%),
-      linear-gradient(150deg, #16235a 0%, #0c1538 60%, #101e4e 100%);
-    filter: blur(26px) saturate(1.1);
-    animation: blobShift 14s ease-in-out infinite alternate;
-  }
-
-  @keyframes blobShift {
-    0%   { transform: translate(0%, 0%) scale(1); }
-    100% { transform: translate(4%, -3%) scale(1.08); }
-  }
-
-  .meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    margin-top: 14px;
-  }
-
-  .placeholder .meta { opacity: 0.45; }
-
-  .title {
-    font-weight: 300;
-    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
-    letter-spacing: 0.02em;
-  }
-
-  .year {
-    font-weight: 300;
-    font-size: clamp(0.75rem, 1.1vw, 0.85rem);
-    opacity: 0.55;
-    white-space: nowrap;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .bg, .blur-fill { animation: none; }
-    .logo, .footer { animation: none; opacity: 1; }
     .track { transition: none; }
+    .cover img { transition: none; }
   }
 </style>
 </head>
 <body data-view="home">
-  <div class="bg"></div>
-  <canvas id="cloud"></canvas>
-  <div class="vignette"></div>
-  <div class="grain"></div>
-
-
+  <video class="bgvideo" autoplay muted loop playsinline poster="">
+    <source src="bg.mp4" type="video/mp4">
+  </video>
+  <div class="scrim"></div>
 
   <header>
     <button class="brand" data-go="home">TYRAZH</button>
@@ -313,7 +238,7 @@
     <section class="view" id="view-home">
       <h1 class="logo">TYRAZH</h1>
       <div class="footer">
-        &copy; 2026 TYRAZH&nbsp; /&nbsp; All rights reserved.<br>
+        &copy; 2026 TYRAZH / All rights reserved.<br>
         Artwork, music and visuals are property of their respective owners.<br>
         Made in Ukraine
       </div>
@@ -363,7 +288,6 @@
 
 <script>
 (() => {
-  /* ---------- переключение секций ---------- */
   const views = ['home', 'releases'];
   const buttons = document.querySelectorAll('[data-go]');
 
@@ -374,15 +298,12 @@
       b.classList.toggle('active', b.dataset.go === view)
     );
     if (push !== false) {
-      try {
-        history.replaceState(null, '', view === 'home' ? '#' : '#' + view);
-      } catch (e) { /* предпросмотр в песочнице — игнорируем */ }
+      try { history.replaceState(null, '', view === 'home' ? '#' : '#' + view); } catch (e) {}
     }
   }
 
   buttons.forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
-  // открыть нужную секцию по ссылке вида tyrazh.com#releases
   try {
     const initial = location.hash.replace('#', '');
     if (initial) go(initial, false);
@@ -391,146 +312,6 @@
   window.addEventListener('hashchange', () => {
     go(location.hash.replace('#', '') || 'home', false);
   });
-
-  /* ---------- частицы ---------- */
-  const canvas = document.getElementById('cloud');
-  const ctx = canvas.getContext('2d');
-  let W, H, dpr;
-
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const sprite = document.createElement('canvas');
-  const SS = 64;
-  sprite.width = sprite.height = SS;
-  const sctx = sprite.getContext('2d');
-  const grad = sctx.createRadialGradient(SS/2, SS/2, 0, SS/2, SS/2, SS/2);
-  grad.addColorStop(0, 'rgba(255, 158, 70, 1)');
-  grad.addColorStop(0.5, 'rgba(255, 132, 48, 0.45)');
-  grad.addColorStop(1, 'rgba(255, 110, 30, 0)');
-  sctx.fillStyle = grad;
-  sctx.fillRect(0, 0, SS, SS);
-
-  const particles = [];
-  const N = 975; // +30%
-
-  function gauss() {
-    return (Math.random() + Math.random() + Math.random() + Math.random() - 2) / 2;
-  }
-
-  function build() {
-    particles.length = 0;
-    const cx = W * 0.56;
-    const cy = H * 0.48;
-    const rx = Math.min(W * 0.30, 520);
-    const ry = Math.min(H * 0.13, 130);
-    for (let i = 0; i < N; i++) {
-      const hx = cx + gauss() * rx;
-      const hy = cy + gauss() * ry;
-      particles.push({
-        hx, hy,
-        x: hx, y: hy,
-        vx: 0, vy: 0,
-        base: 26 + Math.random() * 30,
-        seed: Math.random() * Math.PI * 2,
-        // индивидуальные параметры парения
-        ax: 5 + Math.random() * 9,      // амплитуда дрейфа по x
-        ay: 4 + Math.random() * 7,      // по y
-        sx: 0.25 + Math.random() * 0.4, // скорость дрейфа
-        sy: 0.2  + Math.random() * 0.35
-      });
-    }
-  }
-
-  function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    build();
-  }
-
-  const mouse = { x: -9999, y: -9999 };
-
-  window.addEventListener('pointermove', e => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-  }, { passive: true });
-
-  window.addEventListener('pointerleave', () => {
-    mouse.x = -9999; mouse.y = -9999;
-  });
-
-  window.addEventListener('resize', resize);
-  resize();
-
-  // скорость в 2 раза меньше
-  const R = 150;
-  const FORCE = 4.5;
-  const SPRING = 0.0075;
-  const DAMP = 0.92;
-
-  let t = 0;
-
-  function frame() {
-    t += 0.008;
-
-    // не считаем физику, когда облако скрыто
-    if (document.body.dataset.view !== 'home') {
-      requestAnimationFrame(frame);
-      return;
-    }
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-
-    for (const p of particles) {
-      // парящая "домашняя" точка — пылинка медленно плывёт
-      const ox = p.hx + Math.sin(t * p.sx + p.seed) * p.ax;
-      const oy = p.hy + Math.cos(t * p.sy + p.seed * 1.7) * p.ay;
-
-      if (!reduced) {
-        const dx = p.x - mouse.x;
-        const dy = p.y - mouse.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < R * R && d2 > 0.01) {
-          const d = Math.sqrt(d2);
-          const f = (1 - d / R) * FORCE;
-          p.vx += (dx / d) * f;
-          p.vy += (dy / d) * f;
-        }
-
-        p.vx += (ox - p.x) * SPRING;
-        p.vy += (oy - p.y) * SPRING;
-
-        p.vx *= DAMP;
-        p.vy *= DAMP;
-        p.x += p.vx;
-        p.y += p.vy;
-      } else {
-        p.x = ox; p.y = oy;
-      }
-
-      const ddx = p.x - ox;
-      const ddy = p.y - oy;
-      const disp = Math.sqrt(ddx * ddx + ddy * ddy);
-      const k = Math.min(disp / 70, 1);
-
-      const size  = p.base * (1 - k) + 2.2 * k;
-      const alpha = 0.013 * (1 - k) + 0.5 * k;
-
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(sprite, p.x - size / 2, p.y - size / 2, size, size);
-    }
-
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(frame);
-  }
-
-  frame();
 })();
 </script>
 </body>
