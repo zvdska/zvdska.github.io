@@ -216,14 +216,6 @@
   }
 
 
-  /* параллакс при наклоне */
-  .bg {
-    transition: transform .1s ease-out;
-  }
-  .cover {
-    transition: transform .1s ease-out;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .cover, .panel { transition: none; }
     .ping { display: none; }
@@ -315,42 +307,6 @@
     el.addEventListener('click', () => openUrl(el));
   });
 
-
-  // параллакс при наклоне телефона
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iOS 13+: запрос разрешения
-    document.addEventListener('click', () => {
-      DeviceOrientationEvent.requestPermission()
-        .then(perm => {
-          if (perm === 'granted') {
-            window.addEventListener('deviceorientation', parallax);
-          }
-        })
-        .catch(() => {});
-    }, { once: true });
-  } else if (typeof DeviceOrientationEvent !== 'undefined') {
-    // Android и старый iOS
-    window.addEventListener('deviceorientation', parallax);
-  }
-
-  function parallax(e) {
-    const beta = e.beta || 0;   // наклон вперёд-назад (-180 до 180)
-    const gamma = e.gamma || 0; // наклон влево-вправо (-90 до 90)
-
-    // фон движется медленнее (50% от наклона)
-    const bgX = (gamma * 0.5);
-    const bgY = (beta * 0.5);
-
-    // обложка движется быстрее (100% от наклона)
-    const coverX = (gamma * 1.2);
-    const coverY = (beta * 1.2);
-
-    const bgElem = document.querySelector('.bg');
-    const coverElem = document.querySelector('.cover');
-
-    if (bgElem) bgElem.style.transform = `translate(${bgX}px, ${bgY}px)`;
-    if (coverElem) coverElem.style.transform = `translate(${coverX}px, ${coverY}px)`;
-  }
 
 
 </script>
