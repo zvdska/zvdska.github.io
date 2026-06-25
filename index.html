@@ -31,7 +31,16 @@
   html, body {
     height: 100%;
     overflow: hidden;
-    background: var(--blue);
+    background: #060606;
+  }
+
+  /* фоновое изображение на весь экран */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: url('bg.jpg') center center / cover no-repeat;
   }
 
   body {
@@ -149,7 +158,7 @@
     font-family: 'Gigantic', sans-serif;
     font-size: clamp(2.4rem, 7vw, 5.5rem);
     letter-spacing: 0.01em;
-    color: var(--red);
+    color: var(--ink);
     margin: 0 auto clamp(32px, 6vh, 64px);
     max-width: 1280px;
   }
@@ -223,7 +232,6 @@
     <!-- RELEASES -->
     <section class="view" id="view-releases">
       <div class="view-inner">
-        <h2 class="page-title">Releases</h2>
         <div class="grid">
 
           <a class="release" href="/kupidony">
@@ -261,6 +269,8 @@
     </section>
 
   </div>
+
+
 
 <script>
 (() => {
