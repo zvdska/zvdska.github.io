@@ -34,18 +34,19 @@
     background: #060606;
   }
 
-  /* фоновое изображение на весь экран */
-  body::before {
-    content: "";
+  /* видео-фон на весь экран */
+  .bgvideo {
     position: fixed;
     inset: -40px;
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    object-fit: cover;
     z-index: 0;
-    background: url('bg.jpg') center center / cover no-repeat;
     filter: blur(0px) brightness(1);
     transition: filter 0.9s ease;
   }
 
-  body[data-view="releases"]::before {
+  body[data-view="releases"] .bgvideo {
     filter: blur(28px) brightness(0.55);
   }
 
@@ -215,6 +216,9 @@
 </style>
 </head>
 <body data-view="home">
+  <video class="bgvideo" autoplay muted loop playsinline poster="bg-poster.jpg">
+    <source src="bg.mp4" type="video/mp4">
+  </video>
   <header>
     <button class="brand" data-go="home">TYRAZH</button>
     <nav class="nav">
