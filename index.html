@@ -6,7 +6,7 @@
 <title>TYRAZH</title>
 <meta name="description" content="TYRAZH — label">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   @font-face {
     font-family: 'Gigantic';
@@ -64,6 +64,33 @@
     align-items: center;
     justify-content: space-between;
     padding: clamp(22px, 4.5vh, 48px) clamp(24px, 4vw, 64px) 0;
+    transition: transform 0.4s ease, background 0.4s ease, backdrop-filter 0.4s ease, padding 0.4s ease;
+  }
+
+  /* подложка под шапкой (появляется при скролле вверх) */
+  header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: rgba(8, 8, 12, 0.35);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 60%, transparent 100%);
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  /* шапка спрятана (скролл вниз) */
+  header.hidden {
+    transform: translateY(-100%);
+  }
+
+  /* шапка с размытой подложкой (скролл вверх, не у самого верха) */
+  header.scrolled::before {
+    opacity: 1;
   }
 
   .brand {
@@ -282,6 +309,8 @@
 
 
 
+
+
 <script>
 (() => {
   const views = ['home', 'releases'];
@@ -308,6 +337,63 @@
   window.addEventListener('hashchange', () => {
     go(location.hash.replace('#', '') || 'home', false);
   });
+
+  /* ---------- мобильная шапка: скрытие при скролле вниз, блюр при скролле вверх ---------- */
+  const header = document.querySelector('header');
+  const scroller = document.querySelector('.view-inner');
+  if (header && scroller) {
+    let lastY = 0;
+    let ticking = false;
+
+    function isMobile() {
+      return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function onScroll() {
+      const y = scroller.scrollTop;
+
+      if (!isMobile()) {
+        header.classList.remove('hidden', 'scrolled');
+        lastY = y;
+        ticking = false;
+        return;
+      }
+
+      const goingDown = y > lastY;
+      const delta = Math.abs(y - lastY);
+
+      if (y <= 8) {
+        // у самого верха — шапка видна, без подложки
+        header.classList.remove('hidden', 'scrolled');
+      } else if (delta > 6) {
+        if (goingDown) {
+          header.classList.add('hidden');
+          header.classList.remove('scrolled');
+        } else {
+          // скролл вверх — показать с размытой подложкой
+          header.classList.remove('hidden');
+          header.classList.add('scrolled');
+        }
+      }
+
+      lastY = y;
+      ticking = false;
+    }
+
+    scroller.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // при возврате на home сбрасываем состояние шапки
+    document.querySelectorAll('[data-go]').forEach(b => {
+      b.addEventListener('click', () => {
+        if (b.dataset.go === 'home') header.classList.remove('hidden', 'scrolled');
+      });
+    });
+  }
 })();
 </script>
 </body>
