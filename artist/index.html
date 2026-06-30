@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>TYRAZH for Artist</title>
-<script src="https://esm.sh/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -196,8 +196,10 @@
   const DASHBOARD_URL = "dashboard.html"; // куда вести после входа
   // ======================================================
 
-  const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!window.supabase) {
+    document.getElementById('err').textContent = 'Не загрузилась библиотека. Проверь интернет и обнови страницу.';
+  }
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const loginInput = document.getElementById('login');
   const passInput = document.getElementById('pass');
@@ -219,7 +221,7 @@
       password: passInput.value,
     });
     if (error) {
-      err.textContent = 'Неверный логин или пароль';
+      err.textContent = error.message || 'Неверный логин или пароль';
       btn.disabled = false;
       btn.textContent = 'Log in';
       return;
