@@ -295,10 +295,22 @@
     return null;
   }
   function logClick(platform) {
+    const body = JSON.stringify({ slug: TRACK_SLUG, platform });
+    // 1) sendBeacon — переживает уход со страницы
+    let sent = false;
     try {
-      const body = JSON.stringify({ slug: TRACK_SLUG, platform });
-      navigator.sendBeacon(CLICK_ENDPOINT, new Blob([body], { type: "application/json" }));
+      sent = navigator.sendBeacon(CLICK_ENDPOINT, new Blob([body], { type: "application/json" }));
     } catch (_) {}
+    // 2) запасной fetch с keepalive, если beacon не сработал
+    if (!sent) {
+      try {
+        fetch(CLICK_ENDPOINT, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body, keepalive: true,
+        }).catch(() => {});
+      } catch (_) {}
+    }
   }
 
   function openUrl(el) {
@@ -307,11 +319,11 @@
     if (p) logClick(p);
     radarPing(el);
     tg?.HapticFeedback?.impactOccurred('light');
-    if (tgUrl) {
-      tg ? tg.openTelegramLink(tgUrl) : window.open(tgUrl, '_blank');
-    } else if (url) {
-      tg ? tg.openLink(url) : window.open(url, '_blank');
-    }
+    const go = () => {
+      if (tgUrl) { tg ? tg.openTelegramLink(tgUrl) : window.open(tgUrl, '_blank'); }
+      else if (url) { tg ? tg.openLink(url) : window.open(url, '_blank'); }
+    };
+    if (tg) go(); else setTimeout(go, 60);
   }
 
   document.querySelectorAll('[data-url], [data-tg]').forEach(el => {
