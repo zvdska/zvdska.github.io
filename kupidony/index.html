@@ -281,8 +281,30 @@
     }
   }
 
+  // === учёт кликов TYRAZH ===
+  const TRACK_SLUG = "kupidoni";
+  const CLICK_ENDPOINT = "https://ktfmjaanheowyzjrovkc.supabase.co/functions/v1/track-click";
+
+  function platformFromEl(el) {
+    const u = (el.dataset.url || el.dataset.tg || "").toLowerCase();
+    if (u.includes("spotify"))   return "spotify";
+    if (u.includes("apple"))     return "apple";
+    if (u.includes("youtube"))   return "youtube";
+    if (u.includes("instagram")) return "instagram";
+    if (u.includes("tiktok"))    return "tiktok";
+    return null;
+  }
+  function logClick(platform) {
+    try {
+      const body = JSON.stringify({ slug: TRACK_SLUG, platform });
+      navigator.sendBeacon(CLICK_ENDPOINT, new Blob([body], { type: "application/json" }));
+    } catch (_) {}
+  }
+
   function openUrl(el) {
     const url = el.dataset.url, tgUrl = el.dataset.tg;
+    const p = platformFromEl(el);
+    if (p) logClick(p);
     radarPing(el);
     tg?.HapticFeedback?.impactOccurred('light');
     if (tgUrl) {
