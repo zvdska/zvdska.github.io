@@ -110,20 +110,14 @@
   }
   function logClick(platform) {
     const body = JSON.stringify({ slug: TRACK_SLUG, platform });
-    // 1) sendBeacon — переживает уход со страницы
-    let sent = false;
     try {
-      sent = navigator.sendBeacon(CLICK_ENDPOINT, new Blob([body], { type: "application/json" }));
-    } catch (_) {}
-    // 2) запасной fetch с keepalive, если beacon не сработал
-    if (!sent) {
-      try {
-        fetch(CLICK_ENDPOINT, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body, keepalive: true,
-        }).catch(() => {});
-      } catch (_) {}
+      return fetch(CLICK_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body, keepalive: true,
+      }).catch(() => {});
+    } catch (_) {
+      return Promise.resolve();
     }
   }
 
@@ -141,15 +135,28 @@
   function openUrl(el) {
     const url = el.dataset.url, tgUrl = el.dataset.tg;
     const p = platformFromEl(el);
-    if (p) logClick(p);
     radarPing(el);
     tg?.HapticFeedback?.impactOccurred('light');
+
+    let done = false;
     const go = () => {
+      if (done) return;
+      done = true;
       if (tgUrl) { tg ? tg.openTelegramLink(tgUrl) : window.open(tgUrl, '_blank'); }
       else if (url) { tg ? tg.openLink(url) : window.open(url, '_blank'); }
     };
-    // в обычном браузере даём beacon уйти; в Telegram открываем сразу
-    if (tg) go(); else setTimeout(go, 60);
+
+    if (tg) {
+      // в Telegram страница не закрывается — шлём и сразу открываем
+      if (p) logClick(p);
+      go();
+    } else if (p) {
+      // в браузере ждём отправки клика (максимум 500мс), потом переход
+      logClick(p).finally(go);
+      setTimeout(go, 500);
+    } else {
+      go();
+    }
   }
 
   document.querySelectorAll('[data-url], [data-tg]').forEach(el => {
