@@ -55,16 +55,7 @@
 
   .spacer { flex:1; }
 
-  /* исполнители S / 4 (шаг 2) */
-  .artists { display:flex; align-items:flex-end; justify-content:space-between; width:100%; margin-bottom:14px; }
-  .artist { font-family:'Gigantic'; font-size:40px; line-height:1; color:var(--ink); cursor:pointer;
-    text-shadow:0 2px 12px rgba(0,0,0,.5);
-    opacity:0; transform:translateY(16px); transition:opacity .7s ease, transform .7s cubic-bezier(.22,.9,.3,1), color .2s;
-    -webkit-user-select:none; user-select:none; }
-  .artist.show { opacity:1; transform:none; }
   .artist:active { color:rgba(255,255,255,.55); }
-  .artist.left { transition-delay:.05s; }
-  .artist.right { transition-delay:.15s; }
 
   /* круглые кнопки площадок (шаг 4) */
   .platforms-zone { flex:1; display:flex; align-items:center; justify-content:center; width:100%; padding:16px 0; }
@@ -94,7 +85,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .card,.titles,.artist,.platforms { transition:none; opacity:1; transform:none; }
+    .card,.titles,.platforms { transition:none; opacity:1; transform:none; }
   }
 </style>
 </head>
@@ -117,10 +108,6 @@
 
       <div class="spacer"></div>
 
-      <div class="artists">
-        <div class="artist left"  data-url="https://www.instagram.com/simptomaponika">S</div>
-        <div class="artist right" data-url="https://www.instagram.com/4erdak_mwah/">4</div>
-      </div>
     </div>
   </div>
 
@@ -146,11 +133,9 @@
   const card = document.getElementById('card');
   const titles = document.getElementById('titles');
   const platforms = document.getElementById('platforms');
-  const artists = document.querySelectorAll('.artist');
 
   // карточка появляется сразу, внутри — поочерёдно
   setTimeout(() => card.classList.add('show'), 300);
-  setTimeout(() => artists.forEach(a => a.classList.add('show')), 800);   // шаг 2: S/4
   setTimeout(() => titles.classList.add('show'), 1500);                    // шаг 3: титул
   setTimeout(() => platforms.classList.add('show'), 2300);                 // шаг 4: кнопки
 
