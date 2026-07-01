@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>DIFFERENTLY — U KNOW</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#FFFFFF; --dark:#0a0a0a; --glass:rgba(255,255,255,.08); --stroke:rgba(255,255,255,.18); }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body { background:var(--dark); color:var(--ink); font-family:'Inter',-apple-system,sans-serif; overflow:hidden; -webkit-font-smoothing:antialiased; }
+
+  /* видеофон — ч/б */
+  .bg { position:fixed; inset:0; width:100%; height:100%; object-fit:cover; filter:grayscale(1) contrast(1.05) brightness(.62); z-index:0; }
+  .shade { position:fixed; inset:0; background:linear-gradient(rgba(10,10,10,.35) 0%, rgba(10,10,10,.15) 40%, rgba(10,10,10,.85) 100%); z-index:1; pointer-events:none; }
+
+  .stage { position:fixed; inset:0; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding:calc(40px + env(safe-area-inset-top)) 22px calc(28px + env(safe-area-inset-bottom)); }
+
+  /* заголовок в стиле обложки */
+  .header { text-align:center; margin-bottom:auto; margin-top:8vh; opacity:0; animation:fade 1s ease .3s forwards; }
+  .eyebrow { font-family:'Inter'; font-size:12px; font-weight:400; letter-spacing:.5em; text-transform:uppercase; color:rgba(255,255,255,.85); padding-left:.5em; }
+  .divider { display:flex; align-items:center; justify-content:center; gap:12px; margin:14px 0; opacity:.7; }
+  .divider .line { width:60px; height:1px; background:rgba(255,255,255,.5); }
+  .divider .star { font-size:11px; }
+  .title { font-family:'Cormorant Garamond'; font-weight:500; font-style:italic; font-size:clamp(52px,17vw,76px); line-height:.95; letter-spacing:.01em; }
+
+  @keyframes fade { to { opacity:1; } }
+
+  /* плашки площадок */
+  .panel { width:100%; max-width:400px; opacity:0; transform:translateY(30px); transition:opacity .8s ease, transform .8s cubic-bezier(.22,.9,.3,1); }
+  .panel.show { opacity:1; transform:none; }
+  .plat { display:flex; align-items:center; gap:14px; width:100%; padding:16px 20px; margin-bottom:11px; background:var(--glass); border:1px solid var(--stroke); border-radius:2px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); color:var(--ink); font-family:inherit; font-size:14px; font-weight:500; letter-spacing:.02em; text-align:left; cursor:pointer; position:relative; overflow:hidden; transition:background .2s, border-color .2s; }
+  .plat:active { background:rgba(255,255,255,.16); }
+  .plat .icon { width:20px; height:20px; fill:var(--ink); flex-shrink:0; }
+  .plat .name { flex:1; text-transform:uppercase; letter-spacing:.1em; font-size:12.5px; }
+  .plat .arrow { font-size:15px; opacity:.7; }
+  /* тонкая световая полоса при нажатии */
+  .sweep { position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent); transform:translateX(-100%); pointer-events:none; }
+  .sweep.go { animation:sweep .6s ease forwards; }
+  @keyframes sweep { to { transform:translateX(100%); } }
+
+  .powered { margin-top:18px; font-family:'Inter'; font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:rgba(255,255,255,.4); text-align:center; }
+
+  @media (prefers-reduced-motion: reduce) { .header,.panel{animation:none;transition:none;opacity:1;transform:none;} }
+</style>
+</head>
+<body>
+
+<video class="bg" id="bg" src="uknow-bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
+<div class="shade"></div>
+
+<div class="stage">
+  <div class="header">
+    <div class="eyebrow">Differently</div>
+    <div class="divider"><span class="line"></span><span class="star">✦</span><span class="line"></span></div>
+    <div class="title">U Know</div>
+  </div>
+
+  <div class="panel" id="panel">
+    <button class="plat" data-url="#">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+      <span class="name">Apple Music</span><span class="arrow">↗</span>
+    </button>
+    <button class="plat" data-url="#">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+      <span class="name">Spotify</span><span class="arrow">↗</span>
+    </button>
+    <button class="plat" data-url="#">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z"/></svg>
+      <span class="name">YouTube Music</span><span class="arrow">↗</span>
+    </button>
+
+    <div class="powered">Powered by zvdsk</div>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0a0a'); tg.setBackgroundColor('#0a0a0a'); }
+
+  const bg = document.getElementById('bg');
+  const panel = document.getElementById('panel');
+  bg.muted = true; bg.defaultMuted = true;
+  const kick = () => bg.play().catch(() => {});
+  kick();
+  window.addEventListener('load', kick);
+  document.addEventListener('touchstart', kick, { once:true });
+
+  setTimeout(() => panel.classList.add('show'), 2600);
+
+  // === учёт кликов TYRAZH ===
+  const TRACK_SLUG = "uknow";
+  const CLICK_ENDPOINT = "https://ktfmjaanheowyzjrovkc.supabase.co/functions/v1/track-click";
+  function platformFromEl(el) {
+    const u = (el.dataset.url || el.dataset.tg || "").toLowerCase();
+    if (u.includes("spotify"))   return "spotify";
+    if (u.includes("apple"))     return "apple";
+    if (u.includes("youtube"))   return "youtube";
+    if (u.includes("instagram")) return "instagram";
+    if (u.includes("tiktok"))    return "tiktok";
+    return null;
+  }
+  function logClick(platform) {
+    const body = JSON.stringify({ slug: TRACK_SLUG, platform });
+    try {
+      return fetch(CLICK_ENDPOINT, { method:"POST", headers:{"content-type":"application/json"}, body, keepalive:true }).catch(()=>{});
+    } catch (_) { return Promise.resolve(); }
+  }
+
+  function sweepEffect(el) {
+    const s = document.createElement('span');
+    s.className = 'sweep';
+    el.appendChild(s);
+    requestAnimationFrame(() => s.classList.add('go'));
+    s.addEventListener('animationend', () => s.remove());
+  }
+
+  function openUrl(el) {
+    const url = el.dataset.url, tgUrl = el.dataset.tg;
+    const p = platformFromEl(el);
+    sweepEffect(el);
+    tg?.HapticFeedback?.impactOccurred('light');
+    let done = false;
+    const go = () => {
+      if (done) return; done = true;
+      if (!url || url === '#') return; // плейсхолдер — не переходим
+      if (tgUrl) { tg ? tg.openTelegramLink(tgUrl) : window.open(tgUrl,'_blank'); }
+      else { tg ? tg.openLink(url) : window.open(url,'_blank'); }
+    };
+    if (tg) { if (p) logClick(p); go(); }
+    else if (p) { logClick(p).finally(go); setTimeout(go, 500); }
+    else { go(); }
+  }
+
+  document.querySelectorAll('[data-url], [data-tg]').forEach(el => {
+    el.addEventListener('click', () => openUrl(el));
+  });
+</script>
+</body>
+</html>
