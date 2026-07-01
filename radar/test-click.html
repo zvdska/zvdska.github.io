@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYRAZH — тест клика</title>
+<style>
+  body { background:#0a0a0a; color:#eee; font-family:-apple-system,monospace; padding:24px; line-height:1.5; }
+  h1 { font-size:18px; margin-bottom:20px; }
+  button { display:block; width:100%; padding:18px; margin:10px 0; font-size:16px; border:none; border-radius:12px; background:#3DF06A; color:#000; font-weight:600; cursor:pointer; }
+  .log { margin-top:24px; padding:16px; background:#141414; border-radius:12px; font-size:13px; white-space:pre-wrap; word-break:break-all; min-height:200px; }
+  .ok { color:#3DF06A; }
+  .err { color:#FF6B6B; }
+  .dim { color:#888; }
+</style>
+</head>
+<body>
+<h1>Тест отправки клика → track-click</h1>
+
+<button onclick="testBeacon()">1. Тест sendBeacon (как на странице)</button>
+<button onclick="testFetch()">2. Тест fetch (прямой)</button>
+
+<div class="log" id="log"><span class="dim">Нажми кнопку — результат появится здесь…</span></div>
+
+<script>
+  const EP = "https://ktfmjaanheowyzjrovkc.supabase.co/functions/v1/track-click";
+  const logEl = document.getElementById('log');
+  function log(msg, cls) {
+    const t = new Date().toLocaleTimeString();
+    logEl.innerHTML += `\n<span class="${cls||''}">[${t}] ${msg}</span>`;
+  }
+
+  function testBeacon() {
+    log('sendBeacon → отправляю slug=radar platform=spotify…');
+    try {
+      const body = JSON.stringify({ slug:"radar", platform:"spotify" });
+      const sent = navigator.sendBeacon(EP, new Blob([body],{type:"application/json"}));
+      log('sendBeacon вернул: ' + sent, sent ? 'ok' : 'err');
+      if (!sent) log('→ beacon НЕ принят браузером. Это и есть причина.', 'err');
+      else log('→ beacon принят. Проверь кабинет через 5 сек.', 'ok');
+    } catch(e) { log('Ошибка: ' + e.message, 'err'); }
+  }
+
+  async function testFetch() {
+    log('fetch → отправляю slug=radar platform=apple…');
+    try {
+      const r = await fetch(EP, {
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body: JSON.stringify({ slug:"radar", platform:"apple" }),
+      });
+      const j = await r.json();
+      log('Ответ функции: ' + JSON.stringify(j), j.ok ? 'ok' : 'err');
+      log('HTTP статус: ' + r.status, r.ok ? 'ok' : 'err');
+    } catch(e) {
+      log('СЕТЕВАЯ ОШИБКА: ' + e.message, 'err');
+      log('→ функция недоступна или блокируется CORS', 'err');
+    }
+  }
+</script>
+</body>
+</html>
