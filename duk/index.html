@@ -78,6 +78,21 @@
   .pbtn.p-apple { transition-delay:0s; } .pbtn.p-spotify { transition-delay:.05s; } .pbtn.p-youtube { transition-delay:.1s; }
 
 
+  /* ПК: квадратная карточка со скруглёнными углами по центру */
+  @media (min-width: 768px) {
+    .wrap { justify-content:center; padding:40px; }
+    .card {
+      width:min(72vh, 440px);
+      height:min(72vh, 440px);
+      aspect-ratio:1;
+      margin-top:0;
+      border-radius:28px;
+      box-shadow:0 30px 90px rgba(0,0,0,.7);
+    }
+    .card-inner { padding:30px 30px 26px; }
+    .platforms { max-width:440px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .card,.titles,.artist,.platforms { transition:none; opacity:1; transform:none; }
   }
