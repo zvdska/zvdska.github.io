@@ -189,12 +189,13 @@
     const cover = t => t.cover_url
       ? `<img class="list-cover" src="${t.cover_url}" alt="">`
       : `<div class="list-cover"></div>`;
+    const nf = new Intl.NumberFormat('ru-RU');
     bodyEl.innerHTML = `
       <div class="summary">
-        <div class="scard"><div class="big">${sum('total_clicks')}</div><div class="lbl">Всего</div></div>
-        <div class="scard"><div class="big">${sum('last_7d')}</div><div class="lbl">7 дней</div></div>
-        <div class="scard"><div class="big">${sum('last_24h')}</div><div class="lbl">24 часа</div></div>
-        <div class="scard"><div class="big">${tracks.length}</div><div class="lbl">Релизов</div></div>
+        <div class="scard"><div class="big">${nf.format(sum('total_clicks'))}</div><div class="lbl">Всего кликов</div></div>
+        <div class="scard"><div class="big">${nf.format(sum('last_7d'))}</div><div class="lbl">7 дней</div></div>
+        <div class="scard"><div class="big">${nf.format(sum('last_24h'))}</div><div class="lbl">24 часа</div></div>
+        <div class="scard"><div class="big">${nf.format(sum('streams_total'))}</div><div class="lbl">Стримов</div></div>
       </div>
       <div class="split">
         <div class="list" id="list">
