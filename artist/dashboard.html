@@ -106,6 +106,15 @@
   .detail-titles { min-width:0; }
   .detail-title { font-size:26px; font-weight:400; line-height:1.1; }
   .detail-date { font-size:12px; color:var(--muted); margin-top:6px; }
+
+  /* три плашки метрик: Clicks / Streams / Revenue */
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:22px 0 4px; }
+  @media (max-width:520px) { .metrics { grid-template-columns:1fr; } }
+  .metric { background:rgba(255,255,255,.04); border:1px solid var(--stroke); border-radius:16px; padding:16px; }
+  .metric .m-val { font-size:24px; font-weight:400; line-height:1.05; }
+  .metric .m-lbl { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:8px; }
+  .metric .m-sub { font-size:10.5px; color:rgba(255,255,255,.4); margin-top:7px; line-height:1.35; }
+  .metric.rev .m-val { font-size:20px; }
   .detail-total { font-size:13px; color:var(--muted); margin-top:10px; }
   .detail-total b { color:var(--ink); font-size:22px; font-weight:400; }
 
@@ -237,8 +246,22 @@
       ? `<img class="detail-cover" src="${t.cover_url}" alt="">`
       : `<div class="detail-cover"></div>`;
     const date = t.released_at
-      ? new Date(t.released_at).toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'})
+      ? new Date(t.released_at).toLocaleDateString('en-US', {day:'numeric',month:'long',year:'numeric'})
       : '';
+
+    const nf = new Intl.NumberFormat('en-US');
+    const streams = Number(t.streams_total || 0);
+
+    // дата обновления стримов (en)
+    const upd = t.streams_updated_at
+      ? 'updated ' + new Date(t.streams_updated_at).toLocaleDateString('en-US', {day:'numeric',month:'short',year:'numeric'})
+      : 'not updated yet';
+
+    // приблизительный доход по ставке YouTube Music $0.002–0.005 за стрим
+    const RATE_LOW = 0.002, RATE_HIGH = 0.005;
+    const revLow  = Math.round(streams * RATE_LOW);
+    const revHigh = Math.round(streams * RATE_HIGH);
+    const revenue = streams > 0 ? `$${nf.format(revLow)} – $${nf.format(revHigh)}` : '—';
 
     document.getElementById('detail').innerHTML = `
       <div class="detail-head">
@@ -248,13 +271,31 @@
             <div class="detail-title">${t.title}</div>
             ${statusBadge(t.released_at)}
           </div>
-          ${date ? `<div class="detail-date">${date}</div>` : ''}
-          <div class="detail-total"><b>${t.total_clicks}</b> кликов всего</div>
+          ${date ? `<div class="detail-date">Released ${date}</div>` : ''}
         </div>
       </div>
-      <div class="sect-label">По площадкам</div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="m-val">${nf.format(t.total_clicks)}</div>
+          <div class="m-lbl">Clicks</div>
+          <div class="m-sub">link taps across all platforms</div>
+        </div>
+        <div class="metric">
+          <div class="m-val">${nf.format(streams)}</div>
+          <div class="m-lbl">Streams</div>
+          <div class="m-sub">Apple Music, Spotify, YouTube Music, etc.<br>${upd}</div>
+        </div>
+        <div class="metric rev">
+          <div class="m-val">${revenue}</div>
+          <div class="m-lbl">Revenue</div>
+          <div class="m-sub">approx. est. · YouTube Music rate ($0.002–0.005 / stream)</div>
+        </div>
+      </div>
+
+      <div class="sect-label">Clicks by platform</div>
       ${rows}
-      <div class="sect-label">Клики за 14 дней</div>
+      <div class="sect-label">Clicks · last 14 days</div>
       <canvas id="chart" height="120"></canvas>`;
 
     loadDaily(id);
