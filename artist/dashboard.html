@@ -194,18 +194,10 @@
   }
 
   function renderShell(tracks) {
-    const sum = k => tracks.reduce((a,t)=>a+Number(t[k]||0),0);
     const cover = t => t.cover_url
       ? `<img class="list-cover" src="${t.cover_url}" alt="">`
       : `<div class="list-cover"></div>`;
-    const nf = new Intl.NumberFormat('ru-RU');
     bodyEl.innerHTML = `
-      <div class="summary">
-        <div class="scard"><div class="big">${nf.format(sum('total_clicks'))}</div><div class="lbl">Всего кликов</div></div>
-        <div class="scard"><div class="big">${nf.format(sum('last_7d'))}</div><div class="lbl">7 дней</div></div>
-        <div class="scard"><div class="big">${nf.format(sum('last_24h'))}</div><div class="lbl">24 часа</div></div>
-        <div class="scard"><div class="big">${nf.format(sum('streams_total'))}</div><div class="lbl">Стримов</div></div>
-      </div>
       <div class="split">
         <div class="list" id="list">
           ${tracks.map(t => `
@@ -251,17 +243,18 @@
 
     const nf = new Intl.NumberFormat('en-US');
     const streams = Number(t.streams_total || 0);
+    const ytStreams = Number(t.streams_youtube || 0);
 
     // дата обновления стримов (en)
     const upd = t.streams_updated_at
       ? 'updated ' + new Date(t.streams_updated_at).toLocaleDateString('en-US', {day:'numeric',month:'short',year:'numeric'})
       : 'not updated yet';
 
-    // приблизительный доход по ставке YouTube Music $0.002–0.005 за стрим
+    // приблизительный доход от YouTube Music по ставке $0.002–0.005 за стрim
     const RATE_LOW = 0.002, RATE_HIGH = 0.005;
-    const revLow  = Math.round(streams * RATE_LOW);
-    const revHigh = Math.round(streams * RATE_HIGH);
-    const revenue = streams > 0 ? `$${nf.format(revLow)} – $${nf.format(revHigh)}` : '—';
+    const revLow  = Math.round(ytStreams * RATE_LOW);
+    const revHigh = Math.round(ytStreams * RATE_HIGH);
+    const revenue = ytStreams > 0 ? `$${nf.format(revLow)} – $${nf.format(revHigh)}` : '—';
 
     document.getElementById('detail').innerHTML = `
       <div class="detail-head">
@@ -289,7 +282,7 @@
         <div class="metric rev">
           <div class="m-val">${revenue}</div>
           <div class="m-lbl">Revenue</div>
-          <div class="m-sub">approx. est. · YouTube Music rate ($0.002–0.005 / stream)</div>
+          <div class="m-sub">approx. YouTube Music · ${nf.format(ytStreams)} streams × $0.002–0.005</div>
         </div>
       </div>
 
