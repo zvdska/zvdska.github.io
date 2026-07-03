@@ -153,7 +153,6 @@
   const bodyEl = document.getElementById('body');
   const PLATFORMS = [
     ['spotify','Spotify'],['apple','Apple'],['youtube','YouTube'],
-    ['instagram','Instagram'],['tiktok','TikTok'],
   ];
   let TRACKS = [];
   let chart = null;
@@ -288,35 +287,54 @@
 
       <div class="sect-label">Clicks by platform</div>
       ${rows}
-      <div class="sect-label">Clicks · last 14 days</div>
+      <div class="sect-label">Streams · history</div>
       <canvas id="chart" height="120"></canvas>`;
 
-    loadDaily(id);
+    loadStreams(id);
   }
 
-  async function loadDaily(trackId) {
-    const since = new Date(Date.now() - 14*864e5).toISOString();
-    const { data } = await db.from('clicks').select('created_at')
-      .eq('track_id', trackId).gte('created_at', since);
-    const days = [...Array(14)].map((_,i) =>
-      new Date(Date.now() - (13-i)*864e5).toISOString().slice(0,10));
-    const counts = Object.fromEntries(days.map(d => [d,0]));
-    (data||[]).forEach(c => { const d = c.created_at.slice(0,10); if (d in counts) counts[d]++; });
+  async function loadStreams(trackId) {
+    // история стримов из снапшотов
+    const { data } = await db.from('stream_snapshots')
+      .select('captured_on, streams_total')
+      .eq('track_id', trackId)
+      .order('captured_on', { ascending: true });
 
     const ctx = document.getElementById('chart');
     if (!ctx) return;
     if (chart) chart.destroy();
+
+    const snaps = data || [];
+    // если истории нет или одна точка — показываем заглушку
+    if (snaps.length < 2) {
+      const wrap = ctx.parentElement;
+      const msg = document.createElement('div');
+      msg.style.cssText = 'padding:30px 12px;text-align:center;color:rgba(255,255,255,.35);font-size:12px;line-height:1.5';
+      msg.textContent = snaps.length === 1
+        ? 'Only one data point so far — the graph will grow as you add more stream updates over time.'
+        : 'No stream history yet. Add stream snapshots over time to see the growth curve.';
+      ctx.replaceWith(msg);
+      return;
+    }
+
+    const labels = snaps.map(s => {
+      const d = new Date(s.captured_on);
+      return d.toLocaleDateString('en-US', {day:'numeric', month:'short'});
+    });
+    const values = snaps.map(s => Number(s.streams_total || 0));
+
     chart = new Chart(ctx, {
       type:'line',
-      data:{ labels:days.map(d=>d.slice(8)), datasets:[{
-        data:days.map(d=>counts[d]),
-        borderColor:'#FFF', backgroundColor:'rgba(255,255,255,.08)',
-        fill:true, tension:.35, pointRadius:0, borderWidth:2,
+      data:{ labels, datasets:[{
+        data:values,
+        borderColor:'#3DF06A', backgroundColor:'rgba(61,240,106,.1)',
+        fill:true, tension:.35, pointRadius:3, pointBackgroundColor:'#3DF06A', borderWidth:2,
       }]},
       options:{ plugins:{legend:{display:false}}, scales:{
         x:{grid:{display:false},ticks:{font:{size:8},color:'rgba(255,255,255,.4)'}},
-        y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'},
-           ticks:{font:{size:8},color:'rgba(255,255,255,.4)',precision:0}},
+        y:{beginAtZero:false,grid:{color:'rgba(255,255,255,.06)'},
+           ticks:{font:{size:8},color:'rgba(255,255,255,.4)',precision:0,
+             callback:v=>new Intl.NumberFormat('en-US',{notation:'compact'}).format(v)}},
       }},
     });
   }
