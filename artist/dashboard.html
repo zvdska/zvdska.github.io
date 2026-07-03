@@ -129,6 +129,22 @@
   .upd-btn:hover { opacity:.9; }
   .upd-btn:disabled { opacity:.5; cursor:default; }
   .upd-note { font-size:10.5px; color:var(--muted); margin-top:8px; text-align:center; }
+
+  /* admin: добавление нового релиза */
+  .addrelease { margin-bottom:16px; }
+  .addrelease-toggle {
+    width:100%; padding:12px; background:rgba(61,240,106,.08); border:1px dashed rgba(61,240,106,.4);
+    border-radius:14px; color:#3DF06A; font-family:inherit; font-size:13px; font-weight:600;
+    cursor:pointer; transition:background .2s;
+  }
+  .addrelease-toggle:hover { background:rgba(61,240,106,.14); }
+  .addrelease-form { margin-top:10px; padding:18px; border:1px solid var(--stroke); border-radius:16px; background:rgba(61,240,106,.04); }
+  .addrelease-form .upd-field { margin-bottom:12px; }
+  .addrelease-form select {
+    width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1px solid var(--stroke);
+    border-radius:10px; color:var(--ink); font-family:inherit; font-size:14px;
+  }
+  .addrelease-form select option { background:#111; color:#fff; }
   .detail-total { font-size:13px; color:var(--muted); margin-top:10px; }
   .detail-total b { color:var(--ink); font-size:22px; font-weight:400; }
 
@@ -169,6 +185,7 @@
     ['spotify','Spotify'],['apple','Apple'],['youtube','YouTube'],
   ];
   let TRACKS = [];
+  let ARTISTS = [];
   let IS_ADMIN = false;
   let chart = null;
 
@@ -181,17 +198,27 @@
     const { data: sess } = await db.auth.getSession();
     if (!sess?.session) { window.location.href = LOGIN_URL; return; }
 
-    const { data: prof } = await db.from('profiles').select('artist_name, is_admin').single();
+    const uid = sess.session.user.id;
+    const { data: profRows } = await db.from('profiles')
+      .select('artist_name, is_admin').eq('id', uid).limit(1);
+    const prof = profRows && profRows[0];
     IS_ADMIN = !!prof?.is_admin;
     document.getElementById('whoami').textContent =
       (prof?.artist_name || 'Артист') + (prof?.is_admin ? ' · admin' : '');
+
+    if (IS_ADMIN) {
+      const { data: profs } = await db.from('profiles')
+        .select('id, artist_name').order('artist_name', { ascending: true });
+      ARTISTS = profs || [];
+    }
 
     const { data: tracks, error } = await db
       .from('track_stats').select('*').order('released_at', { ascending:false });
 
     if (error) { bodyEl.innerHTML = '<div class="empty">Не удалось загрузить статистику</div>'; return; }
     if (!tracks?.length) {
-      bodyEl.innerHTML = '<div class="empty">Пока нет треков на платформе.</div>'; return;
+      renderShell([]);
+      return;
     }
     TRACKS = tracks;
     renderShell(tracks);
@@ -212,10 +239,44 @@
     const cover = t => t.cover_url
       ? `<img class="list-cover" src="${t.cover_url}" alt="">`
       : `<div class="list-cover"></div>`;
+
+    const artistOptions = ARTISTS.map(a =>
+      `<option value="${a.id}">${a.artist_name || a.id}</option>`).join('');
+
+    const addReleasePanel = IS_ADMIN ? `
+      <div class="addrelease">
+        <button class="addrelease-toggle" id="addReleaseToggle">+ Add Release</button>
+        <div class="addrelease-form hidden" id="addReleaseForm">
+          <div class="upd-field">
+            <label>Artist</label>
+            <select id="arArtist"><option value="">Select artist…</option>${artistOptions}</select>
+          </div>
+          <div class="upd-field">
+            <label>Title</label>
+            <input id="arTitle" type="text" placeholder="Track / album title">
+          </div>
+          <div class="upd-field">
+            <label>Slug (URL, used for click tracking)</label>
+            <input id="arSlug" type="text" placeholder="my-track">
+          </div>
+          <div class="upd-field">
+            <label>Cover URL</label>
+            <input id="arCover" type="text" placeholder="https://tyrazh.com/covers/...">
+          </div>
+          <div class="upd-field">
+            <label>Release date</label>
+            <input id="arDate" type="date">
+          </div>
+          <button class="upd-btn" id="arBtn">Create release</button>
+          <div class="upd-note" id="arNote">Adds the release for the selected artist.</div>
+        </div>
+      </div>` : '';
+
     bodyEl.innerHTML = `
+      ${addReleasePanel}
       <div class="split">
         <div class="list" id="list">
-          ${tracks.map(t => `
+          ${tracks.length ? tracks.map(t => `
             <div class="list-item" data-id="${t.track_id}">
               ${cover(t)}
               <div class="list-meta">
@@ -225,7 +286,7 @@
                 </div>
                 <div class="list-clicks">${t.total_clicks} кликов</div>
               </div>
-            </div>`).join('')}
+            </div>`).join('') : '<div class="empty">No releases yet.</div>'}
         </div>
         <div class="detail" id="detail"></div>
       </div>`;
@@ -233,6 +294,62 @@
     document.querySelectorAll('.list-item').forEach(el => {
       el.addEventListener('click', () => selectTrack(el.dataset.id));
     });
+
+    if (IS_ADMIN) {
+      document.getElementById('addReleaseToggle')?.addEventListener('click', () => {
+        document.getElementById('addReleaseForm').classList.toggle('hidden');
+      });
+      const titleField = document.getElementById('arTitle');
+      const slugField = document.getElementById('arSlug');
+      titleField?.addEventListener('input', () => {
+        if (!slugField.dataset.touched) slugField.value = slugify(titleField.value);
+      });
+      slugField?.addEventListener('input', () => { slugField.dataset.touched = '1'; });
+      document.getElementById('arBtn')?.addEventListener('click', submitNewRelease);
+    }
+  }
+
+  function slugify(s) {
+    return s.toLowerCase().trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }
+
+  async function submitNewRelease() {
+    const artistId = document.getElementById('arArtist').value;
+    const title = document.getElementById('arTitle').value.trim();
+    const slug = document.getElementById('arSlug').value.trim();
+    const cover = document.getElementById('arCover').value.trim();
+    const date = document.getElementById('arDate').value;
+    const btn = document.getElementById('arBtn');
+    const note = document.getElementById('arNote');
+
+    if (!artistId || !title || !slug) {
+      note.textContent = 'Fill artist, title and slug.';
+      note.style.color = '#FF6B6B';
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Creating…';
+    const { error } = await db.from('tracks').insert({
+      artist_id: artistId,
+      title,
+      slug,
+      cover_url: cover || null,
+      released_at: date || null,
+    });
+
+    if (error) {
+      btn.disabled = false; btn.textContent = 'Create release';
+      note.textContent = 'Error: ' + error.message;
+      note.style.color = '#FF6B6B';
+      return;
+    }
+
+    note.textContent = 'Release created! Reloading…';
+    note.style.color = '#3DF06A';
+    setTimeout(() => location.reload(), 600);
   }
 
   function selectTrack(id) {
