@@ -115,6 +115,20 @@
   .metric .m-lbl { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:8px; }
   .metric .m-sub { font-size:10.5px; color:rgba(255,255,255,.4); margin-top:7px; line-height:1.35; }
   .metric.rev .m-val { font-size:20px; }
+
+  /* admin-форма обновления стримов */
+  .upd { margin-top:26px; padding:18px; border:1px solid var(--stroke); border-radius:16px; background:rgba(61,240,106,.04); }
+  .upd-title { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:rgba(61,240,106,.8); margin-bottom:14px; }
+  .upd-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .upd-field label { display:block; font-size:10px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.06em; }
+  .upd-field input { width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1px solid var(--stroke);
+    border-radius:10px; color:var(--ink); font-family:inherit; font-size:14px; }
+  .upd-field input:focus { outline:none; border-color:rgba(61,240,106,.5); }
+  .upd-btn { width:100%; padding:12px; background:#3DF06A; color:#0a0a0a; border:none; border-radius:12px;
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .2s; }
+  .upd-btn:hover { opacity:.9; }
+  .upd-btn:disabled { opacity:.5; cursor:default; }
+  .upd-note { font-size:10.5px; color:var(--muted); margin-top:8px; text-align:center; }
   .detail-total { font-size:13px; color:var(--muted); margin-top:10px; }
   .detail-total b { color:var(--ink); font-size:22px; font-weight:400; }
 
@@ -155,6 +169,7 @@
     ['spotify','Spotify'],['apple','Apple'],['youtube','YouTube'],
   ];
   let TRACKS = [];
+  let IS_ADMIN = false;
   let chart = null;
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -167,6 +182,7 @@
     if (!sess?.session) { window.location.href = LOGIN_URL; return; }
 
     const { data: prof } = await db.from('profiles').select('artist_name, is_admin').single();
+    IS_ADMIN = !!prof?.is_admin;
     document.getElementById('whoami').textContent =
       (prof?.artist_name || 'Артист') + (prof?.is_admin ? ' · admin' : '');
 
@@ -288,9 +304,33 @@
       <div class="sect-label">Clicks by platform</div>
       ${rows}
       <div class="sect-label">Streams · history</div>
-      <canvas id="chart" height="120"></canvas>`;
+      <canvas id="chart" height="120"></canvas>
+      ${IS_ADMIN ? `
+      <div class="upd">
+        <div class="upd-title">Update streams (admin)</div>
+        <div class="upd-grid">
+          <div class="upd-field">
+            <label>Streams total</label>
+            <input id="updTotal" type="number" inputmode="numeric" value="${streams}" placeholder="0">
+          </div>
+          <div class="upd-field">
+            <label>YouTube streams</label>
+            <input id="updYt" type="number" inputmode="numeric" value="${ytStreams}" placeholder="0">
+          </div>
+        </div>
+        <div class="upd-field" style="margin-bottom:12px">
+          <label>Date</label>
+          <input id="updDate" type="date" value="${t.streams_updated_at || new Date().toISOString().slice(0,10)}">
+        </div>
+        <button class="upd-btn" id="updBtn">Update</button>
+        <div class="upd-note" id="updNote">Saves the number, recalculates revenue and adds a graph point.</div>
+      </div>` : ''}`;
 
     loadStreams(id);
+    if (IS_ADMIN) {
+      const btn = document.getElementById('updBtn');
+      if (btn) btn.onclick = () => submitStreams(id);
+    }
   }
 
   async function loadStreams(trackId) {
@@ -337,6 +377,37 @@
              callback:v=>new Intl.NumberFormat('en-US',{notation:'compact'}).format(v)}},
       }},
     });
+  }
+
+  async function submitStreams(id) {
+    const total = parseInt(document.getElementById('updTotal').value, 10) || 0;
+    const yt    = parseInt(document.getElementById('updYt').value, 10) || 0;
+    const date  = document.getElementById('updDate').value || new Date().toISOString().slice(0,10);
+    const btn   = document.getElementById('updBtn');
+    const note  = document.getElementById('updNote');
+
+    btn.disabled = true; btn.textContent = 'Saving…';
+
+    // 1) обновляем цифры трека
+    const { error: e1 } = await db.from('tracks').update({
+      streams_total: total, streams_youtube: yt, streams_updated_at: date,
+    }).eq('id', id);
+
+    if (e1) {
+      btn.disabled = false; btn.textContent = 'Update';
+      note.textContent = 'Error: ' + e1.message; note.style.color = '#FF6B6B';
+      return;
+    }
+
+    // 2) добавляем/обновляем точку истории на эту дату
+    // сначала пробуем удалить точку на ту же дату, чтобы не плодить дубли
+    await db.from('stream_snapshots').delete().eq('track_id', id).eq('captured_on', date);
+    await db.from('stream_snapshots').insert({ track_id: id, captured_on: date, streams_total: total });
+
+    // 3) обновляем локально и перерисовываем
+    const t = TRACKS.find(x => x.track_id === id);
+    if (t) { t.streams_total = total; t.streams_youtube = yt; t.streams_updated_at = date; }
+    selectTrack(id);
   }
 
   init();
