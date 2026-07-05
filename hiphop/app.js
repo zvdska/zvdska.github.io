@@ -139,13 +139,21 @@ function mountEditorBadge(){
     return;
   }
   if (!badge){
-    badge = document.createElement('a');
+    badge = document.createElement('div');
     badge.id = 'editor-badge-pill';
-    badge.href = 'editor.html';
-    badge.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap';
+    badge.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:8px;background:#111;color:#fff;border-radius:999px;padding:8px 8px 8px 14px;font-size:12.5px;font-weight:700;white-space:nowrap';
     wrap.appendChild(badge);
   }
-  badge.innerHTML = `✎ Редактор: ${escapeHtml(EditorAuth.editor?.name || '')}`;
+  badge.innerHTML = `
+    <a href="editor.html" style="color:#fff;text-decoration:none">✎ Редактор: ${escapeHtml(EditorAuth.editor?.name || '')}</a>
+    <button onclick="handleHeaderLogout()" title="Выйти из режима редактора"
+      style="background:rgba(255,255,255,.15);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0">✕</button>`;
+}
+
+function handleHeaderLogout(){
+  if (!confirm('Выйти из режима редактора?')) return;
+  EditorAuth.logout();
+  location.reload();
 }
 document.addEventListener('DOMContentLoaded', mountEditorBadge);
 
