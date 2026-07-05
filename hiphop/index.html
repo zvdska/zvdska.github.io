@@ -56,7 +56,7 @@
       <h2>Артисты</h2>
       <span class="count" id="grid-count"></span>
     </div>
-    <div class="grid" id="grid"></div>
+    <div class="grid carousel" id="grid"></div>
     <div style="text-align:center;margin-top:40px">
       <a href="artists.html" target="_blank" rel="noopener" class="btn">Смотреть всех →</a>
     </div>
@@ -105,6 +105,10 @@ function renderGrid(){
       <div class="meta">
         <div class="nm">${a.name}${a.verified ? VBADGE : ''}</div>
         <div class="rl">${a.role}</div>
+        ${a.releases ? `<div class="stat-mini">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>
+          ${a.releases} релизов
+        </div>` : ''}
       </div>
     </a>`).join('');
 }

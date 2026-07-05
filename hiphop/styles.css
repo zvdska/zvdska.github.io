@@ -107,7 +107,7 @@ img{display:block;max-width:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
 .card{
   text-decoration:none;color:var(--ink);display:block;
-  border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  border:1px solid var(--line);border-radius:24px;overflow:hidden;
   transition:transform .15s, box-shadow .15s;background:#fff;
 }
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(0,0,0,.08)}
@@ -120,6 +120,20 @@ img{display:block;max-width:100%}
 .card .meta{padding:14px 16px 16px}
 .card .nm{font-weight:800;font-size:15.5px;line-height:1.2}
 .card .rl{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+.card .stat-mini{font-size:11px;color:var(--muted);margin-top:8px;font-weight:600;display:flex;align-items:center;gap:5px}
+.card .stat-mini svg{width:13px;height:13px;fill:none;stroke:var(--muted);stroke-width:2}
+
+/* ---------- mobile peek-carousel (homepage featured artists only) ---------- */
+@media (max-width:640px){
+  .grid.carousel{
+    display:flex;overflow-x:auto;gap:14px;
+    scroll-snap-type:x mandatory;scroll-padding:0 11vw;
+    padding:6px 11vw 18px;margin:0 -20px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .grid.carousel::-webkit-scrollbar{display:none}
+  .grid.carousel .card{flex:0 0 78vw;scroll-snap-align:center}
+}
 .vbadge{
   display:inline-flex;align-items:center;justify-content:center;
   width:14px;height:14px;border-radius:50%;background:var(--ink);
