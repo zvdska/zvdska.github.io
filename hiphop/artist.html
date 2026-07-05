@@ -91,6 +91,7 @@ const VBADGE = '<span class="vbadge" title="Верифицированный а�
 const id = new URLSearchParams(location.search).get('id');
 const artist = ARTISTS.find(a => a.id === id);
 let dbArticle = null;
+let artistOverride = null;
 
 if (!artist){
   document.querySelector('.artist-hero .wrap').innerHTML = `<p>Артист не найден. <a href="index.html">Вернуться на главную</a>.</p>`;
@@ -98,8 +99,6 @@ if (!artist){
   document.title = artist.name + ' — ROOTS BOOK';
   render();
 }
-
-let artistOverride = null;
 
 function render(){
   applyDisplay();
