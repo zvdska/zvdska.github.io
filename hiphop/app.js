@@ -169,7 +169,7 @@ async function fetchArtistOverride(id){
 
 async function fetchAllArtistOverrides(){
   try{
-    const { data } = await sb.from('artists').select('id, name, photo_url');
+    const { data } = await sb.from('artists').select('id, name, photo_url, infobox');
     const map = {};
     (data || []).forEach(row => { map[row.id] = row; });
     return map;

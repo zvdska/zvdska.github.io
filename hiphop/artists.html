@@ -107,6 +107,7 @@ function render(){
     const ov = artistOverrides[a.id];
     const name = ov?.name || a.name;
     const photo = ov?.photo_url || a.photo;
+    const realName = ov?.infobox?.real_name;
     return `
     <a class="card" href="artist.html?id=${a.id}">
       <div class="ph-wrap">
@@ -116,6 +117,7 @@ function render(){
       </div>
       <div class="meta">
         <div class="nm">${name}${a.verified ? VBADGE : ''}</div>
+        ${realName ? `<div class="sub">${realName}</div>` : ''}
       </div>
     </a>`;
   }).join('');
