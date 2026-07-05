@@ -15,9 +15,14 @@ function getUserKey(){
 }
 
 /* ---------------- editor auth ---------------- */
+function safeParse(raw, fallback){
+  try { return raw ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
+}
+
 const EditorAuth = {
   token: localStorage.getItem('rb_editor_token') || null,
-  editor: JSON.parse(localStorage.getItem('rb_editor_info') || 'null'),
+  editor: safeParse(localStorage.getItem('rb_editor_info'), null),
 
   async login(name, passcode){
     const r = await fetch(FN('editor-login'), {
