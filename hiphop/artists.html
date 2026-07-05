@@ -29,6 +29,7 @@
     </nav>
   </div>
 </header>
+<script src="header-scroll.js"></script>
 
 <section class="section">
   <div class="wrap">
@@ -97,6 +98,7 @@ function render(){
       </div>
     </a>`).join('');
 }
+document.getElementById('q').value = new URLSearchParams(location.search).get('q') || '';
 render();
 </script>
 </body>

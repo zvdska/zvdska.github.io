@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Контакты — ROOTS BOOK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.contact-card{
+  border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.contact-card .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+.contact-card .mail{font-size:18px;font-weight:800}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html">ROOTS BOOK</a>
+    <nav class="nav">
+      <a href="index.html">Главная</a>
+      <a href="artists.html">Артисты</a>
+    </nav>
+  </div>
+</header>
+<script src="header-scroll.js"></script>
+
+<section class="section">
+  <div class="wrap" style="max-width:640px">
+    <div class="section-head"><h2>Контакты</h2></div>
+
+    <div class="contact-card">
+      <div>
+        <div class="lbl">Связь с редакцией</div>
+        <div class="mail">press@rootsbook.example</div>
+      </div>
+      <a class="btn ghost" href="mailto:press@rootsbook.example">Написать →</a>
+    </div>
+
+    <div class="contact-card">
+      <div>
+        <div class="lbl">Реклама и сотрудничество</div>
+        <div class="mail">ads@rootsbook.example</div>
+      </div>
+      <a class="btn ghost" href="mailto:ads@rootsbook.example">Написать →</a>
+    </div>
+
+    <p style="font-size:13px;color:var(--muted);margin-top:20px">
+      Адреса временные — как только пришлёшь настоящие, заменю здесь и в mailto-ссылках.
+    </p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="fl">ROOTS BOOK © 2026<br>Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</div>
+    <div class="fr"><a href="editor.html">Для редакторов</a></div>
+  </div>
+</footer>
+</body>
+</html>

@@ -18,15 +18,23 @@
     <nav class="nav">
       <a href="#grid-section">Артисты</a>
       <a href="artists.html">Поиск</a>
-      <a href="editor.html">Контакты</a>
+      <a href="contacts.html">Контакты</a>
       <a href="#about">О проекте</a>
     </nav>
   </div>
+  <div class="mobile-actions">
+    <a href="contacts.html" class="btn ghost" style="border:1px solid var(--line)">Контакты</a>
+    <div class="inline-search">
+      <span>⌕</span>
+      <input id="mobile-q" placeholder="Поиск артиста"
+        onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+    </div>
+  </div>
 </header>
+<script src="header-scroll.js"></script>
 
 <section class="hero-photo">
-  <!-- TODO: заменить на реальное фото — сейчас тёмный градиент как заглушка,
-       чтобы не тянуть чужое изображение без прав -->
+  <img src="img/hero.jpg" alt="ROOTS BOOK">
   <h1>Живая история украинского хип-хопа</h1>
 </section>
 
@@ -70,7 +78,12 @@
       Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.
     </div>
     <div class="fr">
+      <a href="contacts.html">Контакты</a>
       <a href="editor.html">Для редакторов</a>
+    </div>
+    <div class="footer-mobile-links">
+      <a href="#about">О проекте</a>
+      <a href="cookies.html">Политика сбора cookie</a>
     </div>
   </div>
 </footer>
