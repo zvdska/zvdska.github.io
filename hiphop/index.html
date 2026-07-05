@@ -117,11 +117,6 @@ function renderGrid(){
       </div>
       <div class="meta">
         <div class="nm">${a.name}${a.verified ? VBADGE : ''}</div>
-        <div class="rl">${a.role}</div>
-        ${a.releases ? `<div class="stat-mini">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>
-          ${a.releases} релизов
-        </div>` : ''}
       </div>
     </a>`).join('');
 }
