@@ -21,6 +21,11 @@
       <a href="contacts.html">Контакты</a>
       <a href="#about">О проекте</a>
     </nav>
+    <div class="inline-search mobile-search">
+      <span>⌕</span>
+      <input placeholder="Поиск артиста"
+        onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+    </div>
   </div>
 </header>
 <script src="header-scroll.js"></script>
@@ -77,12 +82,6 @@
     </div>
 
     <div class="mobile-footer-nav">
-      <a class="mfn-logo" href="index.html">ROOTS BOOK</a>
-      <div class="mfn-search">
-        <span>⌕</span>
-        <input id="mobile-q" placeholder="Поиск артиста"
-          onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
-      </div>
       <div class="mfn-links">
         <a href="donate.html">Донат</a>
         <a href="contacts.html">Контакты</a>

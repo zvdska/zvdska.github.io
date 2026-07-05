@@ -10,17 +10,30 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="styles.css">
 <style>
-.artist-hero{padding:44px 0 36px;border-bottom:1px solid var(--line)}
-.artist-top{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
-.artist-photo{
-  width:160px;height:200px;flex-shrink:0;border-radius:16px;
-  overflow:hidden;background:#2B2B2B;
+.wiki-page{padding:36px 0 60px}
+.wiki-title{font-weight:900;font-size:clamp(28px,5vw,44px);line-height:1.05;margin-bottom:6px}
+.wiki-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
+
+.wiki-layout{display:grid;grid-template-columns:1fr 300px;gap:44px;align-items:start}
+@media (max-width:900px){ .wiki-layout{grid-template-columns:1fr} }
+
+.wiki-infobox{
+  border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fafafa;
+  position:sticky;top:112px;
 }
-.artist-photo img{width:100%;height:100%;object-fit:cover}
-.artist-photo .fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:48px;color:#fff}
-.artist-info h1{font-weight:900;font-size:clamp(28px,5vw,44px);line-height:1.02}
-.artist-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+@media (max-width:900px){ .wiki-infobox{position:static;order:-1;margin-bottom:32px} }
+
+.infobox-photo{width:100%;aspect-ratio:4/5;background:#2B2B2B}
+.infobox-photo img{width:100%;height:100%;object-fit:cover}
+.infobox-photo .fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:56px;color:#fff}
+
+.infobox-table{width:100%;border-collapse:collapse;font-size:13px}
+.infobox-table tr{border-top:1px solid var(--line)}
+.infobox-table tr:first-child{border-top:none}
+.infobox-table td{padding:11px 14px;vertical-align:top}
+.infobox-table td.ib-label{color:var(--muted);font-weight:700;width:42%}
+.infobox-table td.ib-value{font-weight:600}
+
 .editors-note{border:1px solid var(--line);border-radius:14px;background:#fafafa;padding:14px 16px;margin-top:22px;font-size:12.5px;color:var(--muted)}
 .editors-note b{color:var(--ink);display:block;margin-bottom:4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 </style>
@@ -39,42 +52,41 @@
 </header>
 <script src="header-scroll.js"></script>
 
-<section class="artist-hero">
+<section class="wiki-page">
   <div class="wrap">
-    <div class="artist-top">
-      <div class="artist-photo" id="a-photo"></div>
-      <div class="artist-info">
-        <h1 id="a-name"></h1>
-        <div class="artist-actions">
-          <div class="like-btn" id="like-btn" onclick="handleLike()">
-            <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.35-9.5-8.5C.7 8.2 2 4.5 5.5 4c2-.28 3.6.7 4.5 2 .9-1.3 2.5-2.28 4.5-2 3.5.5 4.8 4.2 3 7.5C19 15.65 12 20 12 20z"/></svg>
-            <span class="like-count">0</span>
+    <h1 class="wiki-title" id="a-name"></h1>
+    <div class="wiki-actions">
+      <div class="like-btn" id="like-btn" onclick="handleLike()">
+        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.35-9.5-8.5C.7 8.2 2 4.5 5.5 4c2-.28 3.6.7 4.5 2 .9-1.3 2.5-2.28 4.5-2 3.5.5 4.8 4.2 3 7.5C19 15.65 12 20 12 20z"/></svg>
+        <span class="like-count">0</span>
+      </div>
+      <button class="btn ghost" id="edit-btn" style="display:none" onclick="handleEdit()">✎ Редактировать статью</button>
+      <button class="btn ghost" id="edit-profile-btn" style="display:none" onclick="handleEditProfile()">✎ Профиль (имя/фото)</button>
+    </div>
+
+    <div class="wiki-layout">
+      <div class="wiki-main">
+        <div id="a-article-wrap" style="display:none">
+          <div class="article" id="a-article"></div>
+          <div class="editors-note">
+            <b>Редакция</b>
+            Павел Ивушкин · Илья Капустин · Роман Рув · Никита Завадский
           </div>
-          <button class="btn ghost" id="edit-btn" style="display:none" onclick="handleEdit()">✎ Редактировать статью</button>
-          <button class="btn ghost" id="edit-profile-btn" style="display:none" onclick="handleEditProfile()">✎ Профиль (имя/фото)</button>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="section">
-  <div class="wrap" style="max-width:760px">
-    <div id="a-article-wrap" style="display:none">
-      <div class="section-head"><h2>История</h2></div>
-      <div class="article" id="a-article"></div>
-      <div class="editors-note">
-        <b>Редакция</b>
-        Павел Ивушкин · Илья Капустин · Роман Рув · Никита Завадский
+        <div class="section-head" style="margin-top:40px"><h2>Комментарии</h2></div>
+        <div class="comment-form">
+          <input id="comment-input" placeholder="Ваш комментарий…" maxlength="500">
+          <button class="comment-send" onclick="handleComment()">→</button>
+        </div>
+        <div id="comments-list"></div>
       </div>
-    </div>
 
-    <div class="section-head" style="margin-top:40px"><h2>Комментарии</h2></div>
-    <div class="comment-form">
-      <input id="comment-input" placeholder="Ваш комментарий…" maxlength="500">
-      <button class="comment-send" onclick="handleComment()">→</button>
+      <aside class="wiki-infobox">
+        <div class="infobox-photo" id="a-photo"></div>
+        <table class="infobox-table" id="a-infobox-table"></table>
+      </aside>
     </div>
-    <div id="comments-list"></div>
   </div>
 </section>
 
@@ -83,12 +95,6 @@
     <div class="fl">ROOTS BOOK © 2026<br>Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</div>
     <div class="fr"><a href="cookies.html">Политика cookie</a></div>
     <div class="mobile-footer-nav">
-      <a class="mfn-logo" href="index.html">ROOTS BOOK</a>
-      <div class="mfn-search">
-        <span>⌕</span>
-        <input placeholder="Поиск артиста"
-          onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
-      </div>
       <div class="mfn-links">
         <a href="index.html">Главная</a>
         <a href="donate.html">Донат</a>
@@ -114,7 +120,7 @@ let dbArticle = null;
 let artistOverride = null;
 
 if (!artist){
-  document.querySelector('.artist-hero .wrap').innerHTML = `<p>Артист не найден. <a href="index.html">Вернуться на главную</a>.</p>`;
+  document.querySelector('.wiki-page .wrap').innerHTML = `<p>Артист не найден. <a href="index.html">Вернуться на главную</a>.</p>`;
 } else {
   document.title = artist.name + ' — ROOTS BOOK';
   editorAuthReady.then(render);
@@ -142,6 +148,7 @@ function render(){
 function applyDisplay(){
   const displayName = artistOverride?.name || artist.name;
   const displayPhoto = artistOverride?.photo_url || artist.photo;
+  const infobox = artistOverride?.infobox || {};
 
   const photoEl = document.getElementById('a-photo');
   photoEl.innerHTML = displayPhoto
@@ -150,6 +157,13 @@ function applyDisplay(){
 
   document.getElementById('a-name').innerHTML = displayName + (artist.verified ? VBADGE : '');
   document.title = displayName + ' — ROOTS BOOK';
+
+  const rows = INFOBOX_FIELDS
+    .filter(([key]) => infobox[key])
+    .map(([key,label]) => `<tr><td class="ib-label">${label}</td><td class="ib-value">${escapeHtml(infobox[key])}</td></tr>`)
+    .join('');
+  document.getElementById('a-infobox-table').innerHTML = rows ||
+    `<tr><td colspan="2" style="color:var(--muted);font-style:italic;padding:14px">Анкетные данные ещё не заполнены</td></tr>`;
 }
 
 async function loadArtistOverride(){
@@ -160,7 +174,7 @@ async function loadArtistOverride(){
 function handleEditProfile(){
   const displayName = artistOverride?.name || artist.name;
   const displayPhoto = artistOverride?.photo_url || artist.photo || '';
-  openArtistProfileEditor(artist.id, displayName, displayPhoto);
+  openArtistProfileEditor(artist.id, displayName, displayPhoto, artistOverride?.infobox || {});
 }
 window.addEventListener('rb:artist-saved', (e) => {
   if (e.detail.id === artist.id) loadArtistOverride();
