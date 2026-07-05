@@ -415,7 +415,7 @@ img{display:block;max-width:100%}
 @media (max-width:640px){
   .banner-section{padding:0}
   .banner-section .wrap{padding:0;max-width:none}
-  .banner-slider{border-radius:0;aspect-ratio:4/5}
+  .banner-slider{border-radius:0 0 24px 24px;aspect-ratio:4/5}
   .banner-dots{bottom:20px}
 
   .site-header.header-transparent{
