@@ -36,6 +36,7 @@ const EditorAuth = {
     this.editor = d.editor;
     localStorage.setItem('rb_editor_token', d.token);
     localStorage.setItem('rb_editor_info', JSON.stringify(d.editor));
+    mountEditorBadge();
     return d.editor;
   },
   logout(){
@@ -43,6 +44,7 @@ const EditorAuth = {
     this.editor = null;
     localStorage.removeItem('rb_editor_token');
     localStorage.removeItem('rb_editor_info');
+    mountEditorBadge();
   },
   isLoggedIn(){ return !!this.token; },
 };
@@ -127,9 +129,87 @@ async function postComment(artistId, author, text){
   return fetchComments(artistId);
 }
 
-/* ============================================================
-   ARTICLE EDITOR MODAL — used from artist.html and editor.html
-   ============================================================ */
+/* ---------------- editor status badge (shown site-wide in header) ---------------- */
+function mountEditorBadge(){
+  const wrap = document.querySelector('.site-header .wrap');
+  if (!wrap) return;
+  let badge = document.getElementById('editor-badge-pill');
+  if (!EditorAuth.isLoggedIn()){
+    if (badge) badge.remove();
+    return;
+  }
+  if (!badge){
+    badge = document.createElement('a');
+    badge.id = 'editor-badge-pill';
+    badge.href = 'editor.html';
+    badge.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:6px;background:#111;color:#fff;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;text-decoration:none;white-space:nowrap';
+    wrap.appendChild(badge);
+  }
+  badge.innerHTML = `✎ Редактор: ${escapeHtml(EditorAuth.editor?.name || '')}`;
+}
+document.addEventListener('DOMContentLoaded', mountEditorBadge);
+
+/* ---------------- artist profile override (name + cover photo, DB-backed) ---------------- */
+async function fetchArtistOverride(id){
+  try{
+    const { data } = await sb.from('artists').select('*').eq('id', id).maybeSingle();
+    return data || null;
+  }catch(e){ return null; }
+}
+
+async function saveArtistProfile(id, name, photoUrl){
+  const r = await fetch(FN('save-artist'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${EditorAuth.token}` },
+    body: JSON.stringify({ id, name, photoUrl }),
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d.artist;
+}
+
+function openArtistProfileEditor(id, currentName, currentPhoto){
+  if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+
+  const modal = document.createElement('div');
+  modal.className = 'editor-modal';
+  modal.innerHTML = `
+    <div class="editor-panel" style="max-width:420px">
+      <div class="editor-panel-head">
+        <h3>Профиль артиста</h3>
+        <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
+      </div>
+      <input class="editor-title" id="ap-name" placeholder="Имя артиста" value="${escapeAttr(currentName || '')}">
+      <div class="ed-block">
+        <b>Обложка (URL фото)</b>
+        <input id="ap-photo" placeholder="https://..." value="${escapeAttr(currentPhoto || '')}">
+      </div>
+      <div class="editor-actions" style="justify-content:flex-end">
+        <div class="ed-btn-row">
+          <button id="ap-cancel">Отмена</button>
+          <button id="ap-save">Сохранить</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector('#ap-cancel').onclick = () => modal.remove();
+  modal.querySelector('#ap-save').onclick = async () => {
+    const name = modal.querySelector('#ap-name').value.trim();
+    const photoUrl = modal.querySelector('#ap-photo').value.trim();
+    if (!name){ alert('Нужно имя'); return; }
+    const btn = modal.querySelector('#ap-save');
+    btn.disabled = true; btn.textContent = 'Сохраняем…';
+    try{
+      await saveArtistProfile(id, name, photoUrl);
+      modal.remove();
+      window.dispatchEvent(new CustomEvent('rb:artist-saved', { detail: { id } }));
+    }catch(e){
+      alert('Не получилось сохранить: ' + e.message);
+      btn.disabled = false; btn.textContent = 'Сохранить';
+    }
+  };
+}
 function openArticleEditor(artistId, artistName, existing = null){
   if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
 

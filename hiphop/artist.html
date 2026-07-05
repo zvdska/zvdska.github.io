@@ -31,7 +31,7 @@
   <div class="wrap">
     <a class="logo" href="index.html">ROOTS BOOK</a>
     <nav class="nav">
-      <a href="index.html">Артисты</a>
+      <a href="donate.html">Донат</a>
       <a href="editor.html">Контакты</a>
     </nav>
   </div>
@@ -50,6 +50,7 @@
             <span class="like-count">0</span>
           </div>
           <button class="btn ghost" id="edit-btn" style="display:none" onclick="handleEdit()">✎ Редактировать статью</button>
+          <button class="btn ghost" id="edit-profile-btn" style="display:none" onclick="handleEditProfile()">✎ Профиль (имя/фото)</button>
         </div>
       </div>
     </div>
@@ -98,13 +99,14 @@ if (!artist){
   render();
 }
 
-function render(){
-  const photoEl = document.getElementById('a-photo');
-  photoEl.innerHTML = artist.photo
-    ? `<img src="${artist.photo}" style="object-position:${artist.photoPos||'center'}">`
-    : `<div class="fb" style="background:${artist.hue}">${initials(artist.name)}</div>`;
+let artistOverride = null;
 
-  document.getElementById('a-name').innerHTML = artist.name + (artist.verified ? VBADGE : '');
+function render(){
+  applyDisplay();
+  const editBtn = document.getElementById('edit-btn');
+  const editProfileBtn = document.getElementById('edit-profile-btn');
+  editBtn.style.display = EditorAuth.isLoggedIn() ? 'inline-flex' : 'none';
+  editProfileBtn.style.display = EditorAuth.isLoggedIn() ? 'inline-flex' : 'none';
 
   const artWrap = document.getElementById('a-article-wrap');
   if (artist.article){
@@ -112,13 +114,38 @@ function render(){
     document.getElementById('a-article').innerHTML = artist.article;
   }
 
-  const editBtn = document.getElementById('edit-btn');
-  editBtn.style.display = EditorAuth.isLoggedIn() ? 'inline-flex' : 'none';
-
   refreshLike();
   refreshComments();
   loadDbArticle();
+  loadArtistOverride();
 }
+
+function applyDisplay(){
+  const displayName = artistOverride?.name || artist.name;
+  const displayPhoto = artistOverride?.photo_url || artist.photo;
+
+  const photoEl = document.getElementById('a-photo');
+  photoEl.innerHTML = displayPhoto
+    ? `<img src="${displayPhoto}" style="object-position:${artist.photoPos||'center'}">`
+    : `<div class="fb" style="background:${artist.hue}">${initials(displayName)}</div>`;
+
+  document.getElementById('a-name').innerHTML = displayName + (artist.verified ? VBADGE : '');
+  document.title = displayName + ' — ROOTS BOOK';
+}
+
+async function loadArtistOverride(){
+  artistOverride = await fetchArtistOverride(artist.id);
+  if (artistOverride) applyDisplay();
+}
+
+function handleEditProfile(){
+  const displayName = artistOverride?.name || artist.name;
+  const displayPhoto = artistOverride?.photo_url || artist.photo || '';
+  openArtistProfileEditor(artist.id, displayName, displayPhoto);
+}
+window.addEventListener('rb:artist-saved', (e) => {
+  if (e.detail.id === artist.id) loadArtistOverride();
+});
 
 async function loadDbArticle(){
   dbArticle = await fetchPublishedArticle(artist.id, 'ru');
