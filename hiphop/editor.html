@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кабинет редактора — ROOTS BOOK</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html">ROOTS<span>·</span>BOOK</a>
+    <nav class="nav"><a href="index.html">← На сайт</a></nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="wrap" style="max-width:640px">
+    <div id="login-zone"></div>
+
+    <div id="manage-zone" style="display:none">
+      <div class="section-head"><h2>Артисты</h2></div>
+      <div id="artist-list"></div>
+    </div>
+  </div>
+</section>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+function render(){
+  const loginZone = document.getElementById('login-zone');
+  const manageZone = document.getElementById('manage-zone');
+
+  if (!EditorAuth.isLoggedIn()){
+    manageZone.style.display = 'none';
+    loginZone.innerHTML = `
+      <div class="login-card">
+        <div class="login-title">Вход для редакторов</div>
+        <div class="login-sub">Доступ выдаётся вручную. Если у тебя нет логина — обратись к администратору.</div>
+        <div class="login-field">
+          <label>Имя</label>
+          <input id="login-name" placeholder="Никита" autocomplete="off">
+        </div>
+        <div class="login-field">
+          <label>Пароль</label>
+          <input id="login-pass" type="password" placeholder="••••••••">
+        </div>
+        <button class="login-submit" id="login-btn" onclick="handleLogin()">Войти</button>
+        <div class="login-error" id="login-error"></div>
+      </div>`;
+    return;
+  }
+
+  loginZone.innerHTML = `
+    <div class="editor-badge">
+      <div>
+        <div class="nm" style="font-weight:800">${EditorAuth.editor.name}</div>
+        <div style="font-size:11.5px;color:var(--muted)">${EditorAuth.editor.role}</div>
+      </div>
+      <button class="logout-btn" onclick="handleLogout()">Выйти</button>
+    </div>`;
+  manageZone.style.display = 'block';
+  renderArtistList();
+}
+
+async function handleLogin(){
+  const name = document.getElementById('login-name').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  if (!name || !pass){ err.textContent = 'Заполни оба поля'; return; }
+  btn.disabled = true; btn.textContent = 'Входим…';
+  try{
+    await EditorAuth.login(name, pass);
+    render();
+  }catch(e){
+    err.textContent = e.message || 'Ошибка входа';
+    btn.disabled = false; btn.textContent = 'Войти';
+  }
+}
+function handleLogout(){ EditorAuth.logout(); render(); }
+
+async function renderArtistList(){
+  const wrap = document.getElementById('artist-list');
+  wrap.innerHTML = ARTISTS.map(a => `
+    <div class="artist-manage-row">
+      <div>
+        <div class="nm">${a.name}</div>
+        <div class="status" id="status-${a.id}">проверяем статьи…</div>
+      </div>
+      <button class="btn ghost" style="box-shadow:none;padding:9px 16px" onclick="editArtist('${a.id}')">✎ Открыть</button>
+    </div>`).join('');
+
+  for (const a of ARTISTS){
+    const list = await fetchArtistArticles(a.id);
+    const el = document.getElementById('status-' + a.id);
+    if (!list.length) el.textContent = 'статей в базе ещё нет — используется старый текст';
+    else {
+      const pub = list.filter(x=>x.published).length;
+      el.textContent = `${list.length} версии · ${pub} опубликовано`;
+    }
+  }
+}
+
+async function editArtist(id){
+  const a = ARTISTS.find(x => x.id === id);
+  const list = await fetchArtistArticles(id);
+  const existing = list.find(x => x.lang === 'ru') || list[0] || null;
+  openArticleEditor(id, a.name, existing);
+}
+window.addEventListener('rb:article-saved', renderArtistList);
+
+render();
+</script>
+</body>
+</html>

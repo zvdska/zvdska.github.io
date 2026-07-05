@@ -1,0 +1,323 @@
+/* ============================================================
+   ROOTS BOOK — design system
+   Направление: фотокопия флаера / обложка кассеты, а не софтовый
+   тёмный/кремовый ИИ-дефолт. Бумага, чёрные линии, один маркерный
+   акцент, жёсткие тени вместо мягких.
+   ============================================================ */
+
+:root{
+  --paper:   #EDE7DA;
+  --paper-2: #E3DCC9;
+  --ink:     #17140F;
+  --muted:   #6F6A5C;
+  --accent:  #E23E2B;   /* spray-can red-orange */
+  --accent-2:#F4D93E;   /* highlighter yellow, used sparingly */
+  --line:    rgba(23,20,15,.9);
+  --r: 3px;             /* almost-square corners on purpose */
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Manrope',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  letter-spacing:.02em;
+}
+a{color:inherit}
+img{display:block;max-width:100%}
+
+/* faint halftone/paper texture used behind hero + footer */
+.texture{
+  background-image:
+    radial-gradient(rgba(23,20,15,.05) 1px, transparent 1.4px);
+  background-size:14px 14px;
+}
+
+/* ---------- layout shell ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+@media (max-width:640px){.wrap{padding:0 18px}}
+
+/* ---------- header ---------- */
+.site-header{
+  position:sticky;top:0;z-index:50;
+  background:var(--paper);
+  border-bottom:2px solid var(--line);
+}
+.site-header .wrap{
+  display:flex;align-items:center;justify-content:space-between;
+  height:76px;gap:24px;
+}
+.logo{
+  font-family:'Unbounded',sans-serif;font-weight:900;font-size:22px;
+  letter-spacing:-.01em;text-decoration:none;white-space:nowrap;
+}
+.logo span{color:var(--accent)}
+.nav{display:flex;align-items:center;gap:6px}
+.nav a{
+  font-size:13.5px;font-weight:700;text-decoration:none;
+  padding:9px 14px;border-radius:999px;transition:background .15s;
+}
+.nav a:hover{background:var(--paper-2)}
+.nav a.active{background:var(--ink);color:var(--paper)}
+.header-search{
+  display:flex;align-items:center;gap:8px;
+  border:2px solid var(--line);border-radius:999px;
+  padding:8px 14px;background:#fff;min-width:0;
+}
+.header-search input{
+  border:none;outline:none;background:none;font-family:inherit;
+  font-size:13.5px;width:130px;color:var(--ink);
+}
+@media (max-width:760px){
+  .nav a:not(.nav-primary){display:none}
+  .header-search input{width:90px}
+}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;padding:64px 0 44px;
+  border-bottom:2px solid var(--line);
+}
+.hero .eyebrow{
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.16em;
+  color:var(--accent);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;
+}
+.hero .eyebrow::before{content:'';width:8px;height:8px;background:var(--accent);border-radius:50%}
+.hero h1{
+  font-family:'Unbounded',sans-serif;font-weight:900;
+  font-size:clamp(36px,7vw,74px);line-height:.98;letter-spacing:-.01em;
+  max-width:15ch;
+}
+.hero h1 mark{
+  background:none;color:var(--accent);
+  text-decoration:underline;text-decoration-color:var(--accent-2);
+  text-decoration-thickness:.14em;text-underline-offset:.06em;
+}
+.hero p{
+  font-size:16px;line-height:1.55;color:var(--muted);max-width:52ch;margin-top:20px;
+}
+.hero-actions{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-weight:800;font-size:14px;text-decoration:none;cursor:pointer;
+  padding:14px 22px;border-radius:999px;border:2px solid var(--line);
+  background:var(--ink);color:var(--paper);
+  box-shadow:5px 5px 0 var(--line);
+  transition:transform .12s, box-shadow .12s;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--line)}
+.btn:active{transform:translate(0,0);box-shadow:2px 2px 0 var(--line)}
+.btn.ghost{background:transparent;color:var(--ink)}
+
+.stat-row{
+  display:flex;gap:0;margin-top:52px;flex-wrap:wrap;
+  border-top:2px solid var(--line);
+}
+.stat{
+  flex:1;min-width:140px;padding:18px 0 0;border-right:2px solid var(--line);
+}
+.stat:last-child{border-right:none}
+.stat b{
+  font-family:'Unbounded',sans-serif;font-weight:900;font-size:30px;display:block;
+}
+.stat span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+
+/* ---------- section headings ---------- */
+.section{padding:52px 0}
+.section-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:26px;gap:16px;flex-wrap:wrap;
+}
+.section-head h2{
+  font-family:'Unbounded',sans-serif;font-weight:900;font-size:clamp(24px,4vw,34px);
+}
+.section-head .count{font-size:13px;color:var(--muted);font-weight:700}
+
+/* ---------- artist grid (flyer cards) ---------- */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px;
+}
+.card{
+  position:relative;background:#fff;border:2px solid var(--line);
+  text-decoration:none;color:var(--ink);display:block;
+  box-shadow:5px 5px 0 var(--line);
+  transition:transform .15s, box-shadow .15s;
+}
+.card:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--line)}
+.card:active{transform:translate(0,0);box-shadow:2px 2px 0 var(--line)}
+.card .tape{
+  position:absolute;top:-10px;left:20px;width:64px;height:22px;
+  background:rgba(244,217,62,.85);border:1px solid rgba(23,20,15,.25);
+  transform:rotate(-3deg);z-index:2;
+}
+.card .ph-wrap{aspect-ratio:4/5;overflow:hidden;border-bottom:2px solid var(--line);position:relative}
+.card img{width:100%;height:100%;object-fit:cover;filter:grayscale(.15) contrast(1.05)}
+.card .ph-fallback{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-family:'Unbounded',sans-serif;font-weight:900;font-size:44px;color:var(--paper-2);
+  background:var(--paper-2);
+}
+.card .meta{padding:14px 16px 16px}
+.card .nm{font-family:'Unbounded',sans-serif;font-weight:700;font-size:15.5px;line-height:1.2}
+.card .rl{font-size:11.5px;color:var(--muted);margin-top:5px;font-weight:700}
+.vbadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:14px;height:14px;border-radius:50%;background:var(--accent);
+  margin-left:5px;vertical-align:1px;
+}
+.vbadge svg{width:60%;height:60%;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- footer ---------- */
+.site-footer{border-top:2px solid var(--line);padding:36px 0;margin-top:40px}
+.site-footer .wrap{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;
+}
+.site-footer .fl{font-size:12.5px;color:var(--muted);line-height:1.6;max-width:52ch}
+.site-footer .fr{display:flex;gap:18px;align-items:center}
+.site-footer a{font-size:12px;font-weight:700;text-decoration:none;color:var(--muted)}
+.site-footer a:hover{color:var(--ink)}
+
+/* ---------- generic components reused on artist/editor pages ---------- */
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#fff;border:2px solid var(--line);border-radius:999px;
+  padding:7px 13px;font-size:12.5px;font-weight:700;text-decoration:none;color:var(--ink);
+}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+
+.skills{border:2px solid var(--line);background:#fff;padding:18px;margin-top:22px}
+.sk{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.sk:last-child{margin-bottom:0}
+.sk .skl{width:110px;flex-shrink:0;font-size:10.5px;letter-spacing:.1em;font-weight:800;color:var(--muted)}
+.sk .skbar{flex:1;height:8px;background:var(--paper-2);border:1px solid var(--line);overflow:hidden}
+.sk .skbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .8s cubic-bezier(.22,.9,.35,1)}
+.sk .skv{width:32px;text-align:right;font-weight:800;font-size:13px}
+
+.article p{font-size:15.5px;line-height:1.65;margin-bottom:14px;color:#2A261F}
+.article h3{font-family:'Unbounded',sans-serif;font-weight:700;font-size:19px;margin:26px 0 10px}
+.article blockquote{
+  border-left:4px solid var(--accent);background:var(--paper-2);
+  padding:16px 18px;margin:18px 0;font-style:italic;font-size:15px;line-height:1.6;
+}
+.article blockquote footer{font-size:12.5px;font-style:normal;font-weight:800;color:var(--muted);margin-top:8px}
+.article img{width:100%;margin:16px 0;border:2px solid var(--line)}
+.block-caption{font-size:11.5px;color:var(--muted);font-weight:700;margin:-10px 0 16px}
+.article .yt{
+  position:relative;width:100%;aspect-ratio:16/9;margin:16px 0;background:#000;
+  border:2px solid var(--line);cursor:pointer;overflow:hidden;
+}
+.article .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.article .yt-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.3) brightness(.8)}
+.article .yt-play{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:60px;height:60px;border-radius:50%;background:rgba(23,20,15,.75);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+
+.comment{border:2px solid var(--line);background:#fff;padding:14px;display:flex;gap:12px;margin-bottom:10px}
+.comment .av{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;background:var(--paper-2);border:1px solid var(--line);
+}
+.comment p{font-size:13.5px;line-height:1.5}
+.comment .cn{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:6px}
+.empty-state{font-size:13px;color:var(--muted)}
+
+.comment-form{display:flex;gap:8px;margin-bottom:16px}
+.comment-form input{
+  flex:1;border:2px solid var(--line);padding:12px 14px;font-family:inherit;font-size:13.5px;outline:none;
+}
+.comment-send{
+  background:var(--ink);color:var(--paper);border:2px solid var(--line);
+  padding:0 18px;font-weight:800;font-size:13px;cursor:pointer;
+}
+
+.like-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  border:2px solid var(--line);background:#fff;
+  padding:10px 16px;cursor:pointer;font-weight:800;font-size:13px;
+}
+.like-btn svg{width:18px;height:18px;fill:none;stroke:var(--ink);stroke-width:2}
+.like-btn.liked{background:var(--accent);color:#fff}
+.like-btn.liked svg{fill:#fff;stroke:#fff}
+
+/* ---------------- article editor modal ---------------- */
+.editor-modal{
+  position:fixed;inset:0;z-index:100;background:rgba(23,20,15,.55);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.editor-panel{
+  width:100%;max-width:620px;max-height:88vh;overflow-y:auto;
+  background:var(--paper);border:2px solid var(--line);
+  box-shadow:8px 8px 0 var(--line);
+  padding:22px;
+}
+.editor-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.editor-panel-head h3{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:700}
+.editor-close{
+  background:#fff;border:2px solid var(--line);width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;
+}
+.editor-title{
+  width:100%;border:2px solid var(--line);background:#fff;
+  padding:13px 14px;font-family:inherit;font-size:15px;font-weight:700;outline:none;margin-bottom:14px;
+}
+.editor-lang-row{display:flex;gap:8px;margin-bottom:14px}
+.lang-pill{
+  padding:7px 13px;border:2px solid var(--line);font-size:12px;font-weight:800;cursor:pointer;background:#fff;
+}
+.lang-pill.active{background:var(--ink);color:var(--paper)}
+.ed-block{border:2px solid var(--line);background:#fff;padding:14px;margin-bottom:12px;position:relative}
+.ed-block b{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:10px}
+.ed-block input, .ed-block textarea{
+  width:100%;border:1px solid var(--line);padding:10px 12px;font-family:inherit;font-size:13.5px;
+  outline:none;margin-bottom:8px;resize:vertical;min-height:44px;
+}
+.ed-block input:last-child, .ed-block textarea:last-child{margin-bottom:0}
+.ed-block-del{position:absolute;top:10px;right:10px;background:none;border:none;font-size:16px;cursor:pointer}
+.editor-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.editor-toolbar button{
+  border:2px solid var(--line);background:#fff;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;
+}
+.editor-actions{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:16px;border-top:2px solid var(--line);flex-wrap:wrap;
+}
+.editor-actions label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.ed-btn-row{display:flex;gap:8px}
+#ed-cancel{background:none;border:2px solid var(--line);padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer}
+#ed-save{background:var(--ink);color:var(--paper);border:2px solid var(--line);padding:10px 18px;font-weight:800;font-size:13px;cursor:pointer}
+
+/* ---------------- editor.html cabinet ---------------- */
+.login-card{
+  max-width:380px;margin:60px auto;background:#fff;border:2px solid var(--line);
+  box-shadow:6px 6px 0 var(--line);padding:28px 24px;
+}
+.login-title{font-family:'Unbounded',sans-serif;font-weight:900;font-size:22px;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.login-field{margin-bottom:14px}
+.login-field label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);display:block;margin-bottom:8px}
+.login-field input{width:100%;border:2px solid var(--line);padding:12px 14px;font-family:inherit;font-size:14.5px;outline:none}
+.login-submit{
+  width:100%;background:var(--ink);color:var(--paper);border:2px solid var(--line);
+  padding:14px;font-weight:800;font-size:14px;cursor:pointer;margin-top:6px;box-shadow:5px 5px 0 var(--line);
+}
+.login-submit:disabled{opacity:.5}
+.login-error{font-size:12.5px;color:var(--accent);margin-top:12px;font-weight:700}
+.editor-badge{
+  display:flex;align-items:center;justify-content:space-between;
+  border:2px solid var(--line);background:#fff;padding:14px 16px;
+}
+.logout-btn{background:none;border:2px solid var(--line);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer}
+.artist-manage-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border:2px solid var(--line);background:#fff;padding:14px 16px;margin-bottom:10px;
+}
+.artist-manage-row .nm{font-family:'Unbounded',sans-serif;font-weight:700;font-size:14.5px}
+.artist-manage-row .status{font-size:11.5px;color:var(--muted);margin-top:3px}
