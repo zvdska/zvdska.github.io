@@ -109,6 +109,127 @@ async function fetchArtistArticles(artistId){
   }catch(e){ return []; }
 }
 
+/* ---------------- banners (homepage rotating slider, up to 5) ---------------- */
+async function fetchBanners(){
+  try{
+    const { data } = await sb.from('banners').select('*').order('sort_order', { ascending: true }).limit(5);
+    return data || [];
+  }catch(e){ return []; }
+}
+
+async function saveBanner(banner){
+  const row = { image_url: banner.image_url, link_url: banner.link_url || null, sort_order: banner.sort_order || 0 };
+  const { data, error } = banner.id
+    ? await sb.from('banners').update(row).eq('id', banner.id).select().single()
+    : await sb.from('banners').insert(row).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+async function deleteBanner(id){
+  const { error } = await sb.from('banners').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/* ---------------- site settings (contacts emails, donate details) ---------------- */
+async function fetchSetting(key){
+  try{
+    const { data } = await sb.from('site_settings').select('value').eq('key', key).maybeSingle();
+    return data?.value || null;
+  }catch(e){ return null; }
+}
+
+async function saveSetting(key, value){
+  const { error } = await sb.from('site_settings').upsert({ key, value }, { onConflict: 'key' });
+  if (error) throw new Error(error.message);
+}
+
+function openContactsEditor(onSaved){
+  if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+  fetchSetting('contacts').then(current => {
+    const v = current || {};
+    const modal = document.createElement('div');
+    modal.className = 'editor-modal';
+    modal.innerHTML = `
+      <div class="editor-panel" style="max-width:420px">
+        <div class="editor-panel-head">
+          <h3>Контакты</h3>
+          <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
+        </div>
+        <div class="ed-block">
+          <b>Email редакции</b>
+          <input id="ct-press" placeholder="press@..." value="${v.press || ''}">
+        </div>
+        <div class="ed-block">
+          <b>Email рекламы</b>
+          <input id="ct-ads" placeholder="ads@..." value="${v.ads || ''}">
+        </div>
+        <div class="editor-actions" style="justify-content:flex-end">
+          <div class="ed-btn-row">
+            <button id="ct-cancel">Отмена</button>
+            <button id="ct-save">Сохранить</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#ct-cancel').onclick = () => modal.remove();
+    modal.querySelector('#ct-save').onclick = async () => {
+      const press = modal.querySelector('#ct-press').value.trim();
+      const ads = modal.querySelector('#ct-ads').value.trim();
+      const btn = modal.querySelector('#ct-save');
+      btn.disabled = true; btn.textContent = 'Сохраняем…';
+      try{
+        await saveSetting('contacts', { press, ads });
+        modal.remove();
+        if (onSaved) onSaved({ press, ads });
+      }catch(e){ alert('Ошибка: ' + e.message); btn.disabled=false; btn.textContent='Сохранить'; }
+    };
+  });
+}
+
+function openDonateEditor(onSaved){
+  if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+  fetchSetting('donate').then(current => {
+    const v = current || {};
+    const modal = document.createElement('div');
+    modal.className = 'editor-modal';
+    modal.innerHTML = `
+      <div class="editor-panel" style="max-width:420px">
+        <div class="editor-panel-head">
+          <h3>Донат</h3>
+          <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
+        </div>
+        <div class="ed-block">
+          <b>Номер карты</b>
+          <input id="dn-card" placeholder="0000 0000 0000 0000" value="${v.card || ''}">
+        </div>
+        <div class="ed-block">
+          <b>Крипто-кошелёк</b>
+          <input id="dn-crypto" placeholder="адрес кошелька" value="${v.crypto || ''}">
+        </div>
+        <div class="editor-actions" style="justify-content:flex-end">
+          <div class="ed-btn-row">
+            <button id="dn-cancel">Отмена</button>
+            <button id="dn-save">Сохранить</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#dn-cancel').onclick = () => modal.remove();
+    modal.querySelector('#dn-save').onclick = async () => {
+      const card = modal.querySelector('#dn-card').value.trim();
+      const crypto = modal.querySelector('#dn-crypto').value.trim();
+      const btn = modal.querySelector('#dn-save');
+      btn.disabled = true; btn.textContent = 'Сохраняем…';
+      try{
+        await saveSetting('donate', { card, crypto });
+        modal.remove();
+        if (onSaved) onSaved({ card, crypto });
+      }catch(e){ alert('Ошибка: ' + e.message); btn.disabled=false; btn.textContent='Сохранить'; }
+    };
+  });
+}
+
 /* ---------------- page views ---------------- */
 async function incrementView(artistId){
   try{

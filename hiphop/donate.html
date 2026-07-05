@@ -43,30 +43,15 @@
 
 <section class="section">
   <div class="wrap" style="max-width:640px">
-    <div class="section-head"><h2>Поддержать проект</h2></div>
+    <div class="section-head">
+      <h2>Поддержать проект</h2>
+      <button class="btn ghost" id="dn-edit-btn" style="display:none" onclick="openDonateEditor(renderDonate)">✎ Изменить</button>
+    </div>
     <p style="font-size:14.5px;color:var(--muted);line-height:1.6;margin-bottom:24px">
       ROOTS BOOK — некоммерческий архив украинского хип-хопа, который ведут редакторы-волонтёры.
       Донаты идут на хостинг, базу данных и работу редакции.
     </p>
-
-    <div class="donate-card">
-      <div>
-        <div class="lbl">Карта</div>
-        <div class="val">номер карты появится здесь</div>
-      </div>
-    </div>
-
-    <div class="donate-card">
-      <div>
-        <div class="lbl">Крипто-кошелёк</div>
-        <div class="val">адрес появится здесь</div>
-      </div>
-    </div>
-
-    <p style="font-size:13px;color:var(--muted);margin-top:20px">
-      Реквизиты ещё не добавлены — как только пришлёшь номер карты и/или адрес кошелька, вставлю их сюда.
-      Специально не придумываю их сам: ошибка в платёжных реквизитах — это чужие потерянные деньги, тут нельзя гадать.
-    </p>
+    <div id="donate-body"></div>
   </div>
 </section>
 
@@ -91,5 +76,29 @@
 </footer>
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script>
+function renderDonate(v){
+  v = v || {};
+  document.getElementById('donate-body').innerHTML = `
+    <div class="donate-card">
+      <div>
+        <div class="lbl">Карта</div>
+        <div class="val">${v.card || 'номер карты пока не указан'}</div>
+      </div>
+    </div>
+    <div class="donate-card">
+      <div>
+        <div class="lbl">Крипто-кошелёк</div>
+        <div class="val">${v.crypto || 'адрес пока не указан'}</div>
+      </div>
+    </div>`;
+}
+
+editorAuthReady.then(async () => {
+  document.getElementById('dn-edit-btn').style.display = EditorAuth.isLoggedIn() ? 'inline-flex' : 'none';
+  const v = await fetchSetting('donate');
+  renderDonate(v);
+});
+</script>
 </body>
 </html>

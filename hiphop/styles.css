@@ -368,3 +368,24 @@ img{display:block;max-width:100%}
 }
 .artist-manage-row .nm{font-weight:800;font-size:14.5px}
 .artist-manage-row .status{font-size:11.5px;color:var(--muted);margin-top:3px}
+
+/* ---------- banner slider (homepage, up to 5, rotates every 6s) ---------- */
+.banner-section{padding:36px 0 0}
+.banner-slider{
+  position:relative;width:100%;aspect-ratio:3/1;border-radius:20px;overflow:hidden;background:#eee;
+}
+.banner-slide{
+  position:absolute;inset:0;opacity:0;transition:opacity .6s ease;
+}
+.banner-slide.active{opacity:1}
+.banner-slide img{width:100%;height:100%;object-fit:cover}
+.banner-slide a{display:block;width:100%;height:100%}
+@media (max-width:640px){ .banner-slider{aspect-ratio:16/9} }
+
+/* ---------- editor cabinet: banner management ---------- */
+.banner-row{
+  display:flex;align-items:center;gap:14px;
+  border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px 14px;margin-bottom:10px;
+}
+.banner-row img{width:96px;height:32px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#eee}
+.banner-row .link{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

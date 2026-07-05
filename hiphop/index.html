@@ -44,6 +44,12 @@
   <h1>Живая история украинского хип-хопа</h1>
 </section>
 
+<section class="banner-section" id="banner-section" style="display:none">
+  <div class="wrap">
+    <div class="banner-slider" id="banner-slider"></div>
+  </div>
+</section>
+
 <section class="platforms-section" id="about">
   <div class="wrap">
     <h2>Наши спонсоры</h2>
@@ -146,6 +152,30 @@ async function renderGrid(){
   }).join('');
 }
 editorAuthReady.then(renderGrid);
+
+/* ---- banner slider ---- */
+let banners = [];
+let bannerIdx = 0;
+async function loadBanners(){
+  banners = await fetchBanners();
+  if (!banners.length) return;
+  document.getElementById('banner-section').style.display = 'block';
+  document.getElementById('banner-slider').innerHTML = banners.map((b,i) => `
+    <div class="banner-slide${i===0 ? ' active' : ''}" data-i="${i}">
+      ${b.link_url
+        ? `<a href="${b.link_url}" target="_blank" rel="noopener"><img src="${b.image_url}"></a>`
+        : `<img src="${b.image_url}">`}
+    </div>`).join('');
+  if (banners.length > 1){
+    setInterval(() => {
+      const slides = document.querySelectorAll('.banner-slide');
+      slides[bannerIdx].classList.remove('active');
+      bannerIdx = (bannerIdx + 1) % banners.length;
+      slides[bannerIdx].classList.add('active');
+    }, 6000);
+  }
+}
+loadBanners();
 </script>
 </body>
 </html>

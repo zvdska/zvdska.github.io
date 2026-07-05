@@ -39,7 +39,27 @@
     <div id="login-zone"></div>
 
     <div id="manage-zone" style="display:none">
-      <div class="section-head"><h2>Артисты</h2></div>
+      <div class="section-head"><h2>Баннеры (макс. 5)</h2></div>
+      <div id="banner-list"></div>
+      <button class="btn ghost" id="add-banner-btn" onclick="openBannerEditor()" style="margin-bottom:12px">+ Добавить баннер</button>
+
+      <div class="section-head" style="margin-top:32px"><h2>Настройки сайта</h2></div>
+      <div class="artist-manage-row">
+        <div>
+          <div class="nm">Контакты</div>
+          <div class="status">email редакции и рекламы</div>
+        </div>
+        <button class="btn ghost" style="box-shadow:none;padding:9px 16px" onclick="openContactsEditor()">✎ Изменить</button>
+      </div>
+      <div class="artist-manage-row">
+        <div>
+          <div class="nm">Донат</div>
+          <div class="status">карта / крипто-кошелёк</div>
+        </div>
+        <button class="btn ghost" style="box-shadow:none;padding:9px 16px" onclick="openDonateEditor()">✎ Изменить</button>
+      </div>
+
+      <div class="section-head" style="margin-top:32px"><h2>Артисты</h2></div>
       <div id="artist-list"></div>
     </div>
   </div>
@@ -82,6 +102,7 @@ function render(){
     </div>`;
   manageZone.style.display = 'block';
   renderArtistList();
+  renderBannerList();
 }
 
 async function handleLogin(){
@@ -101,6 +122,87 @@ async function handleLogin(){
   }
 }
 function handleLogout(){ EditorAuth.logout().then(render); }
+
+async function renderBannerList(){
+  const wrap = document.getElementById('banner-list');
+  const banners = await fetchBanners();
+  document.getElementById('add-banner-btn').style.display = banners.length >= 5 ? 'none' : 'inline-flex';
+
+  wrap.innerHTML = banners.length ? banners.map(b => `
+    <div class="banner-row">
+      <img src="${b.image_url}">
+      <div style="flex:1;min-width:0">
+        <div class="link">${b.link_url || 'без ссылки'}</div>
+      </div>
+      <button class="btn ghost" style="box-shadow:none;padding:7px 14px" onclick='openBannerEditor(${JSON.stringify(b)})'>✎</button>
+      <button class="btn ghost" style="box-shadow:none;padding:7px 14px" onclick="handleDeleteBanner('${b.id}')">✕</button>
+    </div>`).join('') : '<p class="empty-state">Баннеров пока нет.</p>';
+}
+
+async function handleDeleteBanner(id){
+  if (!confirm('Удалить баннер?')) return;
+  await deleteBanner(id);
+  renderBannerList();
+}
+
+function openBannerEditor(existing){
+  if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+  const modal = document.createElement('div');
+  modal.className = 'editor-modal';
+  modal.innerHTML = `
+    <div class="editor-panel" style="max-width:420px">
+      <div class="editor-panel-head">
+        <h3>${existing ? 'Изменить баннер' : 'Новый баннер'}</h3>
+        <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
+      </div>
+      <div class="ed-block">
+        <b>Картинка</b>
+        <input id="bn-image" placeholder="https://... (ссылка на картинку)" value="${existing?.image_url || ''}">
+        <input id="bn-file" type="file" accept="image/*" style="padding:8px 0">
+        <div id="bn-status" style="font-size:11.5px;color:var(--muted)"></div>
+      </div>
+      <div class="ed-block">
+        <b>Ссылка при клике (необязательно)</b>
+        <input id="bn-link" placeholder="https://..." value="${existing?.link_url || ''}">
+      </div>
+      <div class="editor-actions" style="justify-content:flex-end">
+        <div class="ed-btn-row">
+          <button id="bn-cancel">Отмена</button>
+          <button id="bn-save">Сохранить</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector('#bn-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = modal.querySelector('#bn-status');
+    status.textContent = 'Загружаем…';
+    try{
+      const url = await uploadPhoto(file);
+      modal.querySelector('#bn-image').value = url;
+      status.textContent = 'Загружено ✓';
+    }catch(err){ status.textContent = 'Ошибка: ' + err.message; }
+  });
+
+  modal.querySelector('#bn-cancel').onclick = () => modal.remove();
+  modal.querySelector('#bn-save').onclick = async () => {
+    const image_url = modal.querySelector('#bn-image').value.trim();
+    const link_url = modal.querySelector('#bn-link').value.trim();
+    if (!image_url){ alert('Нужна картинка'); return; }
+    const btn = modal.querySelector('#bn-save');
+    btn.disabled = true; btn.textContent = 'Сохраняем…';
+    try{
+      await saveBanner({ id: existing?.id, image_url, link_url });
+      modal.remove();
+      renderBannerList();
+    }catch(e){
+      alert('Не получилось сохранить: ' + e.message);
+      btn.disabled = false; btn.textContent = 'Сохранить';
+    }
+  };
+}
 
 async function renderArtistList(){
   const wrap = document.getElementById('artist-list');

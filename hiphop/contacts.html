@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-82LNQ84BMJ"></script>
 <script>
@@ -42,27 +43,11 @@
 
 <section class="section">
   <div class="wrap" style="max-width:640px">
-    <div class="section-head"><h2>Контакты</h2></div>
-
-    <div class="contact-card">
-      <div>
-        <div class="lbl">Связь с редакцией</div>
-        <div class="mail">press@rootsbook.example</div>
-      </div>
-      <a class="btn ghost" href="mailto:press@rootsbook.example">Написать →</a>
+    <div class="section-head">
+      <h2>Контакты</h2>
+      <button class="btn ghost" id="ct-edit-btn" style="display:none" onclick="openContactsEditor(renderContacts)">✎ Изменить</button>
     </div>
-
-    <div class="contact-card">
-      <div>
-        <div class="lbl">Реклама и сотрудничество</div>
-        <div class="mail">ads@rootsbook.example</div>
-      </div>
-      <a class="btn ghost" href="mailto:ads@rootsbook.example">Написать →</a>
-    </div>
-
-    <p style="font-size:13px;color:var(--muted);margin-top:20px">
-      Адреса временные — как только пришлёшь настоящие, заменю здесь и в mailto-ссылках.
-    </p>
+    <div id="contacts-body"></div>
   </div>
 </section>
 
@@ -85,5 +70,36 @@
     </div>
   </div>
 </footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+function renderContacts(v){
+  v = v || {};
+  const press = v.press || null;
+  const ads = v.ads || null;
+  document.getElementById('contacts-body').innerHTML = `
+    <div class="contact-card">
+      <div>
+        <div class="lbl">Связь с редакцией</div>
+        <div class="mail">${press || 'адрес пока не указан'}</div>
+      </div>
+      ${press ? `<a class="btn ghost" href="mailto:${press}">Написать →</a>` : ''}
+    </div>
+    <div class="contact-card">
+      <div>
+        <div class="lbl">Реклама и сотрудничество</div>
+        <div class="mail">${ads || 'адрес пока не указан'}</div>
+      </div>
+      ${ads ? `<a class="btn ghost" href="mailto:${ads}">Написать →</a>` : ''}
+    </div>`;
+}
+
+editorAuthReady.then(async () => {
+  document.getElementById('ct-edit-btn').style.display = EditorAuth.isLoggedIn() ? 'inline-flex' : 'none';
+  const v = await fetchSetting('contacts');
+  renderContacts(v);
+});
+</script>
 </body>
 </html>
