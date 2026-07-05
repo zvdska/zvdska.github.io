@@ -17,7 +17,7 @@
     <a class="logo" href="index.html">ROOTS BOOK</a>
     <nav class="nav">
       <a href="#grid-section">Артисты</a>
-      <a href="#grid-section" onclick="document.getElementById('q').focus()">Поиск</a>
+      <a href="artists.html">Поиск</a>
       <a href="editor.html">Контакты</a>
       <a href="#about">О проекте</a>
     </nav>
@@ -54,12 +54,12 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Артисты</h2>
-      <div class="inline-search">
-        <span>⌕</span>
-        <input id="q" placeholder="Поиск артиста" oninput="renderGrid(this.value)">
-      </div>
+      <span class="count" id="grid-count"></span>
     </div>
     <div class="grid" id="grid"></div>
+    <div style="text-align:center;margin-top:40px">
+      <a href="artists.html" target="_blank" rel="noopener" class="btn">Смотреть всех →</a>
+    </div>
   </div>
 </section>
 
@@ -81,12 +81,21 @@
 const VBADGE = '<span class="vbadge" title="Верифицированный артист"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>';
 const HUES = ['#2B2B2B','#3A3A3A','#242424','#333333','#1c1c1c'];
 
-function renderGrid(filter=''){
-  const f = filter.trim().toLowerCase();
-  const list = ARTISTS.filter(a =>
-    !f || a.name.toLowerCase().includes(f) || (a.tags||[]).join(' ').includes(f) || a.role.toLowerCase().includes(f));
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  document.getElementById('grid').innerHTML = list.map((a,i) => `
+function renderGrid(){
+  const FEATURED_COUNT = Math.min(6, ARTISTS.length);
+  const featured = shuffle(ARTISTS).slice(0, FEATURED_COUNT);
+
+  document.getElementById('grid-count').textContent = featured.length + ' / ' + ARTISTS.length;
+  document.getElementById('grid').innerHTML = featured.map((a,i) => `
     <a class="card" href="artist.html?id=${a.id}">
       <div class="ph-wrap">
         ${a.photo
