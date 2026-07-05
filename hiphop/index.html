@@ -62,7 +62,6 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Артисты</h2>
-      <span class="count" id="grid-count"></span>
     </div>
     <div class="grid carousel" id="grid"></div>
     <div style="text-align:center;margin-top:40px">
@@ -104,10 +103,9 @@ function shuffle(arr){
 }
 
 function renderGrid(){
-  const FEATURED_COUNT = Math.min(6, ARTISTS.length);
+  const FEATURED_COUNT = Math.min(5, ARTISTS.length);
   const featured = shuffle(ARTISTS).slice(0, FEATURED_COUNT);
 
-  document.getElementById('grid-count').textContent = featured.length + ' / ' + ARTISTS.length;
   document.getElementById('grid').innerHTML = featured.map((a,i) => `
     <a class="card" href="artist.html?id=${a.id}">
       <div class="ph-wrap">
