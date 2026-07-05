@@ -24,7 +24,8 @@
 .wiki-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
 
 .wiki-layout{display:grid;grid-template-columns:1fr 300px;gap:44px;align-items:start}
-@media (max-width:900px){ .wiki-layout{grid-template-columns:1fr} }
+.wiki-main{max-width:680px}
+@media (max-width:900px){ .wiki-layout{grid-template-columns:1fr} .wiki-main{max-width:none} }
 
 .wiki-infobox{
   border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fafafa;

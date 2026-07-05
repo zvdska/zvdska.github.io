@@ -54,9 +54,16 @@ const EditorAuth = {
 const editorAuthReady = EditorAuth.init();
 
 /* ---------------- article blocks: render for readers ---------------- */
+function autoParagraph(html){
+  // Если уже размечено тегами абзацев/блоков — не трогаем
+  if (/<(p|div|h[1-6]|ul|ol|blockquote)[\s>]/i.test(html)) return html;
+  // Иначе бьём по пустым строкам/переносам на отдельные абзацы
+  return html.split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => `<p>${s}</p>`).join('');
+}
+
 function renderBlocks(blocks){
   return blocks.map(b => {
-    if (b.type === 'text') return b.html;
+    if (b.type === 'text') return autoParagraph(b.html);
     if (b.type === 'image') return `
       <img src="${b.url}" loading="lazy">
       ${b.caption ? `<div class="block-caption">${escapeHtml(b.caption)}</div>` : ''}`;
@@ -100,6 +107,21 @@ async function fetchArtistArticles(artistId){
     const { data } = await sb.from('articles').select('*').eq('artist_id', artistId).order('updated_at', { ascending:false });
     return data || [];
   }catch(e){ return []; }
+}
+
+/* ---------------- page views ---------------- */
+async function incrementView(artistId){
+  try{
+    const { data } = await sb.rpc('increment_view', { p_artist_id: artistId });
+    return data;
+  }catch(e){ return null; }
+}
+
+async function getViewCount(artistId){
+  try{
+    const { data } = await sb.from('page_views').select('views').eq('artist_id', artistId).maybeSingle();
+    return data?.views ?? 0;
+  }catch(e){ return 0; }
 }
 
 /* ---------------- likes ---------------- */
