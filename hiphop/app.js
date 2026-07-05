@@ -167,31 +167,60 @@ async function fetchArtistOverride(id){
   }catch(e){ return null; }
 }
 
-async function saveArtistProfile(id, name, photoUrl){
+async function saveArtistProfile(id, name, photoUrl, infobox){
   const { data, error } = await sb.from('artists')
-    .upsert({ id, name, photo_url: photoUrl || null, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+    .upsert({ id, name, photo_url: photoUrl || null, infobox: infobox || {}, updated_at: new Date().toISOString() }, { onConflict: 'id' })
     .select()
     .single();
   if (error) throw new Error(error.message);
   return data;
 }
 
-function openArtistProfileEditor(id, currentName, currentPhoto){
+async function uploadPhoto(file){
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await sb.storage.from('photos').upload(path, file);
+  if (error) throw new Error(error.message);
+  const { data } = sb.storage.from('photos').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+const INFOBOX_FIELDS = [
+  ['real_name', 'Настоящее имя'],
+  ['born', 'Дата рождения'],
+  ['from', 'Город / регион'],
+  ['years_active', 'Годы активности'],
+  ['genre', 'Жанр'],
+  ['label', 'Лейбл'],
+];
+
+function openArtistProfileEditor(id, currentName, currentPhoto, currentInfobox){
   if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+  const infobox = currentInfobox || {};
 
   const modal = document.createElement('div');
   modal.className = 'editor-modal';
   modal.innerHTML = `
-    <div class="editor-panel" style="max-width:420px">
+    <div class="editor-panel" style="max-width:460px">
       <div class="editor-panel-head">
         <h3>Профиль артиста</h3>
         <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
       </div>
       <input class="editor-title" id="ap-name" placeholder="Имя артиста" value="${escapeAttr(currentName || '')}">
+
       <div class="ed-block">
-        <b>Обложка (URL фото)</b>
-        <input id="ap-photo" placeholder="https://..." value="${escapeAttr(currentPhoto || '')}">
+        <b>Фото</b>
+        <input id="ap-photo" placeholder="https://... (ссылка на фото)" value="${escapeAttr(currentPhoto || '')}">
+        <input id="ap-photo-file" type="file" accept="image/*" style="padding:8px 0">
+        <div id="ap-photo-status" style="font-size:11.5px;color:var(--muted)"></div>
       </div>
+
+      <div class="ed-block">
+        <b>Анкетные данные</b>
+        ${INFOBOX_FIELDS.map(([key,label]) => `
+          <input data-ib="${key}" placeholder="${label}" value="${escapeAttr(infobox[key] || '')}">`).join('')}
+      </div>
+
       <div class="editor-actions" style="justify-content:flex-end">
         <div class="ed-btn-row">
           <button id="ap-cancel">Отмена</button>
@@ -201,15 +230,34 @@ function openArtistProfileEditor(id, currentName, currentPhoto){
     </div>`;
   document.body.appendChild(modal);
 
+  modal.querySelector('#ap-photo-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = modal.querySelector('#ap-photo-status');
+    status.textContent = 'Загружаем…';
+    try{
+      const url = await uploadPhoto(file);
+      modal.querySelector('#ap-photo').value = url;
+      status.textContent = 'Загружено ✓';
+    }catch(err){
+      status.textContent = 'Ошибка загрузки: ' + err.message;
+    }
+  });
+
   modal.querySelector('#ap-cancel').onclick = () => modal.remove();
   modal.querySelector('#ap-save').onclick = async () => {
     const name = modal.querySelector('#ap-name').value.trim();
     const photoUrl = modal.querySelector('#ap-photo').value.trim();
+    const newInfobox = {};
+    modal.querySelectorAll('[data-ib]').forEach(inp => {
+      const v = inp.value.trim();
+      if (v) newInfobox[inp.dataset.ib] = v;
+    });
     if (!name){ alert('Нужно имя'); return; }
     const btn = modal.querySelector('#ap-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveArtistProfile(id, name, photoUrl);
+      await saveArtistProfile(id, name, photoUrl, newInfobox);
       modal.remove();
       window.dispatchEvent(new CustomEvent('rb:artist-saved', { detail: { id } }));
     }catch(e){
@@ -308,6 +356,23 @@ function openArticleEditor(artistId, artistName, existing = null){
     if (del){ state.blocks.splice(+del.dataset.del, 1); redraw(); }
   });
 
+  blocksEl.addEventListener('change', async (e) => {
+    const fileInput = e.target.closest('[data-imgfile]');
+    if (!fileInput) return;
+    const idx = +fileInput.dataset.imgfile;
+    const file = fileInput.files[0];
+    if (!file) return;
+    const status = blocksEl.querySelector(`[data-status="${idx}"]`);
+    status.textContent = 'Загружаем…';
+    try{
+      const url = await uploadPhoto(file);
+      state.blocks[idx].url = url;
+      redraw();
+    }catch(err){
+      status.textContent = 'Ошибка загрузки: ' + err.message;
+    }
+  });
+
   modal.querySelector('#ed-cancel').onclick = () => modal.remove();
 
   modal.querySelector('#ed-save').onclick = async () => {
@@ -344,6 +409,8 @@ function blockEditorRow(b, i){
   if (b.type === 'image')
     return `<div class="ed-block" data-idx="${i}"><b>Фото</b>${del}
       <input data-field="url" placeholder="URL картинки" value="${escapeAttr(b.url)}">
+      <input type="file" accept="image/*" data-imgfile="${i}" style="padding:8px 0">
+      <div class="img-upload-status" data-status="${i}" style="font-size:11.5px;color:var(--muted);margin-bottom:8px"></div>
       <input data-field="caption" placeholder="Подпись (необязательно)" value="${escapeAttr(b.caption||'')}"></div>`;
   if (b.type === 'quote')
     return `<div class="ed-block" data-idx="${i}"><b>Цитата</b>${del}

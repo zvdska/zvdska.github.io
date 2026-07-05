@@ -128,7 +128,7 @@ async function editArtist(id){
 async function editArtistProfileFromList(id){
   const a = ARTISTS.find(x => x.id === id);
   const override = await fetchArtistOverride(id);
-  openArtistProfileEditor(id, override?.name || a.name, override?.photo_url || a.photo || '');
+  openArtistProfileEditor(id, override?.name || a.name, override?.photo_url || a.photo || '', override?.infobox || {});
 }
 window.addEventListener('rb:article-saved', renderArtistList);
 window.addEventListener('rb:artist-saved', renderArtistList);
