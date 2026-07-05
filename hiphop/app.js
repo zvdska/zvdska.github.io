@@ -167,6 +167,15 @@ async function fetchArtistOverride(id){
   }catch(e){ return null; }
 }
 
+async function fetchAllArtistOverrides(){
+  try{
+    const { data } = await sb.from('artists').select('id, name, photo_url');
+    const map = {};
+    (data || []).forEach(row => { map[row.id] = row; });
+    return map;
+  }catch(e){ return {}; }
+}
+
 async function saveArtistProfile(id, name, photoUrl, infobox){
   const { data, error } = await sb.from('artists')
     .upsert({ id, name, photo_url: photoUrl || null, infobox: infobox || {}, updated_at: new Date().toISOString() }, { onConflict: 'id' })

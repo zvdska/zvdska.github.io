@@ -84,6 +84,8 @@ const VBADGE = '<span class="vbadge" title="Верифицированный а�
 const HUES = ['#2B2B2B','#3A3A3A','#242424','#333333','#1c1c1c'];
 
 let sortMode = 'default';
+let artistOverrides = {};
+
 function setSort(mode){
   sortMode = mode;
   document.getElementById('sort-default').classList.toggle('active', mode==='default');
@@ -93,26 +95,38 @@ function setSort(mode){
 
 function render(){
   const f = document.getElementById('q').value.trim().toLowerCase();
-  let list = ARTISTS.filter(a =>
-    !f || a.name.toLowerCase().includes(f) || (a.tags||[]).join(' ').includes(f) || a.role.toLowerCase().includes(f));
+  const effName = a => artistOverrides[a.id]?.name || a.name;
 
-  if (sortMode === 'az') list = list.slice().sort((a,b) => a.name.localeCompare(b.name, 'ru'));
+  let list = ARTISTS.filter(a =>
+    !f || effName(a).toLowerCase().includes(f) || (a.tags||[]).join(' ').includes(f) || a.role.toLowerCase().includes(f));
+
+  if (sortMode === 'az') list = list.slice().sort((a,b) => effName(a).localeCompare(effName(b), 'ru'));
 
   document.getElementById('count').textContent = list.length + ' / ' + ARTISTS.length;
-  document.getElementById('grid').innerHTML = list.map((a,i) => `
+  document.getElementById('grid').innerHTML = list.map((a,i) => {
+    const ov = artistOverrides[a.id];
+    const name = ov?.name || a.name;
+    const photo = ov?.photo_url || a.photo;
+    return `
     <a class="card" href="artist.html?id=${a.id}">
       <div class="ph-wrap">
-        ${a.photo
-          ? `<img src="${a.photo}" alt="${a.name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
-          : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(a.name)}</div>`}
+        ${photo
+          ? `<img src="${photo}" alt="${name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
+          : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(name)}</div>`}
       </div>
       <div class="meta">
-        <div class="nm">${a.name}${a.verified ? VBADGE : ''}</div>
+        <div class="nm">${name}${a.verified ? VBADGE : ''}</div>
       </div>
-    </a>`).join('');
+    </a>`;
+  }).join('');
 }
-document.getElementById('q').value = new URLSearchParams(location.search).get('q') || '';
-render();
+
+async function init(){
+  artistOverrides = await fetchAllArtistOverrides();
+  document.getElementById('q').value = new URLSearchParams(location.search).get('q') || '';
+  render();
+}
+init();
 </script>
 </body>
 </html>

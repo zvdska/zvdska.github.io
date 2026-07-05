@@ -112,23 +112,29 @@ function shuffle(arr){
   return a;
 }
 
-function renderGrid(){
+async function renderGrid(){
   const FEATURED_COUNT = Math.min(5, ARTISTS.length);
   const featured = shuffle(ARTISTS).slice(0, FEATURED_COUNT);
+  const overrides = await fetchAllArtistOverrides();
 
-  document.getElementById('grid').innerHTML = featured.map((a,i) => `
+  document.getElementById('grid').innerHTML = featured.map((a,i) => {
+    const ov = overrides[a.id];
+    const name = ov?.name || a.name;
+    const photo = ov?.photo_url || a.photo;
+    return `
     <a class="card" href="artist.html?id=${a.id}">
       <div class="ph-wrap">
-        ${a.photo
-          ? `<img src="${a.photo}" alt="${a.name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
-          : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(a.name)}</div>`}
+        ${photo
+          ? `<img src="${photo}" alt="${name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
+          : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(name)}</div>`}
       </div>
       <div class="meta">
-        <div class="nm">${a.name}${a.verified ? VBADGE : ''}</div>
+        <div class="nm">${name}${a.verified ? VBADGE : ''}</div>
       </div>
-    </a>`).join('');
+    </a>`;
+  }).join('');
 }
-renderGrid();
+editorAuthReady.then(renderGrid);
 </script>
 </body>
 </html>
