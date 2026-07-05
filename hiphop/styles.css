@@ -136,16 +136,28 @@ img{display:block;max-width:100%}
 .card .stat-mini{font-size:11px;color:var(--muted);margin-top:8px;font-weight:600;display:flex;align-items:center;gap:5px}
 .card .stat-mini svg{width:13px;height:13px;fill:none;stroke:var(--muted);stroke-width:2}
 
-/* ---------- mobile peek-carousel (homepage featured artists only) ---------- */
+/* ---------- mobile: artist list (circular avatar + name, Instagram-style) ---------- */
 @media (max-width:640px){
-  .grid.carousel{
-    display:flex;overflow-x:auto;gap:14px;
-    scroll-snap-type:x mandatory;scroll-padding:0 11vw;
-    padding:6px 11vw 18px;margin:0 -20px;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  .grid{
+    display:flex; flex-direction:column; gap:0;
   }
-  .grid.carousel::-webkit-scrollbar{display:none}
-  .grid.carousel .card{flex:0 0 78vw;scroll-snap-align:center}
+  .grid .card{
+    aspect-ratio:auto; display:flex; align-items:center; gap:14px;
+    padding:12px 4px; border-radius:0; border:none; border-bottom:1px solid var(--line);
+    background:none; box-shadow:none !important; transform:none !important;
+  }
+  .grid .card .ph-wrap{
+    position:static; width:52px; height:52px; border-radius:50%; overflow:hidden; flex-shrink:0;
+    background:#2B2B2B;
+  }
+  .grid .card .ph-fallback{ font-size:18px }
+  .grid .card .meta{
+    position:static; min-height:0; padding:0; background:none;
+    backdrop-filter:none; -webkit-backdrop-filter:none;
+  }
+  .grid .card .nm{ color:var(--ink); font-size:15px }
+  .grid .card .vbadge{ background:var(--ink) }
+  .grid .card .vbadge svg{ stroke:#fff }
 }
 .vbadge{
   display:inline-flex;align-items:center;justify-content:center;
