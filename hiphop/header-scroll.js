@@ -2,11 +2,24 @@
   const header = document.querySelector('.site-header');
   if (!header) return;
 
+  let bannerMode = false;
+
   function applyOffset(){
-    document.body.style.paddingTop = header.offsetHeight + 'px';
+    document.body.style.paddingTop = bannerMode ? '0px' : header.offsetHeight + 'px';
   }
+
+  // Вызывается со страницы, когда на ней подтвердились баннеры (см. index.html)
+  window.enableBannerHeaderOverlay = function(){
+    bannerMode = window.innerWidth <= 640;
+    applyOffset();
+    onScroll();
+  };
+
   applyOffset();
-  window.addEventListener('resize', applyOffset);
+  window.addEventListener('resize', () => {
+    bannerMode = bannerMode && window.innerWidth <= 640;
+    applyOffset();
+  });
 
   let lastY = window.scrollY;
   let ticking = false;
@@ -14,6 +27,16 @@
   function onScroll(){
     ticking = false;
     const y = window.scrollY;
+
+    if (bannerMode){
+      const slider = document.querySelector('.banner-slider');
+      const bh = slider ? slider.getBoundingClientRect().height : 0;
+      header.classList.remove('header-hidden'); // в баннер-режиме шапка всегда видна, просто меняет вид
+      header.classList.toggle('header-transparent', y < Math.max(bh - 40, 0));
+      header.classList.toggle('header-scrolled', y >= Math.max(bh - 40, 0));
+      lastY = y;
+      return;
+    }
 
     if (y <= 8){
       header.classList.remove('header-hidden');

@@ -41,7 +41,10 @@
 
 <section class="banner-section" id="banner-section" style="display:none">
   <div class="wrap">
-    <div class="banner-slider" id="banner-slider"></div>
+    <div class="banner-wrap-rel">
+      <div class="banner-slider" id="banner-slider"></div>
+      <div class="banner-dots" id="banner-dots"></div>
+    </div>
   </div>
 </section>
 
@@ -161,12 +164,20 @@ async function loadBanners(){
         ? `<a href="${b.link_url}" target="_blank" rel="noopener"><img src="${b.image_url}"></a>`
         : `<img src="${b.image_url}">`}
     </div>`).join('');
+  document.getElementById('banner-dots').innerHTML = banners.map((_,i) =>
+    `<span class="dot${i===0 ? ' active' : ''}"></span>`).join('');
+
+  if (window.enableBannerHeaderOverlay) window.enableBannerHeaderOverlay();
+
   if (banners.length > 1){
     setInterval(() => {
       const slides = document.querySelectorAll('.banner-slide');
+      const dots = document.querySelectorAll('.banner-dots .dot');
       slides[bannerIdx].classList.remove('active');
+      dots[bannerIdx].classList.remove('active');
       bannerIdx = (bannerIdx + 1) % banners.length;
       slides[bannerIdx].classList.add('active');
+      dots[bannerIdx].classList.add('active');
     }, 6000);
   }
 }

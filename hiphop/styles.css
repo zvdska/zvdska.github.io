@@ -389,3 +389,34 @@ img{display:block;max-width:100%}
 }
 .banner-row img{width:96px;height:32px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#eee}
 .banner-row .link{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- banner dots indicator ---------- */
+.banner-wrap-rel{position:relative}
+.banner-dots{
+  position:absolute;left:0;right:0;bottom:14px;z-index:2;
+  display:flex;justify-content:center;gap:6px;
+}
+.banner-dots .dot{
+  width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);
+  transition:background .2s, width .2s;
+}
+.banner-dots .dot.active{background:#fff;width:18px;border-radius:3px}
+
+/* ---------- mobile: full-bleed banner + transparent header overlay ---------- */
+@media (max-width:640px){
+  .banner-section{padding:0}
+  .banner-section .wrap{padding:0;max-width:none}
+  .banner-slider{border-radius:0;aspect-ratio:4/5}
+  .banner-dots{bottom:20px}
+
+  .site-header.header-transparent{
+    background:transparent;box-shadow:none;
+  }
+  .site-header.header-transparent .logo{color:#fff}
+  .site-header.header-transparent .inline-search{
+    background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);
+  }
+  .site-header.header-transparent .inline-search input{color:#fff}
+  .site-header.header-transparent .inline-search input::placeholder{color:rgba(255,255,255,.75)}
+  .site-header.header-transparent .inline-search span{color:#fff}
+}
