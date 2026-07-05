@@ -16,7 +16,11 @@
 <header class="site-header">
   <div class="wrap">
     <a class="logo" href="index.html">ROOTS BOOK</a>
-    <nav class="nav"><a href="index.html">← На сайт</a></nav>
+    <div class="inline-search">
+      <span>⌕</span>
+      <input placeholder="Поиск артиста"
+        onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+    </div>
   </div>
 </header>
 <script src="header-scroll.js"></script>

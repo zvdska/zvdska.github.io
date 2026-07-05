@@ -23,10 +23,11 @@
 <header class="site-header">
   <div class="wrap">
     <a class="logo" href="index.html">ROOTS BOOK</a>
-    <nav class="nav">
-      <a href="index.html">Главная</a>
-      <a href="artists.html">Артисты</a>
-    </nav>
+    <div class="inline-search">
+      <span>⌕</span>
+      <input placeholder="Поиск артиста"
+        onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+    </div>
   </div>
 </header>
 <script src="header-scroll.js"></script>
@@ -64,6 +65,25 @@
   <div class="wrap">
     <div class="fl">ROOTS BOOK © 2026<br>Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</div>
     <div class="fr"><a href="contacts.html">Контакты</a></div>
+    <div class="mobile-footer-nav">
+      <a class="mfn-logo" href="index.html">ROOTS BOOK</a>
+      <div class="mfn-search">
+        <span>⌕</span>
+        <input placeholder="Поиск артиста"
+          onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+      </div>
+      <div class="mfn-links">
+        <a href="index.html">Главная</a>
+        <a href="donate.html">Донат</a>
+        <a href="contacts.html">Контакты</a>
+        <a href="cookies.html">Политика cookie</a>
+        <a href="editor.html">Для редакторов</a>
+      </div>
+      <div class="mfn-copy">
+        ROOTS BOOK © 2026<br>
+        Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.
+      </div>
+    </div>
   </div>
 </footer>
 <script src="data.js"></script>

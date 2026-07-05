@@ -15,18 +15,9 @@
 <header class="site-header">
   <div class="wrap">
     <a class="logo" href="index.html">ROOTS BOOK</a>
-    <nav class="nav">
-      <a href="donate.html">Донат</a>
-      <a href="artists.html">Поиск</a>
-      <a href="contacts.html">Контакты</a>
-      <a href="#about">О проекте</a>
-    </nav>
-  </div>
-  <div class="mobile-actions">
-    <a href="contacts.html" class="btn ghost" style="border:1px solid var(--line)">Контакты</a>
     <div class="inline-search">
       <span>⌕</span>
-      <input id="mobile-q" placeholder="Поиск артиста"
+      <input id="q" placeholder="Поиск артиста"
         onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
     </div>
   </div>
@@ -84,9 +75,25 @@
       <a href="contacts.html">Контакты</a>
       <a href="editor.html">Для редакторов</a>
     </div>
-    <div class="footer-mobile-links">
-      <a href="#about">О проекте</a>
-      <a href="cookies.html">Политика сбора cookie</a>
+
+    <div class="mobile-footer-nav">
+      <a class="mfn-logo" href="index.html">ROOTS BOOK</a>
+      <div class="mfn-search">
+        <span>⌕</span>
+        <input id="mobile-q" placeholder="Поиск артиста"
+          onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+      </div>
+      <div class="mfn-links">
+        <a href="donate.html">Донат</a>
+        <a href="contacts.html">Контакты</a>
+        <a href="#about">О проекте</a>
+        <a href="cookies.html">Политика cookie</a>
+        <a href="editor.html">Для редакторов</a>
+      </div>
+      <div class="mfn-copy">
+        ROOTS BOOK © 2026<br>
+        Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.
+      </div>
     </div>
   </div>
 </footer>
