@@ -48,14 +48,14 @@ function render(){
     loginZone.innerHTML = `
       <div class="login-card">
         <div class="login-title">Вход для редакторов</div>
-        <div class="login-sub">Доступ выдаётся вручную. Если у тебя нет логина — обратись к администратору.</div>
+        <div class="login-sub">Доступ выдаётся вручную через Supabase. Если у тебя нет аккаунта — обратись к администратору.</div>
         <div class="login-field">
-          <label>Имя</label>
-          <input id="login-name" placeholder="Никита" autocomplete="off">
+          <label>Email</label>
+          <input id="login-email" type="email" placeholder="you@example.com" autocomplete="username">
         </div>
         <div class="login-field">
           <label>Пароль</label>
-          <input id="login-pass" type="password" placeholder="••••••••">
+          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
         </div>
         <button class="login-submit" id="login-btn" onclick="handleLogin()">Войти</button>
         <div class="login-error" id="login-error"></div>
@@ -76,22 +76,22 @@ function render(){
 }
 
 async function handleLogin(){
-  const name = document.getElementById('login-name').value.trim();
+  const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn');
   const err = document.getElementById('login-error');
   err.textContent = '';
-  if (!name || !pass){ err.textContent = 'Заполни оба поля'; return; }
+  if (!email || !pass){ err.textContent = 'Заполни оба поля'; return; }
   btn.disabled = true; btn.textContent = 'Входим…';
   try{
-    await EditorAuth.login(name, pass);
+    await EditorAuth.login(email, pass);
     render();
   }catch(e){
     err.textContent = e.message || 'Ошибка входа';
     btn.disabled = false; btn.textContent = 'Войти';
   }
 }
-function handleLogout(){ EditorAuth.logout(); render(); }
+function handleLogout(){ EditorAuth.logout().then(render); }
 
 async function renderArtistList(){
   const wrap = document.getElementById('artist-list');
@@ -123,7 +123,7 @@ async function editArtist(id){
 }
 window.addEventListener('rb:article-saved', renderArtistList);
 
-render();
+editorAuthReady.then(render);
 </script>
 </body>
 </html>

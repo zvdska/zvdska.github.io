@@ -6,7 +6,6 @@
 const SUPABASE_URL = 'https://xnfknmhahczszlsvebih.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_WUpJKhQMeqvYDKen-yUxng_J6Hv3VhV';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const FN = (name) => `${SUPABASE_URL}/functions/v1/${name}`;
 
 function getUserKey(){
   let k = localStorage.getItem('rb_uid');
@@ -14,40 +13,45 @@ function getUserKey(){
   return k;
 }
 
-/* ---------------- editor auth ---------------- */
-function safeParse(raw, fallback){
-  try { return raw ? JSON.parse(raw) : fallback; }
-  catch(e){ return fallback; }
-}
-
+/* ---------------- editor auth (Supabase Auth) ---------------- */
 const EditorAuth = {
-  token: localStorage.getItem('rb_editor_token') || null,
-  editor: safeParse(localStorage.getItem('rb_editor_info'), null),
+  session: null,
+  editor: null,
 
-  async login(name, passcode){
-    const r = await fetch(FN('editor-login'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, passcode }),
-    });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    this.token = d.token;
-    this.editor = d.editor;
-    localStorage.setItem('rb_editor_token', d.token);
-    localStorage.setItem('rb_editor_info', JSON.stringify(d.editor));
+  async init(){
+    const { data } = await sb.auth.getSession();
+    this.session = data.session || null;
+    if (this.session) await this.loadProfile();
     mountEditorBadge();
-    return d.editor;
   },
-  logout(){
-    this.token = null;
+
+  async loadProfile(){
+    const { data } = await sb.from('editor_profiles').select('*').eq('user_id', this.session.user.id).maybeSingle();
+    this.editor = data ? { name: data.name, role: data.role } : { name: this.session.user.email, role: 'editor' };
+  },
+
+  async login(email, password){
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    this.session = data.session;
+    await this.loadProfile();
+    mountEditorBadge();
+    return this.editor;
+  },
+
+  async logout(){
+    await sb.auth.signOut();
+    this.session = null;
     this.editor = null;
-    localStorage.removeItem('rb_editor_token');
-    localStorage.removeItem('rb_editor_info');
     mountEditorBadge();
   },
-  isLoggedIn(){ return !!this.token; },
+
+  isLoggedIn(){ return !!this.session; },
 };
+
+// Каждая страница должна дождаться этого перед первым render(),
+// чтобы сразу знать, залогинен редактор или нет:
+const editorAuthReady = EditorAuth.init();
 
 /* ---------------- article blocks: render for readers ---------------- */
 function renderBlocks(blocks){
@@ -152,10 +156,8 @@ function mountEditorBadge(){
 
 function handleHeaderLogout(){
   if (!confirm('Выйти из режима редактора?')) return;
-  EditorAuth.logout();
-  location.reload();
+  EditorAuth.logout().then(() => location.reload());
 }
-document.addEventListener('DOMContentLoaded', mountEditorBadge);
 
 /* ---------------- artist profile override (name + cover photo, DB-backed) ---------------- */
 async function fetchArtistOverride(id){
@@ -166,14 +168,12 @@ async function fetchArtistOverride(id){
 }
 
 async function saveArtistProfile(id, name, photoUrl){
-  const r = await fetch(FN('save-artist'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${EditorAuth.token}` },
-    body: JSON.stringify({ id, name, photoUrl }),
-  });
-  const d = await r.json();
-  if (d.error) throw new Error(d.error);
-  return d.artist;
+  const { data, error } = await sb.from('artists')
+    .upsert({ id, name, photo_url: photoUrl || null, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 function openArtistProfileEditor(id, currentName, currentPhoto){
@@ -317,16 +317,16 @@ function openArticleEditor(artistId, artistName, existing = null){
     const saveBtn = modal.querySelector('#ed-save');
     saveBtn.disabled = true; saveBtn.textContent = 'Сохраняем…';
     try{
-      const r = await fetch(FN('save-article'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${EditorAuth.token}` },
-        body: JSON.stringify({
-          id: state.id, artistId, title: state.title,
-          lang: state.lang, blocks: state.blocks, published: state.published,
-        }),
-      });
-      const d = await r.json();
-      if (d.error){ alert('Ошибка: ' + d.error); saveBtn.disabled=false; saveBtn.textContent='Сохранить'; return; }
+      const row = {
+        artist_id: artistId, title: state.title, lang: state.lang,
+        blocks: state.blocks, published: state.published,
+        updated_at: new Date().toISOString(),
+      };
+      const { data, error } = state.id
+        ? await sb.from('articles').update(row).eq('id', state.id).select().single()
+        : await sb.from('articles').insert(row).select().single();
+
+      if (error){ alert('Ошибка: ' + error.message); saveBtn.disabled=false; saveBtn.textContent='Сохранить'; return; }
       modal.remove();
       window.dispatchEvent(new CustomEvent('rb:article-saved', { detail: { artistId } }));
     }catch(e){

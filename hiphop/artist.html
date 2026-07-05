@@ -117,7 +117,7 @@ if (!artist){
   document.querySelector('.artist-hero .wrap').innerHTML = `<p>Артист не найден. <a href="index.html">Вернуться на главную</a>.</p>`;
 } else {
   document.title = artist.name + ' — ROOTS BOOK';
-  render();
+  editorAuthReady.then(render);
 }
 
 function render(){
