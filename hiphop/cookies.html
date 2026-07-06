@@ -25,7 +25,7 @@
     <a class="logo" href="index.html">ROOTS BOOK</a>
     <div class="inline-search">
       <span>⌕</span>
-      <input placeholder="Поиск артиста"
+      <input placeholder="Поиск артиста" data-i18n="search_placeholder" data-i18n-placeholder
         onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
     </div>
   </div>
@@ -34,7 +34,7 @@
 
 <section class="section">
   <div class="wrap" style="max-width:680px">
-    <div class="section-head"><h2>Политика сбора cookie</h2></div>
+    <div class="section-head"><h2 data-i18n="cookies_heading">Политика сбора cookie</h2></div>
     <div class="article">
       <p>Сайт использует Google Analytics для подсчёта посещений и просмотров — это ставит собственные cookie от Google, по которым нельзя определить личность посетителя напрямую. Рекламы и рекламных cookie на сайте нет.</p>
       <p>Мы храним в браузере (localStorage) только техническую информацию, нужную для работы сайта:</p>
@@ -53,22 +53,23 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <div class="fl">ROOTS BOOK © 2026<br>Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</div>
+    <div class="fl">ROOTS BOOK © 2026<br><span data-i18n="footer_copy_line">Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</span></div>
     
     <div class="mobile-footer-nav">
       <div class="mfn-links">
-        <a href="index.html">Главная</a>
-        <a href="donate.html">Донат</a>
-        <a href="contacts.html">Контакты</a>
-        <a href="cookies.html">Политика cookie</a>
-        <a href="editor.html">Для редакторов</a>
+        <a href="index.html" data-i18n="home_link">Главная</a>
+        <a href="donate.html" data-i18n="nav_donate">Донат</a>
+        <a href="contacts.html" data-i18n="nav_contacts">Контакты</a>
+        <a href="cookies.html" data-i18n="footer_cookie">Политика cookie</a>
+        <a href="editor.html" data-i18n="footer_editors">Для редакторов</a>
       </div>
       <div class="mfn-copy">
         ROOTS BOOK © 2026<br>
-        Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.
+        <span data-i18n="footer_copy_line">Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</span>
       </div>
     </div>
   </div>
 </footer>
+<script src="i18n.js"></script>
 </body>
 </html>

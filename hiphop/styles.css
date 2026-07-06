@@ -441,3 +441,16 @@ img{display:block;max-width:100%}
   .platforms-row .sponsor-logo{height:20px;max-width:76px}
   .platforms-row{gap:18px 22px}
 }
+
+/* ---------- language switch ---------- */
+.lang-switch{
+  display:flex;gap:4px;margin-left:12px;
+}
+.lang-switch span{
+  font-size:11px;font-weight:800;letter-spacing:.02em;color:var(--muted);
+  padding:6px 9px;border-radius:999px;cursor:pointer;transition:background .15s, color .15s;
+}
+.lang-switch span:hover{color:var(--ink)}
+.lang-switch span.active{background:var(--ink);color:#fff}
+.site-header.header-transparent .lang-switch span{color:rgba(255,255,255,.75)}
+.site-header.header-transparent .lang-switch span.active{background:#fff;color:var(--ink)}

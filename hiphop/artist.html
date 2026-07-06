@@ -55,7 +55,7 @@
     <a class="logo" href="index.html">ROOTS BOOK</a>
     <div class="inline-search">
       <span>⌕</span>
-      <input placeholder="Поиск артиста"
+      <input placeholder="Поиск артиста" data-i18n="search_placeholder" data-i18n-placeholder
         onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
     </div>
   </div>
@@ -83,14 +83,14 @@
         <div id="a-article-wrap" style="display:none">
           <div class="article" id="a-article"></div>
           <div class="editors-note">
-            <b>Редакция</b>
+            <b data-i18n="editors_note_label">Редакция</b>
             Павел Ивушкин · Илья Капустин · Роман Рув · Никита Завадский
           </div>
         </div>
 
-        <div class="section-head" style="margin-top:40px"><h2>Комментарии</h2></div>
+        <div class="section-head" style="margin-top:40px"><h2 data-i18n="comments_heading">Комментарии</h2></div>
         <div class="comment-form">
-          <input id="comment-input" placeholder="Ваш комментарий…" maxlength="500">
+          <input id="comment-input" placeholder="Ваш комментарий…" maxlength="500" data-i18n="comment_placeholder" data-i18n-placeholder>
           <button class="comment-send" onclick="handleComment()">→</button>
         </div>
         <div id="comments-list"></div>
@@ -106,19 +106,19 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <div class="fl">ROOTS BOOK © 2026<br>Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</div>
-    <div class="fr"><a href="cookies.html">Политика cookie</a></div>
+    <div class="fl">ROOTS BOOK © 2026<br><span data-i18n="footer_copy_line">Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</span></div>
+    <div class="fr"><a href="cookies.html" data-i18n="footer_cookie">Политика cookie</a></div>
     <div class="mobile-footer-nav">
       <div class="mfn-links">
-        <a href="index.html">Главная</a>
-        <a href="donate.html">Донат</a>
-        <a href="contacts.html">Контакты</a>
-        <a href="cookies.html">Политика cookie</a>
-        <a href="editor.html">Для редакторов</a>
+        <a href="index.html" data-i18n="home_link">Главная</a>
+        <a href="donate.html" data-i18n="nav_donate">Донат</a>
+        <a href="contacts.html" data-i18n="nav_contacts">Контакты</a>
+        <a href="cookies.html" data-i18n="footer_cookie">Политика cookie</a>
+        <a href="editor.html" data-i18n="footer_editors">Для редакторов</a>
       </div>
       <div class="mfn-copy">
         ROOTS BOOK © 2026<br>
-        Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.
+        <span data-i18n="footer_copy_line">Материалы публикуются с разрешения редакции; при цитировании ссылка на источник обязательна.</span>
       </div>
     </div>
   </div>
@@ -126,6 +126,7 @@
 
 <script src="data.js"></script>
 <script src="app.js"></script>
+<script src="i18n.js"></script>
 <script>
 const VBADGE = '<span class="vbadge" title="Верифицированный артист"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>';
 const id = new URLSearchParams(location.search).get('id');
@@ -201,7 +202,7 @@ window.addEventListener('rb:artist-saved', (e) => {
 });
 
 async function loadDbArticle(){
-  dbArticle = await fetchPublishedArticle(artist.id, 'ru');
+  dbArticle = await fetchPublishedArticle(artist.id, getLang());
   if (dbArticle){
     document.getElementById('a-article-wrap').style.display = 'block';
     document.getElementById('a-article').innerHTML = renderBlocks(dbArticle.blocks);
@@ -225,7 +226,7 @@ async function refreshComments(){
     <div class="comment">
       <div class="av">${escapeHtml((c.author||'?')[0].toUpperCase())}</div>
       <div><p>${escapeHtml(c.text)}</p><div class="cn">${escapeHtml(c.author)}</div></div>
-    </div>`).join('') : '<p class="empty-state">Пока нет комментариев — будьте первым.</p>';
+    </div>`).join('') : `<p class="empty-state">${I18N[getLang()].empty_comments}</p>`;
 }
 async function handleComment(){
   const input = document.getElementById('comment-input');
@@ -242,6 +243,7 @@ function handleEdit(){
 window.addEventListener('rb:article-saved', (e) => {
   if (e.detail.artistId === artist.id) loadDbArticle();
 });
+window.addEventListener('rb:lang-changed', () => loadDbArticle());
 </script>
 </body>
 </html>
