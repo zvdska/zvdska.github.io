@@ -90,7 +90,7 @@ img{display:block;max-width:100%}
 }
 .platforms-row{
   display:flex;justify-content:center;align-items:center;
-  gap:80px;flex-wrap:wrap;
+  gap:48px 56px;flex-wrap:wrap;
 }
 .platforms-row a{
   display:flex;align-items:center;gap:10px;color:var(--ink);
@@ -429,4 +429,14 @@ img{display:block;max-width:100%}
   .site-header.header-transparent .inline-search input{color:#fff}
   .site-header.header-transparent .inline-search input::placeholder{color:rgba(255,255,255,.75)}
   .site-header.header-transparent .inline-search span{color:#fff}
+}
+
+/* ---------- sponsor logos ---------- */
+.platforms-row .sponsor-logo{
+  height:38px;width:auto;max-width:150px;object-fit:contain;
+  filter:grayscale(1) opacity(.75);transition:filter .2s;
+}
+.platforms-row a:hover .sponsor-logo{filter:none}
+@media (max-width:640px){
+  .platforms-row .sponsor-logo{height:30px}
 }
