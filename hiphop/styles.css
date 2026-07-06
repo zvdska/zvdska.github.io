@@ -454,3 +454,35 @@ img{display:block;max-width:100%}
 .lang-switch span.active{background:var(--ink);color:#fff}
 .site-header.header-transparent .lang-switch span{color:rgba(255,255,255,.75)}
 .site-header.header-transparent .lang-switch span.active{background:#fff;color:var(--ink)}
+
+/* ---------- banner CTA button ---------- */
+.banner-cta{
+  position:absolute;z-index:3;
+  background:#fff;color:var(--ink);text-decoration:none;
+  font-weight:800;font-size:14px;padding:12px 22px;border-radius:999px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .15s;
+  /* десктоп: справа, по центру по вертикали */
+  right:32px;top:50%;transform:translateY(-50%);
+}
+.banner-cta:hover{transform:translateY(-50%) scale(1.04)}
+@media (max-width:640px){
+  .banner-cta{
+    /* мобильные: снизу по центру, над точками-индикаторами */
+    left:50%;right:auto;top:auto;bottom:56px;
+    transform:translateX(-50%);
+  }
+  .banner-cta:hover{transform:translateX(-50%) scale(1.04)}
+}
+
+/* ---------- social icons row (below artists) ---------- */
+.social-row{
+  display:flex;justify-content:center;gap:20px;padding:8px 0 44px;
+}
+.social-row a{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--paper-2,#f2f2f2);color:var(--ink);
+  transition:background .15s, transform .15s;
+}
+.social-row a:hover{background:var(--ink);color:#fff;transform:translateY(-2px)}
+.social-row svg{width:20px;height:20px;fill:currentColor}

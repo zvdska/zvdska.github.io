@@ -171,6 +171,10 @@ function openBannerEditor(existing){
         <b>Ссылка при клике (необязательно)</b>
         <input id="bn-link" placeholder="https://..." value="${existing?.link_url || ''}">
       </div>
+      <div class="ed-block">
+        <b>Текст кнопки на баннере (необязательно)</b>
+        <input id="bn-button-text" placeholder="Например: Купить билет" value="${existing?.button_text || ''}">
+      </div>
       <div class="editor-actions" style="justify-content:flex-end">
         <div class="ed-btn-row">
           <button id="bn-cancel">Отмена</button>
@@ -209,11 +213,12 @@ function openBannerEditor(existing){
     const image_url = modal.querySelector('#bn-image').value.trim();
     const image_url_mobile = modal.querySelector('#bn-image-mobile').value.trim();
     const link_url = modal.querySelector('#bn-link').value.trim();
+    const button_text = modal.querySelector('#bn-button-text').value.trim();
     if (!image_url){ alert('Нужна картинка'); return; }
     const btn = modal.querySelector('#bn-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveBanner({ id: existing?.id, image_url, image_url_mobile, link_url });
+      await saveBanner({ id: existing?.id, image_url, image_url_mobile, link_url, button_text });
       modal.remove();
       renderBannerList();
     }catch(e){
