@@ -78,6 +78,11 @@
   <div class="wrap">
     <div class="section-head">
       <h2 data-i18n="artists_heading">Артисты</h2>
+      <div class="inline-search artists-row-search">
+        <span>⌕</span>
+        <input placeholder="Поиск артиста" data-i18n="search_placeholder" data-i18n-placeholder
+          onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">
+      </div>
     </div>
     <div class="grid carousel" id="grid"></div>
     <div style="text-align:center;margin-top:40px">

@@ -202,7 +202,9 @@ img{display:block;max-width:100%}
 /* ---------- mobile: header keeps logo + search; footer keeps links only ---------- */
 @media (max-width:760px){
   .site-header .nav{ display:none; }
-  .mobile-search{ display:flex !important; }
+  .mobile-search{ display:none !important; }
+  .artists-row-search{ display:flex !important; margin-top:14px; width:100% }
+  .section-head{ flex-wrap:wrap }
 
   .site-footer .fl, .site-footer .fr{ display:none; }
   .footer-mobile-links{ display:none; }
@@ -218,6 +220,7 @@ img{display:block;max-width:100%}
   .mfn-copy{ font-size:11.5px; color:var(--muted); line-height:1.6; max-width:34ch }
 }
 .mobile-search{ display:none }
+.artists-row-search{ display:none }
 @media (min-width:761px){
   .mobile-footer-nav{ display:none; }
 }
