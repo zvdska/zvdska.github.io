@@ -118,7 +118,12 @@ async function fetchBanners(){
 }
 
 async function saveBanner(banner){
-  const row = { image_url: banner.image_url, link_url: banner.link_url || null, sort_order: banner.sort_order || 0 };
+  const row = {
+    image_url: banner.image_url,
+    image_url_mobile: banner.image_url_mobile || null,
+    link_url: banner.link_url || null,
+    sort_order: banner.sort_order || 0,
+  };
   const { data, error } = banner.id
     ? await sb.from('banners').update(row).eq('id', banner.id).select().single()
     : await sb.from('banners').insert(row).select().single();

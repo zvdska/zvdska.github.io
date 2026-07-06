@@ -158,12 +158,16 @@ async function loadBanners(){
   banners = await fetchBanners();
   if (!banners.length) return;
   document.getElementById('banner-section').style.display = 'block';
-  document.getElementById('banner-slider').innerHTML = banners.map((b,i) => `
+  document.getElementById('banner-slider').innerHTML = banners.map((b,i) => {
+    const pic = `<picture>
+        ${b.image_url_mobile ? `<source media="(max-width:640px)" srcset="${b.image_url_mobile}">` : ''}
+        <img src="${b.image_url}">
+      </picture>`;
+    return `
     <div class="banner-slide${i===0 ? ' active' : ''}" data-i="${i}">
-      ${b.link_url
-        ? `<a href="${b.link_url}" target="_blank" rel="noopener"><img src="${b.image_url}"></a>`
-        : `<img src="${b.image_url}">`}
-    </div>`).join('');
+      ${b.link_url ? `<a href="${b.link_url}" target="_blank" rel="noopener">${pic}</a>` : pic}
+    </div>`;
+  }).join('');
   document.getElementById('banner-dots').innerHTML = banners.map((_,i) =>
     `<span class="dot${i===0 ? ' active' : ''}"></span>`).join('');
 
