@@ -90,7 +90,7 @@ img{display:block;max-width:100%}
 }
 .platforms-row{
   display:flex;justify-content:center;align-items:center;
-  gap:48px 56px;flex-wrap:wrap;
+  gap:28px 36px;flex-wrap:wrap;
 }
 .platforms-row a{
   display:flex;align-items:center;gap:10px;color:var(--ink);
@@ -433,10 +433,11 @@ img{display:block;max-width:100%}
 
 /* ---------- sponsor logos ---------- */
 .platforms-row .sponsor-logo{
-  height:38px;width:auto;max-width:150px;object-fit:contain;
+  height:26px;width:auto;max-width:100px;object-fit:contain;
   filter:grayscale(1) opacity(.75);transition:filter .2s;
 }
 .platforms-row a:hover .sponsor-logo{filter:none}
 @media (max-width:640px){
-  .platforms-row .sponsor-logo{height:30px}
+  .platforms-row .sponsor-logo{height:20px;max-width:76px}
+  .platforms-row{gap:18px 22px}
 }
