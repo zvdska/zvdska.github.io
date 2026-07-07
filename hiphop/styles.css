@@ -1,6 +1,6 @@
 @font-face{
   font-family:'Versus Ultra';
-  src:url('fonts/Versus-Ultra.otf') format('opentype');
+  src:url('fonts/versus1.otf') format('opentype');
   font-weight:normal;
   font-style:normal;
   font-display:swap;
@@ -148,7 +148,7 @@ img{display:block;max-width:100%}
   background:linear-gradient(to top, rgba(0,0,0,.55) 0%, rgba(0,0,0,.22) 45%, transparent 100%);
 }
 .card .meta > *{position:relative;z-index:1}
-.card .nm{font-weight:800;font-size:15.5px;line-height:1.2;color:#fff;display:flex;align-items:center;gap:6px}
+.card .nm{font-family:'Versus Ultra','Google Sans Flex',sans-serif;font-weight:800;font-size:15.5px;line-height:1.2;color:#fff;display:flex;align-items:center;gap:6px}
 .card .sub{font-size:12.5px;color:rgba(255,255,255,.75);margin-top:4px}
 .card .vbadge{background:#fff}
 .card .vbadge svg{stroke:var(--ink)}
