@@ -30,7 +30,7 @@
 
     // прозрачность/цвет шапки — зависит от того, ещё ли мы над баннером
     if (bannerMode){
-      const slider = document.querySelector('.banner-slider');
+      const slider = document.querySelector('.banner-slider, .infobox-photo');
       const bh = slider ? slider.getBoundingClientRect().height : 0;
       header.classList.toggle('header-transparent', y < Math.max(bh - 40, 0));
       header.classList.toggle('header-scrolled', y >= Math.max(bh - 40, 0));

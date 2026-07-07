@@ -20,6 +20,14 @@
 
 <style>
 .wiki-page{padding:36px 0 60px}
+@media (max-width:640px){
+  .wiki-page{padding-top:0}
+  .wiki-page .wrap{display:flex;flex-direction:column;padding:0}
+  .wiki-title{order:2;padding:0 20px}
+  .wiki-page > .wrap > .wiki-actions{order:2;padding:0 20px}
+  .wiki-layout{order:1}
+  .wiki-main{padding:0 20px}
+}
 .wiki-title{font-weight:900;font-size:clamp(28px,5vw,44px);line-height:1.05;margin-bottom:6px}
 .wiki-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
 
@@ -40,12 +48,13 @@
 @media (max-width:640px){
   .wiki-infobox{ border:none;background:none;border-radius:0;overflow:visible; }
   .infobox-photo{
-    margin:0 -20px;width:calc(100% + 40px);
+    margin:0;width:100%;
     border-radius:0 0 24px 24px;overflow:hidden;
   }
   .infobox-table{
     display:table;border:1px solid var(--line);border-radius:14px;
-    background:#fafafa;margin-top:16px;overflow:hidden;
+    background:#fafafa;margin:16px 20px 0;overflow:hidden;
+    width:calc(100% - 40px);
   }
 }
 
@@ -188,6 +197,8 @@ function applyDisplay(){
     .join('');
   document.getElementById('a-infobox-table').innerHTML = rows ||
     `<tr><td colspan="2" style="color:var(--muted);font-style:italic;padding:14px">Анкетные данные ещё не заполнены</td></tr>`;
+
+  if (window.enableBannerHeaderOverlay) window.enableBannerHeaderOverlay();
 }
 
 async function loadArtistOverride(){
