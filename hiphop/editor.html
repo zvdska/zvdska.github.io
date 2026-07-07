@@ -172,16 +172,12 @@ function openBannerEditor(existing){
         <input id="bn-link" placeholder="https://..." value="${existing?.link_url || ''}">
       </div>
       <div class="ed-block">
-        <b>Заголовок на баннере (по языкам, необязательно — например "NEW ALBUM")</b>
-        <input id="bn-heading-ru" placeholder="RU" value="${existing?.heading_text_ru || ''}">
-        <input id="bn-heading-uk" placeholder="UA" value="${existing?.heading_text_uk || ''}">
-        <input id="bn-heading-en" placeholder="EN" value="${existing?.heading_text_en || ''}">
+        <b>Заголовок на баннере (необязательно, например "NEW ALBUM")</b>
+        <input id="bn-heading" placeholder="Заголовок" value="${existing?.heading_text || ''}">
       </div>
       <div class="ed-block">
-        <b>Текст кнопки на баннере (по языкам, необязательно)</b>
-        <input id="bn-button-ru" placeholder="RU" value="${existing?.button_text_ru || ''}">
-        <input id="bn-button-uk" placeholder="UA" value="${existing?.button_text_uk || ''}">
-        <input id="bn-button-en" placeholder="EN" value="${existing?.button_text_en || ''}">
+        <b>Текст кнопки на баннере (необязательно)</b>
+        <input id="bn-button-text" placeholder="Например: Купить билет" value="${existing?.button_text || ''}">
       </div>
       <div class="editor-actions" style="justify-content:flex-end">
         <div class="ed-btn-row">
@@ -221,21 +217,13 @@ function openBannerEditor(existing){
     const image_url = modal.querySelector('#bn-image').value.trim();
     const image_url_mobile = modal.querySelector('#bn-image-mobile').value.trim();
     const link_url = modal.querySelector('#bn-link').value.trim();
-    const heading_text_ru = modal.querySelector('#bn-heading-ru').value.trim();
-    const heading_text_uk = modal.querySelector('#bn-heading-uk').value.trim();
-    const heading_text_en = modal.querySelector('#bn-heading-en').value.trim();
-    const button_text_ru = modal.querySelector('#bn-button-ru').value.trim();
-    const button_text_uk = modal.querySelector('#bn-button-uk').value.trim();
-    const button_text_en = modal.querySelector('#bn-button-en').value.trim();
+    const heading_text = modal.querySelector('#bn-heading').value.trim();
+    const button_text = modal.querySelector('#bn-button-text').value.trim();
     if (!image_url){ alert('Нужна картинка'); return; }
     const btn = modal.querySelector('#bn-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveBanner({
-        id: existing?.id, image_url, image_url_mobile, link_url,
-        heading_text_ru, heading_text_uk, heading_text_en,
-        button_text_ru, button_text_uk, button_text_en,
-      });
+      await saveBanner({ id: existing?.id, image_url, image_url_mobile, link_url, heading_text, button_text });
       modal.remove();
       renderBannerList();
     }catch(e){

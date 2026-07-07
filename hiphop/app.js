@@ -125,12 +125,8 @@ async function saveBanner(banner){
     image_url: banner.image_url,
     image_url_mobile: banner.image_url_mobile || null,
     link_url: banner.link_url || null,
-    heading_text_ru: banner.heading_text_ru || null,
-    heading_text_uk: banner.heading_text_uk || null,
-    heading_text_en: banner.heading_text_en || null,
-    button_text_ru: banner.button_text_ru || null,
-    button_text_uk: banner.button_text_uk || null,
-    button_text_en: banner.button_text_en || null,
+    heading_text: banner.heading_text || null,
+    button_text: banner.button_text || null,
     sort_order: banner.sort_order || 0,
   };
   const { data, error } = banner.id
