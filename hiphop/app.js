@@ -68,7 +68,7 @@ function renderBlocks(blocks){
       <img src="${b.url}" loading="lazy">
       ${b.caption ? `<div class="block-caption">${escapeHtml(b.caption)}</div>` : ''}`;
     if (b.type === 'quote') return `
-      <blockquote>${escapeHtml(b.text)}${b.author ? `<footer>— ${escapeHtml(b.author)}</footer>` : ''}</blockquote>`;
+      <blockquote><span class="q-mark">«</span>${escapeHtml(b.text)}<span class="q-mark">»</span>${b.author ? `<footer>— ${escapeHtml(b.author)}</footer>` : ''}</blockquote>`;
     if (b.type === 'youtube') return `
       <div class="yt" onclick="playYt(this,'${b.id}')">
         <img class="yt-thumb" src="https://i.ytimg.com/vi/${b.id}/hqdefault.jpg" loading="lazy">
@@ -476,7 +476,7 @@ function openArticleEditor(artistId, artistName, existing = null){
   });
 
   const blocksEl = modal.querySelector('#ed-blocks');
-  const redraw = () => { blocksEl.innerHTML = state.blocks.map((b,i)=>blockEditorRow(b,i)).join(''); };
+  const redraw = () => { blocksEl.innerHTML = state.blocks.map((b,i)=>blockEditorRow(b,i,state.blocks.length)).join(''); };
   redraw();
 
   modal.querySelectorAll('[data-add]').forEach(btn => {
@@ -512,7 +512,27 @@ function openArticleEditor(artistId, artistName, existing = null){
 
   blocksEl.addEventListener('click', (e) => {
     const del = e.target.closest('[data-del]');
-    if (del){ state.blocks.splice(+del.dataset.del, 1); redraw(); }
+    if (del){ state.blocks.splice(+del.dataset.del, 1); redraw(); return; }
+
+    const up = e.target.closest('[data-move-up]');
+    if (up){
+      const idx = +up.dataset.moveUp;
+      if (idx > 0){
+        [state.blocks[idx-1], state.blocks[idx]] = [state.blocks[idx], state.blocks[idx-1]];
+        redraw();
+      }
+      return;
+    }
+
+    const down = e.target.closest('[data-move-down]');
+    if (down){
+      const idx = +down.dataset.moveDown;
+      if (idx < state.blocks.length - 1){
+        [state.blocks[idx+1], state.blocks[idx]] = [state.blocks[idx], state.blocks[idx+1]];
+        redraw();
+      }
+      return;
+    }
   });
 
   blocksEl.addEventListener('change', async (e) => {
@@ -560,26 +580,31 @@ function openArticleEditor(artistId, artistName, existing = null){
   };
 }
 
-function blockEditorRow(b, i){
-  const del = `<button data-del="${i}" class="ed-block-del">✕</button>`;
+function blockEditorRow(b, i, total){
+  const controls = `
+    <div class="ed-block-controls">
+      <button data-move-up="${i}" class="ed-block-move" ${i===0 ? 'disabled' : ''} title="Переместить выше">↑</button>
+      <button data-move-down="${i}" class="ed-block-move" ${i===total-1 ? 'disabled' : ''} title="Переместить ниже">↓</button>
+      <button data-del="${i}" class="ed-block-del" title="Удалить">✕</button>
+    </div>`;
   if (b.type === 'text')
-    return `<div class="ed-block" data-idx="${i}"><b>Текст</b>${del}
+    return `<div class="ed-block" data-idx="${i}"><b>Текст</b>${controls}
       <textarea data-field="html" placeholder="HTML, например &lt;p&gt;...&lt;/p&gt;">${escapeHtml(b.html)}</textarea></div>`;
   if (b.type === 'image')
-    return `<div class="ed-block" data-idx="${i}"><b>Фото</b>${del}
+    return `<div class="ed-block" data-idx="${i}"><b>Фото</b>${controls}
       <input data-field="url" placeholder="URL картинки" value="${escapeAttr(b.url)}">
       <input type="file" accept="image/*" data-imgfile="${i}" style="padding:8px 0">
       <div class="img-upload-status" data-status="${i}" style="font-size:11.5px;color:var(--muted);margin-bottom:8px"></div>
       <input data-field="caption" placeholder="Подпись (необязательно)" value="${escapeAttr(b.caption||'')}"></div>`;
   if (b.type === 'quote')
-    return `<div class="ed-block" data-idx="${i}"><b>Цитата</b>${del}
+    return `<div class="ed-block" data-idx="${i}"><b>Цитата</b>${controls}
       <textarea data-field="text" placeholder="Текст цитаты">${escapeHtml(b.text)}</textarea>
       <input data-field="author" placeholder="Автор (необязательно)" value="${escapeAttr(b.author||'')}"></div>`;
   if (b.type === 'youtube')
-    return `<div class="ed-block" data-idx="${i}"><b>YouTube</b>${del}
+    return `<div class="ed-block" data-idx="${i}"><b>YouTube</b>${controls}
       <input data-field="id" placeholder="ID видео (из youtube.com/watch?v=ID)" value="${escapeAttr(b.id)}"></div>`;
   if (b.type === 'links')
-    return `<div class="ed-block" data-idx="${i}"><b>Ссылки</b>${del}
+    return `<div class="ed-block" data-idx="${i}"><b>Ссылки</b>${controls}
       <textarea data-field="_links_raw" placeholder="Instagram | https://instagram.com/...  (по одной на строку)">${
         (b.items||[]).map(l => `${l.label} | ${l.url}`).join('\n')}</textarea></div>`;
   return '';
