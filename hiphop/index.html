@@ -180,31 +180,39 @@ editorAuthReady.then(renderGrid);
 /* ---- banner slider ---- */
 let banners = [];
 let bannerIdx = 0;
-async function loadBanners(){
-  banners = await fetchBanners();
-  if (!banners.length) return;
-  document.getElementById('banner-section').style.display = 'block';
+
+function renderBannerSlides(){
+  const lang = getLang();
   document.getElementById('banner-slider').innerHTML = banners.map((b,i) => {
     const pic = `<picture>
         ${b.image_url_mobile ? `<source media="(max-width:640px)" srcset="${b.image_url_mobile}">` : ''}
         <img src="${b.image_url}">
       </picture>`;
-    const hasOverlay = b.heading_text || b.button_text;
+    const heading = b['heading_text_' + lang];
+    const buttonText = b['button_text_' + lang];
+    const hasOverlay = heading || buttonText;
     const overlay = hasOverlay ? `
       <div class="banner-content">
-        ${b.heading_text ? `<div class="banner-heading">${b.heading_text}</div>` : ''}
-        ${b.button_text ? `<a class="banner-cta" href="${b.link_url || '#'}" target="_blank" rel="noopener">${b.button_text}</a>` : ''}
+        ${heading ? `<div class="banner-heading">${heading}</div>` : ''}
+        ${buttonText ? `<a class="banner-cta" href="${b.link_url || '#'}" target="_blank" rel="noopener">${buttonText}</a>` : ''}
       </div>` : '';
     const media = b.link_url && !hasOverlay
       ? `<a href="${b.link_url}" target="_blank" rel="noopener">${pic}</a>`
       : pic;
     return `
-    <div class="banner-slide${i===0 ? ' active' : ''}" data-i="${i}">
+    <div class="banner-slide${i===bannerIdx ? ' active' : ''}" data-i="${i}">
       ${media}${overlay}
     </div>`;
   }).join('');
   document.getElementById('banner-dots').innerHTML = banners.map((_,i) =>
-    `<span class="dot${i===0 ? ' active' : ''}"></span>`).join('');
+    `<span class="dot${i===bannerIdx ? ' active' : ''}"></span>`).join('');
+}
+
+async function loadBanners(){
+  banners = await fetchBanners();
+  if (!banners.length) return;
+  document.getElementById('banner-section').style.display = 'block';
+  renderBannerSlides();
 
   if (window.enableBannerHeaderOverlay) window.enableBannerHeaderOverlay();
 
@@ -221,6 +229,7 @@ async function loadBanners(){
   }
 }
 loadBanners();
+window.addEventListener('rb:lang-changed', () => { if (banners.length) renderBannerSlides(); });
 </script>
 </body>
 </html>
