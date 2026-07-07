@@ -68,7 +68,7 @@ function renderBlocks(blocks){
       <img src="${b.url}" loading="lazy">
       ${b.caption ? `<div class="block-caption">${escapeHtml(b.caption)}</div>` : ''}`;
     if (b.type === 'quote') return `
-      <blockquote><span class="q-mark">«</span>${escapeHtml(b.text)}<span class="q-mark">»</span>${b.author ? `<footer>— ${escapeHtml(b.author)}</footer>` : ''}</blockquote>`;
+      <blockquote><span class="q-highlight"><span class="q-mark">«</span>${escapeHtml(b.text)}<span class="q-mark">»</span></span>${b.author ? `<footer>— ${escapeHtml(b.author)}</footer>` : ''}</blockquote>`;
     if (b.type === 'youtube') return `
       <div class="yt" onclick="playYt(this,'${b.id}')">
         <img class="yt-thumb" src="https://i.ytimg.com/vi/${b.id}/hqdefault.jpg" loading="lazy">

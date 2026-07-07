@@ -261,15 +261,18 @@ img{display:block;max-width:100%}
 .article p{font-size:16px;line-height:1.65;margin-bottom:14px;color:#252525}
 .article h3{font-weight:800;font-size:19px;margin:26px 0 10px}
 .article blockquote{
-  background:var(--ink);color:#fff;border-radius:16px;
-  padding:32px 28px;margin:24px 0;
-  text-align:center;font-style:normal;font-weight:800;
-  text-transform:uppercase;font-size:18px;line-height:1.5;letter-spacing:.01em;
+  text-align:center;margin:28px 0;font-style:normal;
 }
-.article blockquote .q-mark{font-weight:900;font-size:1.3em;vertical-align:-.06em}
+.article blockquote .q-highlight{
+  display:inline;background:var(--ink);color:#fff;
+  font-weight:800;text-transform:uppercase;font-size:18px;line-height:1.9;
+  letter-spacing:.01em;padding:.15em .4em;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone;
+}
+.article blockquote .q-mark{font-weight:900;font-size:1.2em;vertical-align:-.05em}
 .article blockquote footer{
-  display:block;margin-top:16px;font-size:12.5px;font-weight:700;
-  text-transform:none;letter-spacing:0;color:rgba(255,255,255,.65);
+  display:block;margin-top:14px;font-size:12.5px;font-weight:700;
+  text-transform:none;letter-spacing:0;color:var(--muted);
 }
 .article img{width:100%;margin:16px 0;border-radius:14px}
 .block-caption{font-size:11.5px;color:var(--muted);font-weight:600;margin:-10px 0 16px}
