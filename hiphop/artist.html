@@ -37,6 +37,18 @@
 .infobox-photo img{width:100%;height:100%;object-fit:cover}
 .infobox-photo .fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:56px;color:#fff}
 
+@media (max-width:640px){
+  .wiki-infobox{ border:none;background:none;border-radius:0; }
+  .infobox-photo{
+    margin:0 -20px;width:calc(100% + 40px);
+    border-radius:0 0 24px 24px;
+  }
+  .infobox-table{
+    display:table;border:1px solid var(--line);border-radius:14px;
+    background:#fafafa;margin-top:16px;overflow:hidden;
+  }
+}
+
 .infobox-table{width:100%;border-collapse:collapse;font-size:13px}
 .infobox-table tr{border-top:1px solid var(--line)}
 .infobox-table tr:first-child{border-top:none}
@@ -53,7 +65,7 @@
 <header class="site-header">
   <div class="wrap">
     <a class="logo" href="index.html">ROOTS BOOK</a>
-    <div class="inline-search">
+    <div class="inline-search header-search-box">
       <span>⌕</span>
       <input placeholder="Поиск артиста" data-i18n="search_placeholder" data-i18n-placeholder
         onkeydown="if(event.key==='Enter') location.href='artists.html?q='+encodeURIComponent(this.value)">

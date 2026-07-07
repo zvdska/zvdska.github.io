@@ -203,7 +203,8 @@ img{display:block;max-width:100%}
 @media (max-width:760px){
   .site-header .nav{ display:none; }
   .mobile-search{ display:none !important; }
-  .artists-row-search{ display:flex !important; margin-top:14px; width:100% }
+  .header-search-box{ display:none !important; }
+  .artists-row-search{ display:none !important; }
   .section-head{ flex-wrap:wrap }
 
   .site-footer .fl, .site-footer .fr{ display:none; }
@@ -528,3 +529,40 @@ img{display:block;max-width:100%}
 .social-row svg{width:20px;height:20px;fill:currentColor}
 
 .article .sc-embed{margin:16px 0;border-radius:12px;display:block}
+
+/* ---------- scattered masonry grid (homepage featured artists) ---------- */
+.scatter-grid{
+  column-count:5;column-gap:20px;
+}
+@media (max-width:900px){ .scatter-grid{column-count:3} }
+@media (max-width:640px){ .scatter-grid{column-count:2;column-gap:14px} }
+
+.scatter-card{
+  display:block;break-inside:avoid;margin:0 0 20px;
+  background:#fff;border:1px solid var(--line);border-radius:6px;
+  box-shadow:0 10px 24px rgba(0,0,0,.09);
+  text-decoration:none;color:var(--ink);
+  transition:transform .25s ease, box-shadow .25s ease, z-index 0s;
+  position:relative;
+}
+.scatter-card:hover{
+  transform:rotate(0deg) translateY(-4px) !important;
+  box-shadow:0 18px 32px rgba(0,0,0,.14);
+  z-index:5;
+}
+.scatter-ph{width:100%;overflow:hidden;background:#2B2B2B;border-radius:6px 6px 0 0}
+.scatter-ph img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1) contrast(1.05)}
+.scatter-ph .ph-fallback{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:32px;color:#fff;
+}
+.scatter-meta{padding:12px 14px 16px}
+.scatter-meta .nm{font-weight:800;font-size:14px;line-height:1.2}
+.scatter-meta .rl{font-size:11px;color:var(--muted);margin-top:4px}
+.scatter-card .stamp{
+  position:absolute;top:-10px;right:-8px;width:36px;height:36px;border-radius:50%;
+  background:#fff;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  transform:rotate(-10deg);box-shadow:0 4px 10px rgba(0,0,0,.15);z-index:2;
+}
+.scatter-card .stamp svg{width:16px;height:16px;fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
