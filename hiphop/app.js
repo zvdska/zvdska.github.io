@@ -122,6 +122,7 @@ async function saveBanner(banner){
     image_url: banner.image_url,
     image_url_mobile: banner.image_url_mobile || null,
     link_url: banner.link_url || null,
+    heading_text: banner.heading_text || null,
     button_text: banner.button_text || null,
     sort_order: banner.sort_order || 0,
   };

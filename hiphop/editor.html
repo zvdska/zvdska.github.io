@@ -172,6 +172,10 @@ function openBannerEditor(existing){
         <input id="bn-link" placeholder="https://..." value="${existing?.link_url || ''}">
       </div>
       <div class="ed-block">
+        <b>Заголовок на баннере (необязательно, например "NEW ALBUM")</b>
+        <input id="bn-heading" placeholder="Заголовок" value="${existing?.heading_text || ''}">
+      </div>
+      <div class="ed-block">
         <b>Текст кнопки на баннере (необязательно)</b>
         <input id="bn-button-text" placeholder="Например: Купить билет" value="${existing?.button_text || ''}">
       </div>
@@ -213,12 +217,13 @@ function openBannerEditor(existing){
     const image_url = modal.querySelector('#bn-image').value.trim();
     const image_url_mobile = modal.querySelector('#bn-image-mobile').value.trim();
     const link_url = modal.querySelector('#bn-link').value.trim();
+    const heading_text = modal.querySelector('#bn-heading').value.trim();
     const button_text = modal.querySelector('#bn-button-text').value.trim();
     if (!image_url){ alert('Нужна картинка'); return; }
     const btn = modal.querySelector('#bn-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveBanner({ id: existing?.id, image_url, image_url_mobile, link_url, button_text });
+      await saveBanner({ id: existing?.id, image_url, image_url_mobile, link_url, heading_text, button_text });
       modal.remove();
       renderBannerList();
     }catch(e){

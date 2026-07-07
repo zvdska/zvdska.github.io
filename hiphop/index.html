@@ -190,15 +190,18 @@ async function loadBanners(){
         ${b.image_url_mobile ? `<source media="(max-width:640px)" srcset="${b.image_url_mobile}">` : ''}
         <img src="${b.image_url}">
       </picture>`;
-    const cta = b.button_text
-      ? `<a class="banner-cta" href="${b.link_url || '#'}" target="_blank" rel="noopener">${b.button_text}</a>`
-      : '';
-    const media = b.link_url && !b.button_text
+    const hasOverlay = b.heading_text || b.button_text;
+    const overlay = hasOverlay ? `
+      <div class="banner-content">
+        ${b.heading_text ? `<div class="banner-heading">${b.heading_text}</div>` : ''}
+        ${b.button_text ? `<a class="banner-cta" href="${b.link_url || '#'}" target="_blank" rel="noopener">${b.button_text}</a>` : ''}
+      </div>` : '';
+    const media = b.link_url && !hasOverlay
       ? `<a href="${b.link_url}" target="_blank" rel="noopener">${pic}</a>`
       : pic;
     return `
     <div class="banner-slide${i===0 ? ' active' : ''}" data-i="${i}">
-      ${media}${cta}
+      ${media}${overlay}
     </div>`;
   }).join('');
   document.getElementById('banner-dots').innerHTML = banners.map((_,i) =>
