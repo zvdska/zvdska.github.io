@@ -86,13 +86,6 @@
             <span id="view-count">0</span>
           </div>
         </div>
-
-        <div class="section-head" style="margin-top:40px"><h2 data-i18n="comments_heading">Комментарии</h2></div>
-        <div class="comment-form">
-          <input id="comment-input" placeholder="Ваш комментарий…" maxlength="500" data-i18n="comment_placeholder" data-i18n-placeholder>
-          <button class="comment-send" onclick="handleComment()">→</button>
-        </div>
-        <div id="comments-list"></div>
       </div>
 
       <aside class="wiki-infobox">
@@ -154,7 +147,6 @@ function render(){
   }
 
   refreshLike();
-  refreshComments();
   loadDbArticle();
   loadArtistOverride();
   trackView();
@@ -216,24 +208,6 @@ async function refreshLike(){
 async function handleLike(){
   await toggleLike(artist.id);
   refreshLike();
-}
-
-async function refreshComments(){
-  const list = await fetchComments(artist.id);
-  const el = document.getElementById('comments-list');
-  el.innerHTML = list.length ? list.map(c => `
-    <div class="comment">
-      <div class="av">${escapeHtml((c.author||'?')[0].toUpperCase())}</div>
-      <div><p>${escapeHtml(c.text)}</p><div class="cn">${escapeHtml(c.author)}</div></div>
-    </div>`).join('') : `<p class="empty-state">${I18N[getLang()].empty_comments}</p>`;
-}
-async function handleComment(){
-  const input = document.getElementById('comment-input');
-  const text = input.value.trim();
-  if (!text) return;
-  await postComment(artist.id, EditorAuth.editor?.name || 'Гость', text);
-  input.value = '';
-  refreshComments();
 }
 
 function handleEdit(){

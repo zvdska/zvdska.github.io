@@ -74,6 +74,9 @@ function renderBlocks(blocks){
         <img class="yt-thumb" src="https://i.ytimg.com/vi/${b.id}/hqdefault.jpg" loading="lazy">
         <div class="yt-play">▶</div>
       </div>`;
+    if (b.type === 'soundcloud') return `
+      <iframe class="sc-embed" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+        src="https://w.soundcloud.com/player/?url=${encodeURIComponent(b.url)}&color=%23111111&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>`;
     if (b.type === 'links') return `
       <div class="tags" style="margin:16px 0">${b.items.map(l =>
         `<a class="tag" href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`).join('')}</div>`;
@@ -456,6 +459,7 @@ function openArticleEditor(artistId, artistName, existing = null){
         <button data-add="image">+ Фото</button>
         <button data-add="quote">+ Цитата</button>
         <button data-add="youtube">+ YouTube</button>
+        <button data-add="soundcloud">+ SoundCloud</button>
         <button data-add="links">+ Ссылки</button>
       </div>
       <div class="editor-actions">
@@ -487,6 +491,7 @@ function openArticleEditor(artistId, artistName, existing = null){
         image:{type:'image',url:'',caption:''},
         quote:{type:'quote',text:'',author:''},
         youtube:{type:'youtube',id:''},
+        soundcloud:{type:'soundcloud',url:''},
         links:{type:'links',items:[]},
       }[type];
       state.blocks.push(fresh);
@@ -603,6 +608,9 @@ function blockEditorRow(b, i, total){
   if (b.type === 'youtube')
     return `<div class="ed-block" data-idx="${i}"><b>YouTube</b>${controls}
       <input data-field="id" placeholder="ID видео (из youtube.com/watch?v=ID)" value="${escapeAttr(b.id)}"></div>`;
+  if (b.type === 'soundcloud')
+    return `<div class="ed-block" data-idx="${i}"><b>SoundCloud</b>${controls}
+      <input data-field="url" placeholder="Ссылка на трек/плейлист SoundCloud" value="${escapeAttr(b.url)}"></div>`;
   if (b.type === 'links')
     return `<div class="ed-block" data-idx="${i}"><b>Ссылки</b>${controls}
       <textarea data-field="_links_raw" placeholder="Instagram | https://instagram.com/...  (по одной на строку)">${

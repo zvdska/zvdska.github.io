@@ -26,7 +26,7 @@ let ARTISTS = [
     comments:[]
   },
   {
-    id:'tilla', name:'4ATTY AKA TILLA', handle:'@4attyakatilla', role:'Артист', verified:true,
+    id:'tilla', name:'4ATTY AKA TILLA', handle:'@4attyakatilla', role:'Артист',
     hue:'#9AA3B0', photo:TILLA_PHOTO, photoPos:'center 25%',
     bio:'4atty aka Tilla. Артист. 25 лет (было когда-то).',
     followers:'44.4K', following:'13.5M+', releases:'19',
