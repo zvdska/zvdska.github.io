@@ -566,3 +566,11 @@ img{display:block;max-width:100%}
   transform:rotate(-10deg);box-shadow:0 4px 10px rgba(0,0,0,.15);z-index:2;
 }
 .scatter-card .stamp svg{width:16px;height:16px;fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- reveal-down entrance animation (banner + artist photo) ---------- */
+@keyframes revealDown{
+  from{ clip-path:inset(0 0 100% 0); }
+  to{ clip-path:inset(0 0 0% 0); }
+}
+.banner-slider{ animation:revealDown .8s cubic-bezier(.22,.9,.3,1) both; }
+.infobox-photo{ animation:revealDown .8s cubic-bezier(.22,.9,.3,1) both; }
