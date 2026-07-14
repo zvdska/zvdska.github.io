@@ -64,6 +64,7 @@ function autoParagraph(html){
 function renderBlocks(blocks){
   return blocks.map(b => {
     if (b.type === 'text') return autoParagraph(b.html);
+    if (b.type === 'heading') return `<h3>${escapeHtml(b.text)}</h3>`;
     if (b.type === 'image') return `
       <img src="${b.url}" loading="lazy">
       ${b.caption ? `<div class="block-caption">${escapeHtml(b.caption)}</div>` : ''}`;
@@ -456,6 +457,7 @@ function openArticleEditor(artistId, artistName, existing = null){
       <div class="editor-blocks" id="ed-blocks"></div>
       <div class="editor-toolbar">
         <button data-add="text">+ Текст</button>
+        <button data-add="heading">+ Заголовок</button>
         <button data-add="image">+ Фото</button>
         <button data-add="quote">+ Цитата</button>
         <button data-add="youtube">+ YouTube</button>
@@ -488,6 +490,7 @@ function openArticleEditor(artistId, artistName, existing = null){
       const type = btn.dataset.add;
       const fresh = {
         text:{type:'text',html:'<p></p>'},
+        heading:{type:'heading',text:''},
         image:{type:'image',url:'',caption:''},
         quote:{type:'quote',text:'',author:''},
         youtube:{type:'youtube',id:''},
@@ -536,6 +539,32 @@ function openArticleEditor(artistId, artistName, existing = null){
         [state.blocks[idx+1], state.blocks[idx]] = [state.blocks[idx], state.blocks[idx+1]];
         redraw();
       }
+      return;
+    }
+
+    const linkGeneric = e.target.closest('[data-link-generic]');
+    if (linkGeneric){
+      const idx = +linkGeneric.dataset.linkGeneric;
+      const url = prompt('Ссылка (URL):');
+      if (!url) return;
+      const label = prompt('Текст ссылки:', url) || url;
+      state.blocks[idx].html = (state.blocks[idx].html || '') +
+        ` <a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+      redraw();
+      return;
+    }
+
+    const linkArtist = e.target.closest('[data-link-artist]');
+    if (linkArtist){
+      const idx = +linkArtist.dataset.linkArtist;
+      const names = ARTISTS.map(a => a.name).join('\n');
+      const picked = prompt('Впиши точное имя артиста как в списке:\n\n' + names);
+      if (!picked) return;
+      const artist = ARTISTS.find(a => a.name.toLowerCase() === picked.trim().toLowerCase());
+      if (!artist){ alert('Не нашёл такого артиста — проверь написание.'); return; }
+      state.blocks[idx].html = (state.blocks[idx].html || '') +
+        ` <a href="artist.html?id=${artist.id}">${escapeHtml(artist.name)}</a>`;
+      redraw();
       return;
     }
   });
@@ -594,7 +623,14 @@ function blockEditorRow(b, i, total){
     </div>`;
   if (b.type === 'text')
     return `<div class="ed-block" data-idx="${i}"><b>Текст</b>${controls}
-      <textarea data-field="html" placeholder="HTML, например &lt;p&gt;...&lt;/p&gt;">${escapeHtml(b.html)}</textarea></div>`;
+      <textarea data-field="html" placeholder="HTML, например &lt;p&gt;...&lt;/p&gt;">${escapeHtml(b.html)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:-4px">
+        <button type="button" data-link-generic="${i}" style="border:1px solid var(--line);border-radius:999px;background:#fff;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer">+ Ссылка</button>
+        <button type="button" data-link-artist="${i}" style="border:1px solid var(--line);border-radius:999px;background:#fff;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer">+ Артист</button>
+      </div></div>`;
+  if (b.type === 'heading')
+    return `<div class="ed-block" data-idx="${i}"><b>Заголовок</b>${controls}
+      <input data-field="text" placeholder="Текст заголовка" value="${escapeAttr(b.text)}"></div>`;
   if (b.type === 'image')
     return `<div class="ed-block" data-idx="${i}"><b>Фото</b>${controls}
       <input data-field="url" placeholder="URL картинки" value="${escapeAttr(b.url)}">
