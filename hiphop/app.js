@@ -23,6 +23,7 @@ const EditorAuth = {
     this.session = data.session || null;
     if (this.session) await this.loadProfile();
     mountEditorBadge();
+    if (window.updateLangSwitchAccess) window.updateLangSwitchAccess();
   },
 
   async loadProfile(){
@@ -36,6 +37,7 @@ const EditorAuth = {
     this.session = data.session;
     await this.loadProfile();
     mountEditorBadge();
+    if (window.updateLangSwitchAccess) window.updateLangSwitchAccess();
     return this.editor;
   },
 
@@ -44,6 +46,7 @@ const EditorAuth = {
     this.session = null;
     this.editor = null;
     mountEditorBadge();
+    if (window.updateLangSwitchAccess) window.updateLangSwitchAccess();
   },
 
   isLoggedIn(){ return !!this.session; },

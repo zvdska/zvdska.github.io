@@ -138,9 +138,52 @@ function mountLangSwitch(){
   sw.querySelectorAll('[data-lang]').forEach(el => {
     el.addEventListener('click', () => applyLang(el.dataset.lang));
   });
+  updateLangSwitchAccess();
+}
+
+function updateLangSwitchAccess(){
+  const isEditor = !!(window.EditorAuth && window.EditorAuth.isLoggedIn());
+  const ruPill = document.querySelector('.lang-switch [data-lang="ru"]');
+  if (ruPill) ruPill.style.display = isEditor ? '' : 'none';
+}
+window.updateLangSwitchAccess = updateLangSwitchAccess;
+
+/* ---------------- first-visit language prompt (UA / EN only) ---------------- */
+function mountLangPrompt(){
+  if (localStorage.getItem('rb_lang_prompted')) return;
+  if (document.getElementById('lang-prompt')) return;
+
+  const el = document.createElement('div');
+  el.id = 'lang-prompt';
+  el.className = 'lang-prompt-overlay';
+  el.innerHTML = `
+    <div class="lang-prompt-card">
+      <button class="lang-prompt-close" aria-label="Закрыть">✕</button>
+      <div class="lang-prompt-title">Обери мову / Choose language</div>
+      <div class="lang-prompt-options">
+        <button data-pick="uk">Українська</button>
+        <button data-pick="en">English</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+
+  const dismiss = () => {
+    localStorage.setItem('rb_lang_prompted', '1');
+    el.remove();
+  };
+  el.querySelector('.lang-prompt-close').addEventListener('click', dismiss);
+  el.addEventListener('click', (e) => { if (e.target === el) dismiss(); });
+  el.querySelectorAll('[data-pick]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyLang(btn.dataset.pick);
+      dismiss();
+    });
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   mountLangSwitch();
   applyLang(getLang());
+  mountLangPrompt();
+  if (typeof editorAuthReady !== 'undefined') editorAuthReady.then(updateLangSwitchAccess);
 });
