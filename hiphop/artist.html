@@ -45,28 +45,6 @@
 .infobox-photo img{width:100%;height:100%;object-fit:cover}
 .infobox-photo .fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:56px;color:#fff}
 
-/* ---- desktop lanyard badge (real PNG assets) ---- */
-.badge-wrap{ position:relative; width:100%; }
-.badge-strap{ position:relative; width:70%; margin:0 auto; display:block; z-index:2; }
-.badge-card-mask{
-  position:relative; z-index:1; width:100%; aspect-ratio:857/1269;
-  margin-top:-8%;
-  -webkit-mask-image:url('img/badge/card.png'); mask-image:url('img/badge/card.png');
-  -webkit-mask-size:100% 100%; mask-size:100% 100%;
-  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-  display:flex; flex-direction:column;
-  filter:drop-shadow(0 18px 24px rgba(0,0,0,.22));
-}
-.badge-photo{ flex:0 0 76%; background-size:cover; background-position:center; }
-.badge-name{
-  flex:1; background:#0c0c0c; color:#fff;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Versus Ultra','Google Sans Flex',sans-serif;
-  font-size:clamp(20px,2.4vw,28px); letter-spacing:.02em;
-}
-@media (max-width:900px){ .badge-wrap{ display:none; } }
-@media (min-width:901px){ .infobox-photo{ display:none; } }
-
 @media (max-width:640px){
   .wiki-infobox{ border:none;background:none;border-radius:0;overflow:visible; }
   .infobox-photo{
@@ -132,13 +110,6 @@
       </div>
 
       <aside class="wiki-infobox">
-        <div class="badge-wrap">
-          <img class="badge-strap" src="img/badge/remen.png" alt="">
-          <div class="badge-card-mask">
-            <div class="badge-photo" id="a-photo-badge"></div>
-            <div class="badge-name" id="a-badge-name"></div>
-          </div>
-        </div>
         <div class="infobox-photo" id="a-photo"></div>
         <table class="infobox-table" id="a-infobox-table"></table>
       </aside>
@@ -216,16 +187,6 @@ function applyDisplay(){
   photoEl.innerHTML = displayPhoto
     ? `<img src="${displayPhoto}" style="object-position:${artist.photoPos||'center'}">`
     : `<div class="fb" style="background:${artist.hue}">${initials(displayName)}</div>`;
-
-  const badgePhotoEl = document.getElementById('a-photo-badge');
-  if (displayPhoto){
-    badgePhotoEl.style.backgroundImage = `url('${displayPhoto}')`;
-    badgePhotoEl.style.backgroundColor = '';
-  } else {
-    badgePhotoEl.style.backgroundImage = 'none';
-    badgePhotoEl.style.backgroundColor = artist.hue;
-  }
-  document.getElementById('a-badge-name').textContent = displayName;
 
   document.getElementById('a-name').innerHTML = displayName + (artist.verified ? VBADGE : '');
   document.title = displayName + ' — ROOTS BOOK';
