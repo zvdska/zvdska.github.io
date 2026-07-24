@@ -336,15 +336,21 @@ async function fetchAllArtistOverrides(){
 /* ---------------- epoch info (shown above artists of that era) ---------------- */
 async function fetchAllEpochInfo(){
   try{
-    const { data } = await sb.from('epoch_info').select('epoch, description, period');
+    const { data } = await sb.from('epoch_info').select('epoch, description, period, photo_url, sort_order');
     const map = {};
-    (data || []).forEach(row => { map[row.epoch] = { description: row.description, period: row.period }; });
+    (data || []).forEach(row => { map[row.epoch] = row; });
     return map;
   }catch(e){ return {}; }
 }
 
-async function saveEpochInfo(epoch, description, period){
-  const { error } = await sb.from('epoch_info').upsert({ epoch, description, period }, { onConflict: 'epoch' });
+async function saveEpochInfo(epoch, fields){
+  const row = { epoch, ...fields };
+  const { error } = await sb.from('epoch_info').upsert(row, { onConflict: 'epoch' });
+  if (error) throw new Error(error.message);
+}
+
+async function setEpochSortOrder(epoch, sortOrder){
+  const { error } = await sb.from('epoch_info').upsert({ epoch, sort_order: sortOrder }, { onConflict: 'epoch' });
   if (error) throw new Error(error.message);
 }
 
@@ -363,6 +369,12 @@ function openEpochEditor(epoch, current, onSaved){
         <b>Период (например 1995–2000)</b>
         <input id="ep-period" placeholder="1995–2000" value="${escapeAttr(current.period || '')}">
       </div>
+      <div class="ed-block">
+        <b>Фото эпохи</b>
+        <input id="ep-photo" placeholder="https://... (ссылка на фото)" value="${escapeAttr(current.photo_url || '')}">
+        <input id="ep-photo-file" type="file" accept="image/*" style="padding:8px 0">
+        <div id="ep-photo-status" style="font-size:11.5px;color:var(--muted)"></div>
+      </div>
       <textarea id="ep-desc" class="article" style="width:100%;min-height:180px;border:1px solid var(--line);border-radius:12px;padding:14px;font-family:inherit;font-size:16px;line-height:1.65;resize:vertical" placeholder="Расскажи об этой эпохе...">${escapeHtml(current.description || '')}</textarea>
       <div class="editor-actions" style="justify-content:flex-end;margin-top:14px">
         <div class="ed-btn-row">
@@ -372,14 +384,28 @@ function openEpochEditor(epoch, current, onSaved){
       </div>
     </div>`;
   document.body.appendChild(modal);
+
+  modal.querySelector('#ep-photo-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const status = modal.querySelector('#ep-photo-status');
+    status.textContent = 'Загружаем…';
+    try{
+      const url = await uploadPhoto(file);
+      modal.querySelector('#ep-photo').value = url;
+      status.textContent = 'Загружено ✓';
+    }catch(err){ status.textContent = 'Ошибка: ' + err.message; }
+  });
+
   modal.querySelector('#ep-cancel').onclick = () => modal.remove();
   modal.querySelector('#ep-save').onclick = async () => {
     const description = modal.querySelector('#ep-desc').value.trim();
     const period = modal.querySelector('#ep-period').value.trim();
+    const photo_url = modal.querySelector('#ep-photo').value.trim();
     const btn = modal.querySelector('#ep-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveEpochInfo(epoch, description, period);
+      await saveEpochInfo(epoch, { description, period, photo_url: photo_url || null });
       modal.remove();
       if (onSaved) onSaved();
     }catch(e){
