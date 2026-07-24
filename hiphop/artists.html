@@ -19,12 +19,20 @@
 </script>
 
 <style>
-.sort-row{display:flex;align-items:center;gap:8px}
+.sort-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sort-btn{
   border:1px solid var(--line);border-radius:999px;background:#fff;
   padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);
 }
 .sort-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.epoch-group{margin-bottom:44px}
+.epoch-group:last-child{margin-bottom:0}
+.epoch-head{
+  border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px;
+  display:flex;align-items:baseline;gap:12px;
+}
+.epoch-head h3{font-weight:900;font-size:24px}
+.epoch-head .epoch-count{font-size:12.5px;color:var(--muted);font-weight:700}
 </style>
 </head>
 <body>
@@ -56,6 +64,7 @@
       <div class="sort-row">
         <button class="sort-btn active" id="sort-default" onclick="setSort('default')" data-i18n="sort_default">По умолчанию</button>
         <button class="sort-btn" id="sort-az" onclick="setSort('az')" data-i18n="sort_az">А → Я</button>
+        <button class="sort-btn" id="sort-epoch" onclick="setSort('epoch')">По эпохам</button>
       </div>
     </div>
 
@@ -100,7 +109,25 @@ function setSort(mode){
   sortMode = mode;
   document.getElementById('sort-default').classList.toggle('active', mode==='default');
   document.getElementById('sort-az').classList.toggle('active', mode==='az');
+  document.getElementById('sort-epoch').classList.toggle('active', mode==='epoch');
   render();
+}
+
+function cardHtml(a, i){
+  const ov = artistOverrides[a.id];
+  const name = ov?.name || a.name;
+  const photo = ov?.photo_url || a.photo;
+  return `
+  <a class="card" href="artist.html?id=${a.id}">
+    <div class="ph-wrap">
+      ${photo
+        ? `<img src="${photo}" alt="${name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
+        : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(name)}</div>`}
+    </div>
+    <div class="meta">
+      <div class="nm">${name}${a.verified ? VBADGE : ''}</div>
+    </div>
+  </a>`;
 }
 
 function render(){
@@ -110,26 +137,39 @@ function render(){
   let list = ARTISTS.filter(a =>
     !f || effName(a).toLowerCase().includes(f) || (a.tags||[]).join(' ').includes(f) || a.role.toLowerCase().includes(f));
 
+  document.getElementById('count').textContent = list.length + ' / ' + ARTISTS.length;
+  const gridEl = document.getElementById('grid');
+
+  if (sortMode === 'epoch'){
+    const groups = {};
+    list.forEach(a => {
+      const epoch = (artistOverrides[a.id]?.infobox?.epoch || '').trim() || 'Без эпохи';
+      (groups[epoch] = groups[epoch] || []).push(a);
+    });
+    const epochNames = Object.keys(groups).sort((x,y) => {
+      if (x === 'Без эпохи') return 1;
+      if (y === 'Без эпохи') return -1;
+      return x.localeCompare(y, 'ru');
+    });
+
+    gridEl.className = '';
+    gridEl.innerHTML = epochNames.map(epoch => `
+      <div class="epoch-group">
+        <div class="epoch-head">
+          <h3>${epoch}</h3>
+          <span class="epoch-count">${groups[epoch].length} артист(ов)</span>
+        </div>
+        <div class="grid">
+          ${groups[epoch].map((a,i) => cardHtml(a,i)).join('')}
+        </div>
+      </div>`).join('');
+    return;
+  }
+
   if (sortMode === 'az') list = list.slice().sort((a,b) => effName(a).localeCompare(effName(b), 'ru'));
 
-  document.getElementById('count').textContent = list.length + ' / ' + ARTISTS.length;
-  document.getElementById('grid').innerHTML = list.map((a,i) => {
-    const ov = artistOverrides[a.id];
-    const name = ov?.name || a.name;
-    const photo = ov?.photo_url || a.photo;
-    const realName = ov?.infobox?.real_name;
-    return `
-    <a class="card" href="artist.html?id=${a.id}">
-      <div class="ph-wrap">
-        ${photo
-          ? `<img src="${photo}" alt="${name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
-          : `<div class="ph-fallback" style="background:${HUES[i%HUES.length]}">${initials(name)}</div>`}
-      </div>
-      <div class="meta">
-        <div class="nm">${name}${a.verified ? VBADGE : ''}</div>
-      </div>
-    </a>`;
-  }).join('');
+  gridEl.className = 'grid';
+  gridEl.innerHTML = list.map((a,i) => cardHtml(a,i)).join('');
 }
 
 async function init(){
