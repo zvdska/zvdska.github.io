@@ -336,20 +336,21 @@ async function fetchAllArtistOverrides(){
 /* ---------------- epoch info (shown above artists of that era) ---------------- */
 async function fetchAllEpochInfo(){
   try{
-    const { data } = await sb.from('epoch_info').select('epoch, description');
+    const { data } = await sb.from('epoch_info').select('epoch, description, period');
     const map = {};
-    (data || []).forEach(row => { map[row.epoch] = row.description; });
+    (data || []).forEach(row => { map[row.epoch] = { description: row.description, period: row.period }; });
     return map;
   }catch(e){ return {}; }
 }
 
-async function saveEpochInfo(epoch, description){
-  const { error } = await sb.from('epoch_info').upsert({ epoch, description }, { onConflict: 'epoch' });
+async function saveEpochInfo(epoch, description, period){
+  const { error } = await sb.from('epoch_info').upsert({ epoch, description, period }, { onConflict: 'epoch' });
   if (error) throw new Error(error.message);
 }
 
-function openEpochEditor(epoch, currentDescription, onSaved){
+function openEpochEditor(epoch, current, onSaved){
   if (!EditorAuth.isLoggedIn()){ alert('Сначала войдите как редактор.'); return; }
+  current = current || {};
   const modal = document.createElement('div');
   modal.className = 'editor-modal';
   modal.innerHTML = `
@@ -358,7 +359,11 @@ function openEpochEditor(epoch, currentDescription, onSaved){
         <h3>Информация об эпохе «${escapeHtml(epoch)}»</h3>
         <div class="editor-close" onclick="this.closest('.editor-modal').remove()">✕</div>
       </div>
-      <textarea id="ep-desc" class="article" style="width:100%;min-height:180px;border:1px solid var(--line);border-radius:12px;padding:14px;font-family:inherit;font-size:16px;line-height:1.65;resize:vertical" placeholder="Расскажи об этой эпохе...">${escapeHtml(currentDescription || '')}</textarea>
+      <div class="ed-block">
+        <b>Период (например 1995–2000)</b>
+        <input id="ep-period" placeholder="1995–2000" value="${escapeAttr(current.period || '')}">
+      </div>
+      <textarea id="ep-desc" class="article" style="width:100%;min-height:180px;border:1px solid var(--line);border-radius:12px;padding:14px;font-family:inherit;font-size:16px;line-height:1.65;resize:vertical" placeholder="Расскажи об этой эпохе...">${escapeHtml(current.description || '')}</textarea>
       <div class="editor-actions" style="justify-content:flex-end;margin-top:14px">
         <div class="ed-btn-row">
           <button id="ep-cancel">Отмена</button>
@@ -370,10 +375,11 @@ function openEpochEditor(epoch, currentDescription, onSaved){
   modal.querySelector('#ep-cancel').onclick = () => modal.remove();
   modal.querySelector('#ep-save').onclick = async () => {
     const description = modal.querySelector('#ep-desc').value.trim();
+    const period = modal.querySelector('#ep-period').value.trim();
     const btn = modal.querySelector('#ep-save');
     btn.disabled = true; btn.textContent = 'Сохраняем…';
     try{
-      await saveEpochInfo(epoch, description);
+      await saveEpochInfo(epoch, description, period);
       modal.remove();
       if (onSaved) onSaved();
     }catch(e){

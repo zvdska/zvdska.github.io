@@ -25,8 +25,31 @@
   padding:9px 15px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);
 }
 .sort-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-.epoch-group{margin-bottom:44px}
-.epoch-group:last-child{margin-bottom:0}
+.epoch-row{display:flex;gap:24px;align-items:flex-start;margin-bottom:44px}
+.epoch-row:last-child{margin-bottom:0}
+.epoch-timeline{
+  position:relative;width:76px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;padding-top:6px;
+}
+.epoch-timeline::before{
+  content:'';position:absolute;top:6px;bottom:-44px;left:50%;
+  transform:translateX(-50%);width:2px;background:var(--line);z-index:0;
+}
+.epoch-row:last-child .epoch-timeline::before{bottom:0}
+.epoch-dot{
+  width:13px;height:13px;border-radius:50%;background:var(--ink);
+  box-shadow:0 0 0 4px #fff, 0 0 0 5px var(--line);
+  z-index:1;margin-bottom:10px;flex-shrink:0;
+}
+.epoch-period{
+  font-size:11px;font-weight:800;color:var(--muted);text-align:center;
+  line-height:1.4;z-index:1;background:#fff;padding:0 2px;
+}
+.epoch-content{flex:1;min-width:0}
+@media (max-width:640px){
+  .epoch-timeline{width:52px}
+  .epoch-period{font-size:10px}
+}
 .epoch-head{
   border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:20px;
   display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
@@ -184,17 +207,25 @@ function render(){
     const isEditor = EditorAuth.isLoggedIn();
     gridEl.className = '';
     gridEl.innerHTML = epochNames.map(epoch => {
-      const desc = epochInfoMap[epoch];
+      const info = epochInfoMap[epoch] || {};
+      const desc = info.description;
+      const period = info.period;
       return `
-      <div class="epoch-group">
-        <div class="epoch-head">
-          <h3>${epoch}</h3>
-          <span class="epoch-count">${groups[epoch].length} артист(ов)</span>
-          ${isEditor ? `<button class="btn ghost" style="box-shadow:none;padding:7px 14px;margin-left:auto" onclick="handleEditEpoch('${escapeAttr(epoch)}')">${desc ? '✎ Изменить' : '+ Инфо'}</button>` : ''}
+      <div class="epoch-row">
+        <div class="epoch-timeline">
+          <div class="epoch-dot"></div>
+          ${period ? `<div class="epoch-period">${escapeHtml(period)}</div>` : ''}
         </div>
-        ${desc ? `<div class="article epoch-desc">${autoParagraph(escapeHtml(desc))}</div>` : ''}
-        <div class="grid">
-          ${groups[epoch].map((a,i) => cardHtml(a,i)).join('')}
+        <div class="epoch-content">
+          <div class="epoch-head">
+            <h3>${epoch}</h3>
+            <span class="epoch-count">${groups[epoch].length} артист(ов)</span>
+            ${isEditor ? `<button class="btn ghost" style="box-shadow:none;padding:7px 14px;margin-left:auto" onclick="handleEditEpoch('${escapeAttr(epoch)}')">${desc || period ? '✎ Изменить' : '+ Инфо'}</button>` : ''}
+          </div>
+          ${desc ? `<div class="article epoch-desc">${autoParagraph(escapeHtml(desc))}</div>` : ''}
+          <div class="grid">
+            ${groups[epoch].map((a,i) => cardHtml(a,i)).join('')}
+          </div>
         </div>
       </div>`;
     }).join('');
