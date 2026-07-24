@@ -35,6 +35,13 @@
 .epoch-head .epoch-count{font-size:12.5px;color:var(--muted);font-weight:700}
 .epoch-desc{margin:-8px 0 24px}
 .epoch-desc p{text-indent:0}
+
+#grid{ transition:transform .32s ease, opacity .32s ease; }
+@keyframes cardFadeIn{
+  from{ opacity:0; transform:translateY(10px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.card-fade-in{ animation:cardFadeIn .4s ease both; }
 </style>
 </head>
 <body>
@@ -108,10 +115,31 @@ let artistOverrides = {};
 let epochInfoMap = {};
 
 function setSort(mode){
-  sortMode = mode;
-  document.getElementById('sort-az').classList.toggle('active', mode==='az');
-  document.getElementById('sort-epoch').classList.toggle('active', mode==='epoch');
-  render();
+  if (mode === sortMode) return;
+  const goingToEpoch = (mode === 'epoch');
+  const gridEl = document.getElementById('grid');
+
+  gridEl.style.transition = 'transform .32s ease, opacity .32s ease';
+  gridEl.style.transform = `translateX(${goingToEpoch ? -36 : 36}px)`;
+  gridEl.style.opacity = '0';
+
+  setTimeout(() => {
+    sortMode = mode;
+    document.getElementById('sort-az').classList.toggle('active', mode==='az');
+    document.getElementById('sort-epoch').classList.toggle('active', mode==='epoch');
+    render();
+
+    gridEl.style.transition = 'none';
+    gridEl.style.transform = `translateX(${goingToEpoch ? 36 : -36}px)`;
+    gridEl.style.opacity = '0';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        gridEl.style.transition = 'transform .32s ease, opacity .32s ease';
+        gridEl.style.transform = 'translateX(0)';
+        gridEl.style.opacity = '1';
+      });
+    });
+  }, 320);
 }
 
 function cardHtml(a, i){
@@ -119,7 +147,7 @@ function cardHtml(a, i){
   const name = ov?.name || a.name;
   const photo = ov?.photo_url || a.photo;
   return `
-  <a class="card" href="artist.html?id=${a.id}">
+  <a class="card card-fade-in" href="artist.html?id=${a.id}" style="animation-delay:${Math.min(i*35,400)}ms">
     <div class="ph-wrap">
       ${photo
         ? `<img src="${photo}" alt="${name}" style="object-position:${a.photoPos||'center'}" loading="lazy">`
