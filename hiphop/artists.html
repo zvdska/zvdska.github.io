@@ -26,7 +26,7 @@
 }
 .sort-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 .epoch-strip{
-  display:flex;gap:4px;height:420px;border-radius:16px;overflow:hidden;
+  display:flex;gap:4px;height:560px;border-radius:16px;overflow:hidden;
   margin-bottom:8px;border:1px solid var(--line);
 }
 .epoch-card{
@@ -43,7 +43,7 @@
 .epoch-card-period{font-size:12px;color:var(--muted);margin-top:4px;font-weight:700;white-space:nowrap}
 .epoch-card-desc{
   font-size:13px;line-height:1.55;color:#333;margin-top:12px;
-  overflow:hidden;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:14;-webkit-box-orient:vertical;
 }
 .epoch-card-photo{
   flex:1;background-size:cover;background-position:center;background-color:#2B2B2B;min-height:60px;
@@ -245,14 +245,38 @@ async function moveEpoch(epoch, direction, ev){
   render();
 }
 
+function animateGridSwap(applyChange){
+  const gridEl = document.getElementById('grid');
+  gridEl.style.transition = 'opacity .45s ease, transform .45s cubic-bezier(.25,.46,.45,.94)';
+  gridEl.style.opacity = '0';
+  gridEl.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    applyChange();
+    gridEl.style.transition = 'none';
+    gridEl.style.opacity = '0';
+    gridEl.style.transform = 'translateY(-8px)';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        gridEl.style.transition = 'opacity .45s ease, transform .45s cubic-bezier(.25,.46,.45,.94)';
+        gridEl.style.opacity = '1';
+        gridEl.style.transform = 'translateY(0)';
+      });
+    });
+  }, 320);
+}
+
 function expandEpoch(epoch){
-  expandedEpoch = epoch;
-  render();
+  animateGridSwap(() => {
+    expandedEpoch = epoch;
+    render();
+  });
   window.scrollTo({ top: document.getElementById('grid').offsetTop - 100, behavior:'smooth' });
 }
 function collapseEpoch(){
-  expandedEpoch = null;
-  render();
+  animateGridSwap(() => {
+    expandedEpoch = null;
+    render();
+  });
 }
 
 function render(){
