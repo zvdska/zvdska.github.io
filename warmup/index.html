@@ -11,10 +11,10 @@
   html, body { height:100%; }
   body { background:var(--dark); color:var(--ink); font-family:-apple-system,sans-serif; overflow:hidden; -webkit-font-smoothing:antialiased; }
 
-  /* фон — сильно размытая обложка, даёт красное свечение */
-  .bg { position:fixed; inset:-12%; background-image:var(--img); background-size:cover; background-position:center;
-    filter:blur(60px) brightness(.5) saturate(1.15); transform:scale(1.15); z-index:0;
-    opacity:0; transition:opacity 1.4s ease; }
+  /* фон — видео на весь экран */
+  .bg { position:fixed; inset:0; width:100%; height:100%; object-fit:cover;
+    filter:brightness(.55) saturate(1.05); z-index:0;
+    opacity:0; transition:opacity 1.6s ease; }
   .bg.show { opacity:1; }
   .bg-shade { position:fixed; inset:0; background:radial-gradient(120% 90% at 50% 32%, rgba(0,0,0,.25) 0%, rgba(0,0,0,.72) 100%); z-index:1; pointer-events:none; }
 
@@ -129,7 +129,7 @@
 </head>
 <body>
 
-<div class="bg" id="bg"></div>
+<video class="bg" id="bg" src="warmup-bg.mp4" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
 <div class="bg-shade"></div>
 
 <div class="wrap">
@@ -163,12 +163,13 @@
   const bg = document.getElementById('bg');
   const platforms = document.getElementById('platforms');
 
-  // обложку используем и как фон — один и тот же файл, второй раз не грузится
-  const imgUrl = 'url("' + cover.querySelector('img').src + '")';
-  bg.style.setProperty('--img', imgUrl);
-  cover.style.setProperty('--img', imgUrl);
+  // обложка питает глитч-слои
+  cover.style.setProperty('--img', 'url("' + cover.querySelector('img').src + '")');
 
-  setTimeout(() => { bg.classList.add('show'); cover.classList.add('show'); }, 900);  // выезд + глитч
+  bg.muted = true; bg.defaultMuted = true;
+  bg.play?.().catch(()=>{});
+  requestAnimationFrame(() => bg.classList.add('show'));                              // фон сразу
+  setTimeout(() => cover.classList.add('show'), 900);                                 // выезд + глитч
   const mark = document.getElementById('mark');
   setTimeout(() => { mark.classList.add('show'); }, 1800);                            // надпись проступает
   setTimeout(() => platforms.classList.add('show'), 3600);                            // кнопки
