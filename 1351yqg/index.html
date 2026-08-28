@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Jump</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --green:#3ddc4e;
+    --green-dim:#2a9c37;
+    --red:#ff3b30;
+    --yellow:#ffd60a;
+    --mono: ui-monospace, "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    background:#000; color:#fff;
+    font-family:var(--mono);
+    overscroll-behavior:none; touch-action:none;
+    user-select:none; -webkit-user-select:none;
+  }
+  #app{position:fixed; inset:0; overflow:hidden;}
+  canvas{display:block; position:absolute; inset:0; width:100%; height:100%;}
+
+  /* ---- Меню ---- */
+  .screen{
+    position:absolute; inset:0; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    gap:25px; padding:24px; text-align:center;
+    padding-top:calc(24px + env(safe-area-inset-top));
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+  .screen.active{display:flex;}
+
+  #menuBackdrop{position:absolute; inset:0; display:none;}
+  #menuBackdrop.active{display:block;}
+  #menuBg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  #menuBgFallback{position:absolute; inset:0;
+    background:linear-gradient(#0d1b4d 0%, #1a3a8f 55%, #2d5fc4 100%);}
+  #menuGround{position:absolute; left:0; right:0; bottom:0; height:120px;
+    width:100%; object-fit:cover;}
+  #menuShade{position:absolute; inset:0; background:rgba(0,0,0,.4);}
+
+  .logo{width:min(350px,86vw); height:auto; filter:drop-shadow(0 0 15px rgba(61,220,78,.8)); margin-bottom:10px;}
+  .logo-text{
+    font-size:clamp(38px,13vw,62px); font-weight:900; letter-spacing:-2px;
+    color:var(--green); text-shadow:0 0 20px rgba(61,220,78,.8); margin-bottom:10px;
+  }
+
+  .btn{
+    position:relative; width:260px; max-width:80vw; height:65px;
+    border:0; padding:0; cursor:pointer; background:transparent;
+    filter:drop-shadow(0 5px 5px rgba(0,0,0,.8));
+    transition:transform .08s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn .board{
+    position:absolute; inset:0; border-radius:10px; overflow:hidden;
+    background:#6b4423;
+  }
+  .btn .board img{width:100%; height:100%; object-fit:cover; display:block;}
+  .btn span{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    width:100%; height:100%;
+    font-family:var(--mono); font-size:22px; font-weight:900; color:var(--green);
+    text-shadow:2px 2px 2px #000;
+  }
+  .btn:focus-visible{outline:3px solid var(--yellow); outline-offset:3px;}
+
+  h2.title{
+    font-size:40px; font-weight:900; color:var(--green);
+    text-shadow:0 2px 2px #000; margin:0;
+  }
+  .over-title{
+    font-size:clamp(44px,15vw,60px); font-weight:900; color:var(--red);
+    text-shadow:0 0 15px rgba(255,59,48,.8); margin:0;
+  }
+  .over-score{font-size:36px; font-weight:700; margin:0;}
+  .over-best{font-size:18px; color:#9aa0a6; margin:0;}
+
+  .heroes{display:flex; gap:50px;}
+  .hero{background:none; border:0; padding:8px; cursor:pointer; color:#fff;}
+  .hero img, .hero .ph{width:80px; height:80px; object-fit:contain; display:block; margin:0 auto 8px;}
+  .hero .ph{background:#444; border-radius:12px;}
+  .hero.sel{outline:3px solid var(--green); border-radius:14px;}
+  .hero-name{font-size:15px; font-weight:700;}
+
+  .panel{
+    width:250px; padding:16px; background:rgba(0,0,0,.7);
+    border:2px solid var(--green); border-radius:15px;
+    display:flex; flex-direction:column; gap:20px;
+  }
+  .row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .row label{font-size:19px; font-weight:700;}
+  .sw{position:relative; width:52px; height:32px; flex:none;}
+  .sw input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;}
+  .sw i{position:absolute; inset:0; background:#555; border-radius:16px; transition:background .15s;}
+  .sw i::after{content:""; position:absolute; top:3px; left:3px; width:26px; height:26px;
+    background:#fff; border-radius:50%; transition:transform .15s;}
+  .sw input:checked + i{background:var(--green);}
+  .sw input:checked + i::after{transform:translateX(20px);}
+
+  .credits-line{font-weight:700; margin:0;}
+  .credits-small{font-size:12px; color:#8b8b8b; margin-top:50px;}
+
+  /* ---- Оверлеи внутри игры ---- */
+  #pause, #countdown{
+    position:absolute; inset:0; display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:40px;
+  }
+  #pause.active, #countdown.active{display:flex;}
+  #pause{background:rgba(0,0,0,.8);}
+  #countdown{background:rgba(0,0,0,.3); pointer-events:none;}
+  #countdown b{font-size:150px; font-weight:900; color:var(--yellow); text-shadow:0 0 10px #000;}
+  #gameover{background:rgba(0,0,0,.85);}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+
+  <div id="menuBackdrop">
+    <div id="menuBgFallback"></div>
+    <img id="menuBg" alt="" hidden>
+    <img id="menuGround" alt="" hidden>
+    <div id="menuShade"></div>
+  </div>
+
+  <!-- ГЛАВНОЕ МЕНЮ -->
+  <div class="screen" id="scr-menu">
+    <img class="logo" id="gameLogo" alt="" hidden>
+    <div class="logo-text" id="logoText">JUMP</div>
+    <button class="btn" data-act="start"><span class="board"><img alt="" data-board hidden></span><span>START GAME</span></button>
+    <button class="btn" data-act="chars"><span class="board"><img alt="" data-board hidden></span><span>SELECT CHARACTER</span></button>
+    <button class="btn" data-act="settings"><span class="board"><img alt="" data-board hidden></span><span>SETTINGS</span></button>
+    <button class="btn" data-act="credits"><span class="board"><img alt="" data-board hidden></span><span>CREDITS</span></button>
+  </div>
+
+  <!-- ВЫБОР ГЕРОЯ -->
+  <div class="screen" id="scr-chars">
+    <h2 class="title">CHOOSE HERO</h2>
+    <div class="heroes">
+      <button class="hero" data-hero="Hero"><img alt="" data-heroimg="Hero" hidden><div class="ph"></div><div class="hero-name">MASK GUY</div></button>
+      <button class="hero" data-hero="Greb"><img alt="" data-heroimg="Greb" hidden><div class="ph"></div><div class="hero-name">GREB</div></button>
+    </div>
+    <button class="btn" data-act="menu"><span class="board"><img alt="" data-board hidden></span><span>BACK</span></button>
+  </div>
+
+  <!-- НАСТРОЙКИ -->
+  <div class="screen" id="scr-settings">
+    <h2 class="title">SETTINGS</h2>
+    <div class="panel">
+      <div class="row">
+        <label for="swMusic">Music</label>
+        <span class="sw"><input type="checkbox" id="swMusic"><i></i></span>
+      </div>
+      <div class="row">
+        <label for="swSfx">Sound FX</label>
+        <span class="sw"><input type="checkbox" id="swSfx"><i></i></span>
+      </div>
+    </div>
+    <button class="btn" data-act="menu"><span class="board"><img alt="" data-board hidden></span><span>BACK</span></button>
+  </div>
+
+  <!-- КРЕДИТЫ -->
+  <div class="screen" id="scr-credits">
+    <h2 class="title">CREDITS</h2>
+    <p class="credits-line">Created by: [Твоё Имя]</p>
+    <p class="credits-line">Art by: [Твоё Имя]</p>
+    <p class="credits-small">2026 MOST LABEL, GRBZ</p>
+    <button class="btn" data-act="menu"><span class="board"><img alt="" data-board hidden></span><span>BACK</span></button>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen" id="gameover">
+    <h2 class="over-title">GAME OVER</h2>
+    <p class="over-score">SCORE: <span id="finalScore">0</span></p>
+    <p class="over-best">BEST: <span id="bestScore">0</span></p>
+    <button class="btn" data-act="start"><span class="board"><img alt="" data-board hidden></span><span>RETRY</span></button>
+    <button class="btn" data-act="menu"><span class="board"><img alt="" data-board hidden></span><span>MAIN MENU</span></button>
+  </div>
+
+  <!-- ПАУЗА -->
+  <div id="pause">
+    <h2 class="title" style="font-size:56px">PAUSED</h2>
+    <button class="btn" data-act="resume"><span class="board"><img alt="" data-board hidden></span><span>RESUME</span></button>
+    <button class="btn" data-act="menu"><span class="board"><img alt="" data-board hidden></span><span>MAIN MENU</span></button>
+  </div>
+
+  <div id="countdown"><b>3</b></div>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================
+   TELEGRAM
+   ========================================================== */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  try { tg.disableVerticalSwipes(); } catch (e) {}
+  try { tg.setHeaderColor("#000000"); tg.setBackgroundColor("#000000"); } catch (e) {}
+}
+const haptic = {
+  hit(style){ try { tg.HapticFeedback.impactOccurred(style); } catch(e){} },
+  notify(type){ try { tg.HapticFeedback.notificationOccurred(type); } catch(e){} }
+};
+
+/* ==========================================================
+   ХРАНИЛИЩЕ (CloudStorage у Telegram + localStorage локально)
+   ========================================================== */
+const Store = {
+  cache: {},
+  init(keys){
+    keys.forEach(k => {
+      try { this.cache[k] = localStorage.getItem(k); } catch(e) { this.cache[k] = null; }
+    });
+    return new Promise(resolve => {
+      if (!tg || !tg.CloudStorage || !tg.CloudStorage.getItems) return resolve();
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      setTimeout(finish, 1200);                 // не ждём облако дольше секунды
+      try {
+        tg.CloudStorage.getItems(keys, (err, values) => {
+          if (!err && values) {
+            keys.forEach(k => { if (values[k] != null && values[k] !== "") this.cache[k] = values[k]; });
+          }
+          finish();
+        });
+      } catch(e) { finish(); }
+    });
+  },
+  get(k, fallback){ return this.cache[k] != null ? this.cache[k] : fallback; },
+  set(k, v){
+    this.cache[k] = String(v);
+    try { localStorage.setItem(k, String(v)); } catch(e){}
+    try { if (tg && tg.CloudStorage) tg.CloudStorage.setItem(k, String(v)); } catch(e){}
+  }
+};
+
+/* ==========================================================
+   АССЕТЫ
+   Положи PNG рядом с index.html в папку assets/ с теми же
+   именами, что в Xcode. Чего нет — рисуется заглушкой.
+   ========================================================== */
+const IMAGE_NAMES = [
+  "Hero","HeroJump","HeroJetpack",
+  "Greb","GrebJump","GrebJetpack",
+  "Ground","Jetpack","BackgroundStatic",
+  "MenuBackground","MenuGround","GameLogo","ButtonBoard"
+];
+const IMG = {};
+
+function loadImage(name){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload  = () => { IMG[name] = img;  resolve(); };
+    img.onerror = () => { IMG[name] = null; resolve(); };
+    img.src = "assets/" + name + ".png";
+  });
+}
+function loadAllImages(){ return Promise.all(IMAGE_NAMES.map(loadImage)); }
+
+/* ---- Звук ---- */
+const Sound = {
+  music: null,
+  musicWanted: false,
+  unlocked: false,
+  get musicOn(){ return Store.get("isMusicOn","1") === "1"; },
+  get sfxOn(){ return Store.get("isSoundFxOn","1") === "1"; },
+
+  playMenuMusic(){
+    this.musicWanted = true;
+    if (!this.musicOn) return;
+    if (!this.music) {
+      this.music = new Audio("assets/menuMusic.mp3");
+      this.music.loop = true;
+      this.music.volume = 0.5;
+    }
+    if (!this.music.paused) return;
+    this.music.play().catch(() => {});   // до первого тапа браузер откажет — это нормально
+  },
+  stopMusic(){
+    this.musicWanted = false;
+    if (this.music) { this.music.pause(); this.music.currentTime = 0; }
+  },
+  sfx(name){
+    if (!this.sfxOn) return;
+    const a = new Audio("assets/" + name + ".wav");
+    a.volume = 0.7;
+    a.play().catch(() => {
+      const b = new Audio("assets/" + name + ".mp3");
+      b.volume = 0.7;
+      b.play().catch(() => {});
+    });
+  },
+  unlock(){
+    if (this.unlocked) return;
+    this.unlocked = true;
+    if (this.musicWanted) this.playMenuMusic();
+  }
+};
+
+/* ==========================================================
+   ХОЛСТ И ЛОГИЧЕСКИЕ КООРДИНАТЫ
+   Ширина мира всегда 400 условных единиц — так физика ведёт
+   себя одинаково на любом экране, как на iPhone в оригинале.
+   Ось Y направлена вверх, как в SpriteKit.
+   ========================================================== */
+const W = 400;
+let   H = 800;
+const canvas = document.getElementById("cv");
+const ctx = canvas.getContext("2d");
+let dpr = 1;
+
+function resize(){
+  const cw = window.innerWidth;
+  const ch = window.innerHeight;
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  H = Math.round(W * ch / cw);
+  canvas.width  = Math.round(cw * dpr);
+  canvas.height = Math.round(ch * dpr);
+  const s = (cw / W) * dpr;
+  ctx.setTransform(s, 0, 0, s, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener("resize", resize);
+window.addEventListener("orientationchange", () => setTimeout(resize, 150));
+
+/* ==========================================================
+   ПАРАМЕТРЫ ИГРЫ (перенесены 1:1 из GameScene)
+   SpriteKit: gravity -6.0 → 6 * 150 pt/m = 900 px/с²
+   ========================================================== */
+const CFG = {
+  GRAVITY: -900,
+  BOUNCE_VY: 800,
+  JETPACK_VY: 1400,
+  JETPACK_TIME: 5.0,
+  MOVE_SPEED: 480,          // 8 px за кадр при 60 fps
+  PLAYER_W: 70, PLAYER_H: 70,
+  BODY_W: 50,  BODY_H: 60,  // хитбокс меньше спрайта, как в оригинале
+  PLAT_W: 120, PLAT_H: 25,
+  JET_W: 40,   JET_H: 50,
+  GAP_MIN: 120, GAP_MAX: 220,
+  START_Y: 200
+};
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+
+/* ==========================================================
+   СОСТОЯНИЕ ИГРЫ
+   ========================================================== */
+let G = null;
+
+function newGame(character){
+  const g = {
+    character,
+    player: { x: W / 2, y: CFG.START_Y, vy: 0, face: 1 },
+    platforms: [],
+    jetpacks: [],
+    score: 0,
+    maxPlayerY: CFG.START_Y,
+    cameraY: H / 2,
+    highestPlatformY: 100,
+    isJetpackActive: false,
+    jetpackTimer: 0,
+    nextJetpackScore: randInt(1000, 3000),
+    shouldSpawnJetpack: false,
+    movingLeft: false,
+    movingRight: false,
+    dead: false,
+    paused: false,
+    frozen: false,        // на время обратного отсчёта
+    time: 0
+  };
+  g.platforms.push({ x: W / 2, y: 100 });
+  for (let i = 0; i < 11; i++) spawnRandomPlatform(g);
+  return g;
+}
+
+function spawnRandomPlatform(g){
+  g.highestPlatformY += rand(CFG.GAP_MIN, CFG.GAP_MAX);
+  const x = rand(50, W - 50);
+  g.platforms.push({ x, y: g.highestPlatformY });
+  if (g.shouldSpawnJetpack) {
+    g.jetpacks.push({ x, y: g.highestPlatformY + 40, t: Math.random() * 1.6 });
+    g.shouldSpawnJetpack = false;
+  }
+}
+
+/* ---- Физика с фиксированным шагом: без пролётов сквозь платформы ---- */
+const STEP = 1 / 120;
+function step(g, dt){
+  const p = g.player;
+
+  // счётчик джетпака
+  if (g.score >= g.nextJetpackScore) {
+    g.shouldSpawnJetpack = true;
+    g.nextJetpackScore = g.score + randInt(1500, 3000);
+  }
+
+  // горизонталь
+  if (g.movingLeft)       { p.x -= CFG.MOVE_SPEED * dt; p.face = -1; }
+  else if (g.movingRight) { p.x += CFG.MOVE_SPEED * dt; p.face =  1; }
+  if (p.x < -20)     p.x = W + 20;
+  if (p.x > W + 20)  p.x = -20;
+
+  // вертикаль
+  if (g.isJetpackActive) {
+    p.vy = CFG.JETPACK_VY;
+    g.jetpackTimer -= dt;
+    if (g.jetpackTimer <= 0) g.isJetpackActive = false;
+  } else {
+    p.vy += CFG.GRAVITY * dt;
+  }
+  p.y += p.vy * dt;
+
+  // контакт с платформами: отскок только при падении, платформа исчезает
+  if (p.vy <= 0) {
+    const pl = p.x - CFG.BODY_W / 2, pr = p.x + CFG.BODY_W / 2;
+    const pb = p.y - CFG.BODY_H / 2, pt = p.y + CFG.BODY_H / 2;
+    for (let i = g.platforms.length - 1; i >= 0; i--) {
+      const s = g.platforms[i];
+      if (pr < s.x - CFG.PLAT_W / 2 || pl > s.x + CFG.PLAT_W / 2) continue;
+      if (pt < s.y - CFG.PLAT_H / 2 || pb > s.y + CFG.PLAT_H / 2) continue;
+      p.vy = CFG.BOUNCE_VY;
+      g.platforms.splice(i, 1);
+      Sound.sfx("jump");
+      haptic.hit("light");
+      break;
+    }
+  }
+
+  // подбор джетпака
+  for (let i = g.jetpacks.length - 1; i >= 0; i--) {
+    const j = g.jetpacks[i];
+    const jy = j.y + Math.sin(j.t * Math.PI / 0.8) * 7.5 + 7.5;
+    if (Math.abs(p.x - j.x) < (CFG.BODY_W + CFG.JET_W) / 2 &&
+        Math.abs(p.y - jy) < (CFG.BODY_H + CFG.JET_H) / 2) {
+      g.jetpacks.splice(i, 1);
+      g.isJetpackActive = true;
+      g.jetpackTimer = CFG.JETPACK_TIME;
+      Sound.sfx("jetpack");
+      haptic.notify("success");
+    }
+  }
+
+  // счёт
+  if (p.y > g.maxPlayerY) {
+    g.maxPlayerY = p.y;
+    const s = Math.floor((g.maxPlayerY - CFG.START_Y) / 10);
+    if (s > g.score) g.score = s;
+  }
+
+  // камера
+  if (p.y > g.cameraY) g.cameraY = p.y;
+
+  // догенерация мира
+  while (g.highestPlatformY < g.cameraY + H) spawnRandomPlatform(g);
+
+  // очистка ушедшего вниз
+  const cutoff = g.cameraY - H;
+  g.platforms = g.platforms.filter(s => s.y > cutoff);
+  g.jetpacks  = g.jetpacks.filter(j => j.y > cutoff);
+
+  // смерть
+  if (p.y < g.cameraY - H / 2 - 50) {
+    g.dead = true;
+    return;
+  }
+
+  g.time += dt;
+  for (const j of g.jetpacks) j.t += dt;
+}
+
+/* ==========================================================
+   ОТРИСОВКА
+   ========================================================== */
+const toScreenY = (g, worldY) => H / 2 - (worldY - g.cameraY);
+
+function draw(g){
+  // фон
+  if (IMG.BackgroundStatic) {
+    ctx.drawImage(IMG.BackgroundStatic, 0, 0, W, H);
+  } else {
+    const grd = ctx.createLinearGradient(0, 0, 0, H);
+    grd.addColorStop(0, "#0a1445");
+    grd.addColorStop(1, "#1a33cc");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // платформы
+  for (const s of g.platforms) {
+    const y = toScreenY(g, s.y);
+    if (y < -50 || y > H + 50) continue;
+    const x = s.x - CFG.PLAT_W / 2, ty = y - CFG.PLAT_H / 2;
+    if (IMG.Ground) {
+      ctx.drawImage(IMG.Ground, x, ty, CFG.PLAT_W, CFG.PLAT_H);
+    } else {
+      ctx.fillStyle = "#4caf50"; roundRect(x, ty, CFG.PLAT_W, CFG.PLAT_H, 6); ctx.fill();
+      ctx.fillStyle = "#2e7d32"; ctx.fillRect(x, ty + CFG.PLAT_H - 7, CFG.PLAT_W, 7);
+    }
+  }
+
+  // джетпаки
+  for (const j of g.jetpacks) {
+    const wy = j.y + Math.sin(j.t * Math.PI / 0.8) * 7.5 + 7.5;
+    const y = toScreenY(g, wy);
+    if (y < -60 || y > H + 60) continue;
+    const x = j.x - CFG.JET_W / 2, ty = y - CFG.JET_H / 2;
+    if (IMG.Jetpack) {
+      ctx.drawImage(IMG.Jetpack, x, ty, CFG.JET_W, CFG.JET_H);
+    } else {
+      ctx.fillStyle = "#e0e0e0"; roundRect(x, ty, CFG.JET_W, CFG.JET_H, 8); ctx.fill();
+      ctx.fillStyle = "#ff6d00"; ctx.fillRect(x + 6, ty + CFG.JET_H - 6, CFG.JET_W - 12, 8);
+    }
+  }
+
+  // игрок
+  const p = g.player;
+  const py = toScreenY(g, p.y);
+  let texture = g.character;
+  if (g.isJetpackActive) texture = g.character + "Jetpack";
+  else if (Math.abs(p.vy) > 5) texture = g.character + "Jump";
+
+  ctx.save();
+  ctx.translate(p.x, py);
+  ctx.scale(p.face, 1);
+  const img = IMG[texture] || IMG[g.character];
+  if (img) {
+    ctx.drawImage(img, -CFG.PLAYER_W / 2, -CFG.PLAYER_H / 2, CFG.PLAYER_W, CFG.PLAYER_H);
+  } else {
+    ctx.fillStyle = g.character === "Greb" ? "#ffca28" : "#ff5252";
+    roundRect(-CFG.PLAYER_W / 2, -CFG.PLAYER_H / 2, CFG.PLAYER_W, CFG.PLAYER_H, 14); ctx.fill();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(-14, -12, 10, 10);
+    ctx.fillRect(6, -12, 10, 10);
+    ctx.fillRect(-12, 12, 24, 5);
+  }
+  ctx.restore();
+
+  // HUD: счёт по центру, пауза справа — как в оригинальном cameraNode
+  ctx.fillStyle = "#fff";
+  ctx.font = "900 50px " + getComputedStyle(document.body).fontFamily;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(g.score), W / 2, 100);
+
+  ctx.fillStyle = "#3ddc4e";
+  ctx.fillText("||", W - 50, 100);
+
+  // индикатор джетпака
+  if (g.isJetpackActive) {
+    const frac = Math.max(0, g.jetpackTimer / CFG.JETPACK_TIME);
+    ctx.fillStyle = "rgba(255,255,255,.25)";
+    ctx.fillRect(40, 140, 120, 8);
+    ctx.fillStyle = "#ff6d00";
+    ctx.fillRect(40, 140, 120 * frac, 8);
+  }
+}
+
+function roundRect(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* ==========================================================
+   ГЛАВНЫЙ ЦИКЛ
+   ========================================================== */
+let last = 0, acc = 0, running = false;
+
+function loop(ts){
+  if (!running) return;
+  requestAnimationFrame(loop);
+  if (!last) last = ts;
+  let dt = (ts - last) / 1000;
+  last = ts;
+  if (dt > 0.25) dt = 0.25;           // после сворачивания приложения не улетаем
+
+  if (G && !G.paused && !G.frozen && !G.dead) {
+    acc += dt;
+    while (acc >= STEP) { step(G, STEP); acc -= STEP; if (G.dead) break; }
+  }
+  if (G) draw(G);
+  if (G && G.dead) endGame();
+}
+
+/* ==========================================================
+   ЭКРАНЫ
+   ========================================================== */
+const screens = {
+  menu:     document.getElementById("scr-menu"),
+  chars:    document.getElementById("scr-chars"),
+  settings: document.getElementById("scr-settings"),
+  credits:  document.getElementById("scr-credits"),
+  gameover: document.getElementById("gameover")
+};
+const backdrop  = document.getElementById("menuBackdrop");
+const pauseEl   = document.getElementById("pause");
+const countEl   = document.getElementById("countdown");
+let current = "menu";
+let selectedCharacter = "Hero";
+
+function show(name){
+  current = name;
+  Object.entries(screens).forEach(([k, el]) => el.classList.toggle("active", k === name));
+  // фон-картинка меню видна везде, кроме игры
+  backdrop.classList.toggle("active", name !== "game");
+  canvas.style.visibility = (name === "game" || name === "gameover") ? "visible" : "hidden";
+
+  if (tg && tg.BackButton) {
+    if (name === "chars" || name === "settings" || name === "credits") tg.BackButton.show();
+    else tg.BackButton.hide();
+  }
+}
+if (tg && tg.BackButton) tg.BackButton.onClick(() => { if (current !== "menu") goMenu(); });
+
+function startGame(){
+  Sound.sfx("startSound");
+  Sound.stopMusic();
+  G = newGame(selectedCharacter);
+  show("game");
+  pauseEl.classList.remove("active");
+  countEl.classList.remove("active");
+  last = 0; acc = 0;
+  if (!running) { running = true; requestAnimationFrame(loop); }
+}
+
+function endGame(){
+  const s = G.score;
+  const best = Math.max(s, parseInt(Store.get("bestScore", "0"), 10) || 0);
+  Store.set("bestScore", best);
+  document.getElementById("finalScore").textContent = s;
+  document.getElementById("bestScore").textContent = best;
+  haptic.notify("error");
+  Sound.sfx("gameOver");
+  G = null;
+  show("gameover");
+}
+
+function goMenu(){
+  G = null;
+  pauseEl.classList.remove("active");
+  countEl.classList.remove("active");
+  Sound.playMenuMusic();
+  show("menu");
+}
+
+function pauseGame(){
+  if (!G || G.paused) return;
+  G.paused = true;
+  pauseEl.classList.add("active");
+}
+
+function resumeWithCountdown(){
+  pauseEl.classList.remove("active");
+  G.frozen = true;
+  G.paused = false;
+  countEl.classList.add("active");
+  let n = 3;
+  countEl.querySelector("b").textContent = n;
+  const tick = setInterval(() => {
+    n--;
+    if (n > 0) { countEl.querySelector("b").textContent = n; return; }
+    clearInterval(tick);
+    countEl.classList.remove("active");
+    if (G) { G.frozen = false; last = 0; acc = 0; }
+  }, 1000);
+}
+
+/* ---- Кнопки меню ---- */
+document.addEventListener("click", e => {
+  const btn = e.target.closest("[data-act]");
+  if (btn) {
+    Sound.unlock();
+    const act = btn.dataset.act;
+    if (act === "start")    startGame();
+    if (act === "menu")     goMenu();
+    if (act === "chars")    show("chars");
+    if (act === "settings") show("settings");
+    if (act === "credits")  show("credits");
+    if (act === "resume")   resumeWithCountdown();
+    haptic.hit("light");
+    return;
+  }
+  const hero = e.target.closest("[data-hero]");
+  if (hero) {
+    selectedCharacter = hero.dataset.hero;
+    Store.set("character", selectedCharacter);
+    markHero();
+    show("menu");
+  }
+});
+
+function markHero(){
+  document.querySelectorAll("[data-hero]").forEach(el => {
+    el.classList.toggle("sel", el.dataset.hero === selectedCharacter);
+  });
+}
+
+/* ---- Переключатели настроек ---- */
+const swMusic = document.getElementById("swMusic");
+const swSfx   = document.getElementById("swSfx");
+swMusic.addEventListener("change", () => {
+  Store.set("isMusicOn", swMusic.checked ? "1" : "0");
+  if (swMusic.checked) Sound.playMenuMusic(); else Sound.stopMusic();
+});
+swSfx.addEventListener("change", () => {
+  Store.set("isSoundFxOn", swSfx.checked ? "1" : "0");
+});
+
+/* ==========================================================
+   УПРАВЛЕНИЕ
+   Левая половина экрана — влево, правая — вправо.
+   Тап по "||" в правом верхнем углу — пауза.
+   ========================================================== */
+const activePointers = new Map();
+
+function logicalPoint(ev){
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (ev.clientX - r.left) / r.width * W,
+    y: (ev.clientY - r.top) / r.height * H
+  };
+}
+
+canvas.addEventListener("pointerdown", ev => {
+  Sound.unlock();
+  if (!G || G.paused || G.dead) return;
+  ev.preventDefault();
+  const pt = logicalPoint(ev);
+
+  // зона кнопки паузы
+  if (Math.abs(pt.x - (W - 50)) < 45 && Math.abs(pt.y - 100) < 45) {
+    pauseGame();
+    haptic.hit("medium");
+    return;
+  }
+  activePointers.set(ev.pointerId, pt.x < W / 2 ? "L" : "R");
+  applyPointers();
+}, { passive: false });
+
+function endPointer(ev){
+  activePointers.delete(ev.pointerId);
+  applyPointers();
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("pointerleave", endPointer);
+
+function applyPointers(){
+  if (!G) return;
+  const dirs = [...activePointers.values()];
+  const dir = dirs.length ? dirs[dirs.length - 1] : null;
+  G.movingLeft  = dir === "L";
+  G.movingRight = dir === "R";
+}
+
+// клавиатура — удобно тестировать в браузере на десктопе
+document.addEventListener("keydown", e => {
+  if (!G) return;
+  if (e.key === "ArrowLeft"  || e.key === "a") { G.movingLeft = true;  G.movingRight = false; }
+  if (e.key === "ArrowRight" || e.key === "d") { G.movingRight = true; G.movingLeft  = false; }
+  if (e.key === "Escape" || e.key === "p") { G.paused ? resumeWithCountdown() : pauseGame(); }
+});
+document.addEventListener("keyup", e => {
+  if (!G) return;
+  if (e.key === "ArrowLeft"  || e.key === "a") G.movingLeft  = false;
+  if (e.key === "ArrowRight" || e.key === "d") G.movingRight = false;
+});
+
+// свернули приложение — ставим паузу, чтобы не проиграть вслепую
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && G && !G.dead) pauseGame();
+});
+
+/* ==========================================================
+   СТАРТ
+   ========================================================== */
+(async function boot(){
+  resize();
+  await Store.init(["isMusicOn","isSoundFxOn","character","bestScore"]);
+  swMusic.checked = Store.get("isMusicOn","1") === "1";
+  swSfx.checked   = Store.get("isSoundFxOn","1") === "1";
+  selectedCharacter = Store.get("character","Hero");
+
+  await loadAllImages();
+
+  // подставляем картинки туда, где они есть
+  if (IMG.MenuBackground) { const el = document.getElementById("menuBg");     el.src = IMG.MenuBackground.src; el.hidden = false; }
+  if (IMG.MenuGround)     { const el = document.getElementById("menuGround"); el.src = IMG.MenuGround.src;     el.hidden = false; }
+  if (IMG.GameLogo) {
+    const el = document.getElementById("gameLogo");
+    el.src = IMG.GameLogo.src; el.hidden = false;
+    document.getElementById("logoText").hidden = true;
+  }
+  if (IMG.ButtonBoard) {
+    document.querySelectorAll("[data-board]").forEach(el => { el.src = IMG.ButtonBoard.src; el.hidden = false; });
+  }
+  document.querySelectorAll("[data-heroimg]").forEach(el => {
+    const n = el.dataset.heroimg;
+    if (IMG[n]) { el.src = IMG[n].src; el.hidden = false; el.nextElementSibling.hidden = true; }
+  });
+
+  markHero();
+  show("menu");
+  Sound.playMenuMusic();
+})();
+</script>
+</body>
+</html>
