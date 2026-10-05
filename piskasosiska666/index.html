@@ -35,17 +35,17 @@ img{display:block;max-width:100%}
 #hint i{display:block;margin-top:10px;font-style:normal;animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{translate:0 0;opacity:.3}50%{translate:0 6px;opacity:1}}
 
-/* ── 2. MEDAL ───────────────────────────────────────────── */
-#medal{position:relative;height:300vh}
-#medal .pin{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;align-items:center;padding:0 var(--pad)}
+/* ── 2–3. PRODUCTS ───────────────────────────────────────── */
+.prod{position:relative;height:300vh}
+.prod .pin{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;align-items:center;padding:0 var(--pad)}
 .wrap{max-width:1440px;width:100%;margin:0 auto;display:grid;align-items:center;
   grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px)}
 
 .copy h2{font:900 clamp(40px,5.6vw,84px)/.9 var(--display)}
 .desc{margin-top:clamp(24px,5vh,56px);font:900 clamp(15px,1.45vw,21px)/1.55 var(--display);max-width:34em;letter-spacing:.01em}
-.desc .w{opacity:.12;transition:opacity .25s linear}
+.prod .desc .w{opacity:.12;transition:opacity .25s linear}
 .desc .w.on{opacity:1}
-.credit{margin-top:clamp(32px,7vh,80px);font:900 13px/1 var(--display);color:var(--dim)}
+.credit{margin-top:clamp(28px,6vh,64px);font:900 13px/1 var(--display);color:var(--dim)}
 .reveal{opacity:0;translate:0 18px;transition:opacity .7s ease,translate .7s cubic-bezier(.2,.75,.15,1)}
 .reveal.on{opacity:1;translate:0 0}
 
@@ -63,13 +63,40 @@ img{display:block;max-width:100%}
 .pair:not(.open) button.back{transform:translate(0,4%) scale(.9);opacity:0;pointer-events:none}
 .pair .tip{position:absolute;right:0;bottom:2%;font:900 12px/1 var(--display);color:var(--dim);letter-spacing:.06em}
 
+
+.fine{margin-top:clamp(18px,3vh,32px);font:900 11px/1.6 var(--display);color:rgba(255,255,255,.45);max-width:44em;letter-spacing:.02em}
+.wrap.flip{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.wrap.flip .stagebox{order:-1}
+
+/* футболка + ползунок */
+.tee{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,3vh,28px)}
+#teeCv{width:min(100%,62svh);aspect-ratio:760/791;display:block}
+.rot{width:min(100%,420px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
+  font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
+.rot input{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;cursor:grab}
+.rot input:active{cursor:grabbing}
+.rot input::-webkit-slider-runnable-track{height:1px;background:rgba(255,255,255,.35)}
+.rot input::-moz-range-track{height:1px;background:rgba(255,255,255,.35)}
+.rot input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;margin-top:-8.5px;border:0}
+.rot input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0}
+.rot input:focus-visible{outline:2px solid #fff;outline-offset:4px}
+
+#tee-title{font-size:clamp(34px,4.2vw,64px)}
+@media (max-width:860px){#tee-title{font-size:26px}}
 footer{border-top:1px solid rgba(255,255,255,.13);padding:24px var(--pad) calc(24px + env(safe-area-inset-bottom,0px));
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:900 12px/1.4 var(--display);color:var(--dim)}
-footer .name{font-family:var(--text);font-weight:500}
+footer{align-items:center}
+footer .pline{display:flex;align-items:center;gap:14px}
+footer .logos{display:flex;align-items:center;gap:18px}
+footer .logos img{height:22px;width:auto;opacity:.75}
 
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;gap:18px}
   .pair{order:-1;width:min(100%,46svh*1.18);margin:0 auto}
+  .wrap.flip{grid-template-columns:1fr}
+  #teeCv{width:min(100%,40svh)}
+  .tee{gap:8px}
+  .fine{font-size:10px;margin-top:14px}
   .copy h2{font-size:34px}
   .desc{margin-top:16px;font-size:13.5px;line-height:1.5}
   .credit{margin-top:22px}
@@ -88,25 +115,44 @@ footer .name{font-family:var(--text);font-weight:500}
   </div>
 </section>
 
-<section id="medal" aria-labelledby="medal-title">
+<section class="prod" id="medal" aria-labelledby="medal-title">
   <div class="pin">
     <div class="wrap">
       <div class="copy">
-        <h2 id="medal-title" class="reveal">"The Tree"</h2>
-        <p class="desc" id="desc">A standout accessory built around a complex, sculptural bas-relief. It features a highly detailed, silver-finished barren tree with an intricate root system over a pitch-black core. A heavy, 3D-crafted piece with a distinct industrial vibe to elevate any fit.</p>
-        <p class="credit reveal" id="credit">Designer: Petro Petrov</p>
+        <h2 id="medal-title" class="reveal" data-r="title">"The Tree"*</h2>
+        <p class="desc">A standout accessory built around a complex, sculptural bas-relief. It features a highly detailed, silver-finished barren tree with an intricate root system over a pitch-black core. A heavy, 3D-crafted piece with a distinct industrial vibe to elevate any fit.</p>
+        <p class="credit reveal" data-r="credit">Designer: Petro Petrov</p>
+        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
       </div>
-      <div class="pair reveal" id="pair">
+      <div class="pair reveal stagebox" id="pair" data-r="item">
         <button class="front" data-side="logo" aria-label="Logo side" aria-pressed="true"><img src="img/medal-logo.webp" alt="Neverland medal, logo side"></button>
         <button class="back"  data-side="tree" aria-label="Show the tree side" aria-pressed="false"><img src="img/medal-tree.webp" alt="Neverland medal, tree side"></button>
-        <span class="tip reveal" id="tip">Tap the other side</span>
+        <span class="tip reveal" id="tip" data-r="open">Tap the other side</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="prod" id="tee" aria-labelledby="tee-title">
+  <div class="pin">
+    <div class="wrap flip">
+      <div class="tee stagebox reveal" data-r="item">
+        <canvas id="teeCv" role="img" aria-label="Neverland oversized tee, 360° view"></canvas>
+        <label class="rot reveal" data-r="open"><span>Front</span>
+          <input type="range" id="teeRange" min="0" max="1000" value="0" aria-label="Rotate the tee">
+          <span>360°</span></label>
+      </div>
+      <div class="copy">
+        <h2 id="tee-title" class="reveal" data-r="title">Never Land Oversized Tee*</h2>
+        <p class="desc">A premium black tee with a relaxed, oversized streetwear silhouette. Keeps it clean on the front with a compact chest logo, while the back carries a massive, statement print of the tree design. Bold lines, maximum comfort, and pure monochrome aesthetic.</p>
+        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
       </div>
     </div>
   </div>
 </section>
 
 <footer>
-  <span>© 2026 <span class="name">Sимптом</span></span>
+  <span class="pline">© 2026 <span class="logos"><img src="img/simptom.png" alt="Sимптом" width="800" height="208"></span></span>
   <span>All rights reserved</span>
 </footer>
 
@@ -114,13 +160,15 @@ footer .name{font-family:var(--text);font-weight:500}
 /* ══ SETTINGS ════════════════════════════════════════════
    videoEnd — на каком % скролла секвенции видео доигрывает
    ease     — плавность (меньше = инертнее)
-   medal    — тайминги блока медали (доля его скролла 0…1):
-              title/pair — когда появляются заголовок и медаль,
-              text       — от и до: слова описания проявляются по очереди,
-              open       — когда выезжает вторая сторона и подсказка      */
+   teeFrames— сколько кадров в папке tee/ (поменяй, если новое видео)
+   reveal   — тайминги блоков медали и футболки (доля скролла блока):
+              title/item — заголовок и предмет, text — от/до проявления слов,
+              credit     — подпись и сноска, open — вторая сторона медали / ползунок */
 const CFG = {
   frames:125, videoEnd:.9, ease:.16,
-  medal:{ title:.02, pair:.06, text:[.08,.62], credit:.66, open:.72 }
+  teeFrames:160,
+  /* тайминги блоков товаров (доля скролла блока 0…1) */
+  reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 }
 };
 
 const SRC=Array.from({length:CFG.frames},(_,i)=>`frames/f${String(i+1).padStart(3,'0')}.webp`);
@@ -168,10 +216,12 @@ function draw(f){
   if(y>0){edge(0,y,0,y+fy,x,y,w,fy);edge(0,y+h,0,y+h-fy,x,y+h-fy,w,fy);}
 }
 
-/* ── описание: режем на слова ── */
-const desc=$('desc');
-desc.innerHTML=desc.textContent.trim().split(/\s+/).map(w=>`<span class="w">${w}</span>`).join(' ');
-const words=[...desc.querySelectorAll('.w')];
+/* ── продуктовые блоки: слова описания режем на span ── */
+const prods=[...document.querySelectorAll('.prod')].map(el=>{
+  const d=el.querySelector('.desc');
+  d.innerHTML=d.textContent.trim().split(/\s+/).map(w=>`<span class="w">${w}</span>`).join(' ');
+  return {el, words:[...d.querySelectorAll('.w')], parts:[...el.querySelectorAll('[data-r]')]};
+});
 
 /* ── scroll loop ── */
 let cur=0;
@@ -184,18 +234,38 @@ function loop(){
   if(cur!==prev) draw(cur);
   $('hint').style.opacity=Math.max(0,1-p*14);
 
-  const m=progOf(medal), M=CFG.medal;
-  $('medal-title').classList.toggle('on',m>=M.title);
-  $('pair').classList.toggle('on',m>=M.pair);
-  const t=clamp((m-M.text[0])/(M.text[1]-M.text[0]),0,1), n=Math.round(t*words.length);
-  words.forEach((w,i)=>w.classList.toggle('on',i<n));
-  $('credit').classList.toggle('on',m>=M.credit);
-  const open=m>=M.open;
-  $('pair').classList.toggle('open',open);
-  $('tip').classList.toggle('on',open);
+  const R=CFG.reveal;
+  prods.forEach(({el,words,parts})=>{
+    const m=progOf(el);
+    parts.forEach(x=>x.classList.toggle('on',m>=R[x.dataset.r] && !(x.dataset.used)));
+    const t=clamp((m-R.text[0])/(R.text[1]-R.text[0]),0,1), n=Math.round(t*words.length);
+    words.forEach((w,i)=>w.classList.toggle('on',i<n));
+  });
+  $('pair').classList.toggle('open',progOf(medal)>=R.open);
 
+  teeTick();
   requestAnimationFrame(loop);
 }
+
+/* ── футболка: ползунок → кадр ── */
+const TEE=Array.from({length:CFG.teeFrames},(_,i)=>`tee/t${String(i+1).padStart(3,'0')}.webp`);
+const tcv=$('teeCv'), tcx=tcv.getContext('2d'), range=$('teeRange');
+const timgs=TEE.map(s=>{const im=new Image(); im.onload=()=>{if(im===timgs[Math.round(tcur)]) tdraw(tcur)}; im.src=s; return im;});
+let tcur=0, tprev=-1;
+function tsize(){const d=Math.min(devicePixelRatio||1,2);tcv.width=Math.round(tcv.clientWidth*d);tcv.height=Math.round(tcv.clientHeight*d);tprev=-1;}
+function tdraw(f){
+  const im=timgs[clamp(Math.round(f),0,TEE.length-1)]; if(!im||!im.naturalWidth) return;
+  tcx.clearRect(0,0,tcv.width,tcv.height);
+  const k=Math.min(tcv.width/im.naturalWidth,tcv.height/im.naturalHeight), w=im.naturalWidth*k, h=im.naturalHeight*k;
+  tcx.drawImage(im,(tcv.width-w)/2,(tcv.height-h)/2,w,h);
+}
+function teeTick(){
+  const target=range.value/1000*(TEE.length-1);
+  tcur+=(target-tcur)*.25; if(Math.abs(target-tcur)<.02) tcur=target;
+  const f=Math.round(tcur); if(f!==tprev){tprev=f; tdraw(f);}
+}
+addEventListener('resize',tsize); tsize();
+
 resize(); requestAnimationFrame(loop);
 
 /* ── выбор стороны: нажатие на нужную сторону ── */
@@ -207,11 +277,8 @@ document.querySelectorAll('.pair button').forEach(b=>b.addEventListener('click',
     x.setAttribute('aria-pressed',on);
     x.setAttribute('aria-label',on?(x.dataset.side==='logo'?'Logo side':'Tree side'):(x.dataset.side==='logo'?'Show the logo side':'Show the tree side'));
   });
-  $('tip').classList.remove('on'); $('tip').dataset.used='1';
+  $('tip').dataset.used='1'; $('tip').classList.remove('on');
 }));
-// после первого выбора подсказка больше не нужна
-const tipEl=$('tip'); new MutationObserver(()=>{ if(tipEl.dataset.used && tipEl.classList.contains('on')) tipEl.classList.remove('on'); })
-  .observe(tipEl,{attributes:true,attributeFilter:['class']});
 </script>
 </body>
 </html>
