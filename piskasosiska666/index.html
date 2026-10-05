@@ -172,7 +172,7 @@ const CFG = {
   reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 }
 };
 
-const SRC=Array.from({length:CFG.frames},(_,i)=>`frames/f${String(i+1).padStart(3,'0')}.webp`);
+const SRC=Array.from({length:CFG.frames},(_,i)=>`frames/Never_land_v002_${String(i).padStart(5,'0')}.png`);  // 00000 … 00124
 const $=id=>document.getElementById(id);
 const cv=$('seq'), cx=cv.getContext('2d',{alpha:false});
 const stage=$('stage'), medal=$('medal');
