@@ -70,7 +70,10 @@ img{display:block;max-width:100%}
 
 /* футболка + ползунок */
 .tee{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,3vh,28px)}
-#teeCv{width:min(100%,62svh);aspect-ratio:760/791;display:block}
+#teeCv{width:min(100%,62svh);aspect-ratio:760/791;display:block;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+#teeCv.drag{cursor:grabbing}
+.teehint{font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
+#teeCv:focus-visible{outline:2px solid #fff;outline-offset:4px}
 .rot{width:min(100%,420px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
   font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
 .rot input{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;cursor:grab}
@@ -137,10 +140,8 @@ footer .logos img{height:22px;width:auto;opacity:.75}
   <div class="pin">
     <div class="wrap flip">
       <div class="tee stagebox reveal" data-r="item">
-        <canvas id="teeCv" role="img" aria-label="Neverland oversized tee, 360° view"></canvas>
-        <label class="rot reveal" data-r="open"><span>Front</span>
-          <input type="range" id="teeRange" min="0" max="1000" value="0" aria-label="Rotate the tee">
-          <span>360°</span></label>
+        <canvas id="teeCv" role="img" aria-label="Neverland oversized tee, 360° view. Swipe or use arrow keys to rotate"></canvas>
+        <span class="teehint reveal" id="teeHint" data-r="open">Swipe the tee to rotate</span>
       </div>
       <div class="copy">
         <h2 id="tee-title" class="reveal" data-r="title">Never Land Oversized Tee*</h2>
@@ -249,9 +250,9 @@ function loop(){
 
 /* ── футболка: ползунок → кадр ── */
 const TEE=Array.from({length:CFG.teeFrames},(_,i)=>`tee/t${String(i+1).padStart(3,'0')}.webp`);
-const tcv=$('teeCv'), tcx=tcv.getContext('2d'), range=$('teeRange');
-const timgs=TEE.map(s=>{const im=new Image(); im.onload=()=>{if(im===timgs[Math.round(tcur)]) tdraw(tcur)}; im.src=s; return im;});
-let tcur=0, tprev=-1;
+const tcv=$('teeCv'), tcx=tcv.getContext('2d'), range={value:0};
+const timgs=TEE.map(s=>{const im=new Image(); im.onload=()=>{tprev=-1}; im.src=s; return im;});
+let tprev=-1;
 function tsize(){const d=Math.min(devicePixelRatio||1,2);tcv.width=Math.round(tcv.clientWidth*d);tcv.height=Math.round(tcv.clientHeight*d);tprev=-1;}
 function tdraw(f){
   const im=timgs[clamp(Math.round(f),0,TEE.length-1)]; if(!im||!im.naturalWidth) return;
@@ -259,11 +260,39 @@ function tdraw(f){
   const k=Math.min(tcv.width/im.naturalWidth,tcv.height/im.naturalHeight), w=im.naturalWidth*k, h=im.naturalHeight*k;
   tcx.drawImage(im,(tcv.width-w)/2,(tcv.height-h)/2,w,h);
 }
+/* угол храним «непрерывным» (в кадрах), чтобы свайп крутил по кругу без скачков */
+const N=TEE.length;
+let ang=0, angT=0, vel=0, drag=null, inertia=false;
+const mod=(v,n)=>((v%n)+n)%n;
 function teeTick(){
-  const target=range.value/1000*(TEE.length-1);
-  tcur+=(target-tcur)*.25; if(Math.abs(target-tcur)<.02) tcur=target;
-  const f=Math.round(tcur); if(f!==tprev){tprev=f; tdraw(f);}
+  if(inertia && !drag){ angT+=vel; vel*=.94; if(Math.abs(vel)<.02) inertia=false; syncRange(); }
+  ang+=(angT-ang)*.25; if(Math.abs(angT-ang)<.02) ang=angT;
+  const f=Math.round(mod(ang,N))%N; if(f!==tprev){tprev=f; tdraw(f);}
 }
+function syncRange(){}
+function used(){ const h=$('teeHint'); if(h){h.dataset.used='1'; h.classList.remove('on');} }
+
+/* клавиатура: стрелки влево/вправо */
+tcv.tabIndex=0;
+tcv.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault(); angT+=(e.key==='ArrowRight'?1:-1)*N/16; inertia=false; used();}
+});
+
+/* свайп / перетаскивание по футболке */
+const PX=()=>tcv.clientWidth/N*1.25;   // сколько px на кадр (≈ 0.8 оборота на ширину)
+tcv.addEventListener('pointerdown',e=>{
+  drag={x:e.clientX,t:performance.now(),a:angT}; vel=0; inertia=false;
+  tcv.setPointerCapture(e.pointerId); tcv.classList.add('drag');
+});
+tcv.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const now=performance.now(), dx=e.clientX-drag.x;
+  const na=drag.a-dx/PX();
+  vel=(na-angT)/Math.max(1,(now-(drag.lt||drag.t))/16.7);
+  drag.lt=now; angT=na; syncRange(); if(Math.abs(dx)>6) used();
+});
+const end=()=>{ if(!drag) return; drag=null; tcv.classList.remove('drag'); inertia=Math.abs(vel)>.05; vel=Math.max(-3,Math.min(3,vel)); };
+tcv.addEventListener('pointerup',end); tcv.addEventListener('pointercancel',end);
 addEventListener('resize',tsize); tsize();
 
 resize(); requestAnimationFrame(loop);
