@@ -84,8 +84,43 @@ img{display:block;max-width:100%}
 .rot input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0}
 .rot input:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
-#tee-title{font-size:clamp(34px,4.2vw,64px)}
+#tee-title,#cd-title{font-size:clamp(34px,4.2vw,64px)}
 @media (max-width:860px){#tee-title{font-size:26px}}
+/* ── 4. CD ──────────────────────────────────────────────── */
+.cdsec{padding:clamp(80px,14vh,160px) var(--pad) clamp(60px,10vh,120px)}
+.cdsec .wrap{align-items:start}
+.cdart{position:sticky;top:14vh}
+.cdart img{width:100%;height:auto;filter:drop-shadow(0 40px 60px rgba(255,255,255,.06));animation:float 7s ease-in-out infinite}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -10px}}
+.cdmeta{margin-top:16px;font:900 12px/1 var(--display);color:var(--dim);letter-spacing:.06em}
+.tracks{list-style:none;margin-top:clamp(24px,4vh,40px);border-top:1px solid rgba(255,255,255,.13)}
+.trk{position:relative;border-bottom:1px solid rgba(255,255,255,.13);
+  opacity:0;translate:0 10px;transition:opacity .5s ease,translate .5s ease}
+.trk.on{opacity:1;translate:0 0}
+.trk button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;
+  grid-template-columns:34px 1fr auto 30px;align-items:center;gap:12px;padding:13px 2px;
+  font:900 clamp(14px,1.15vw,17px)/1.25 var(--display);color:rgba(255,255,255,.82);transition:color .2s}
+.trk button:hover,.trk.play button{color:#fff}
+.trk button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.trk .no{font-size:11px;color:var(--dim)}
+.trk .ft{color:var(--dim)}
+.trk .tm{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.trk .pb{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;transition:background .2s,border-color .2s}
+.trk .pb svg{width:12px;height:12px;fill:currentColor}
+.trk .i-stop{display:none}
+.trk.play .i-stop{display:inline}.trk.play .i-play{display:none}
+.trk button:hover .pb{border-color:#fff}
+.trk.play .pb{background:#fff;color:#000;border-color:#fff}
+.trk .bar{position:absolute;left:0;bottom:-1px;height:1px;width:100%;background:#fff;transform:scaleX(0);transform-origin:left}
+.trk.na .tm{color:rgba(255,255,255,.4)}
+.cd-r{opacity:0;translate:0 18px;transition:opacity .7s ease,translate .7s cubic-bezier(.2,.75,.15,1)}
+.cd-r.on{opacity:1;translate:0 0}
+@media (max-width:860px){
+  .cdsec .wrap{grid-template-columns:1fr}
+  .cdart{position:static;max-width:520px;margin:0 auto}
+  #cd-title{font-size:30px}
+}
+
 footer{border-top:1px solid rgba(255,255,255,.13);padding:24px var(--pad) calc(24px + env(safe-area-inset-bottom,0px));
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:900 12px/1.4 var(--display);color:var(--dim)}
 footer{align-items:center}
@@ -152,6 +187,37 @@ footer .logos img{height:22px;width:auto;opacity:.75}
   </div>
 </section>
 
+<section class="cdsec" id="cd" aria-labelledby="cd-title">
+  <div class="wrap">
+    <div class="cdart cd-r"><img src="img/cd.webp" alt="Never Land CD in a jewel case, tree artwork on the cover" width="866" height="603"></div>
+    <div class="copy">
+      <h2 id="cd-title" class="cd-r">"Never Land" CD Release*</h2>
+      <p class="cdmeta cd-r">17 tracks · 20-second previews</p>
+      <ol class="tracks">
+          <li class="trk" data-n="01"><button type="button" aria-label="Play preview: Never Land"><span class="no">01</span><span class="tt">Never Land</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="02"><button type="button" aria-label="Play preview: Radar"><span class="no">02</span><span class="tt">Radar</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="03"><button type="button" aria-label="Play preview: T-1000"><span class="no">03</span><span class="tt">T-1000</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="04"><button type="button" aria-label="Play preview: Offline ft T-Fest"><span class="no">04</span><span class="tt">Offline <span class="ft">ft T-Fest</span></span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="05"><button type="button" aria-label="Play preview: Black Friday"><span class="no">05</span><span class="tt">Black Friday</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="06"><button type="button" aria-label="Play preview: White ft 4erdak"><span class="no">06</span><span class="tt">White <span class="ft">ft 4erdak</span></span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="07"><button type="button" aria-label="Play preview: Perekur"><span class="no">07</span><span class="tt">Perekur</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="08"><button type="button" aria-label="Play preview: Alisha Interlude ft Alisha T"><span class="no">08</span><span class="tt">Alisha Interlude <span class="ft">ft Alisha T</span></span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="09"><button type="button" aria-label="Play preview: Storoni"><span class="no">09</span><span class="tt">Storoni</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="10"><button type="button" aria-label="Play preview: Ya ne skuchal"><span class="no">10</span><span class="tt">Ya ne skuchal</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="11"><button type="button" aria-label="Play preview: Gravity ft Alisha T"><span class="no">11</span><span class="tt">Gravity <span class="ft">ft Alisha T</span></span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="12"><button type="button" aria-label="Play preview: Bilet (interlude)"><span class="no">12</span><span class="tt">Bilet (interlude)</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="13"><button type="button" aria-label="Play preview: Kak eto bilo"><span class="no">13</span><span class="tt">Kak eto bilo</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="14"><button type="button" aria-label="Play preview: Oda"><span class="no">14</span><span class="tt">Oda</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="15"><button type="button" aria-label="Play preview: Kartizol"><span class="no">15</span><span class="tt">Kartizol</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="16"><button type="button" aria-label="Play preview: Signali"><span class="no">16</span><span class="tt">Signali</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+          <li class="trk" data-n="17"><button type="button" aria-label="Play preview: Da budet tak"><span class="no">17</span><span class="tt">Da budet tak</span><span class="tm" aria-hidden="true"></span><span class="pb" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="i-play" d="M5 3.5v9l7.5-4.5z"/><g class="i-stop"><rect x="4" y="3.5" width="3" height="9"/><rect x="9" y="3.5" width="3" height="9"/></g></svg></span></button><i class="bar"></i></li>
+      </ol>
+      <p class="fine cd-r">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
+    </div>
+  </div>
+  <audio id="player" preload="none"></audio>
+</section>
+
 <footer>
   <span class="pline">© 2026 <span class="logos"><img src="img/simptom.png" alt="Sимптом" width="800" height="208"></span></span>
   <span>All rights reserved</span>
@@ -168,6 +234,8 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 const CFG = {
   frames:125, videoEnd:.9, ease:.16,
   teeFrames:160,
+  previewLen:20,                              // длина превью трека, сек
+  audio:n=>`audio/${n}.mp3`,                  // путь к превью: audio/01.mp3 …
   /* тайминги блоков товаров (доля скролла блока 0…1) */
   reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 }
 };
@@ -308,6 +376,45 @@ document.querySelectorAll('.pair button').forEach(b=>b.addEventListener('click',
   });
   $('tip').dataset.used='1'; $('tip').classList.remove('on');
 }));
+
+/* ── CD: появление по мере прокрутки ── */
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return;
+  const el=e.target; io.unobserve(el);
+  const d=el.classList.contains('trk')?(+el.dataset.n%6)*60:0;   // треки — лесенкой
+  setTimeout(()=>el.classList.add('on'),d);
+}),{rootMargin:'0px 0px -12% 0px'});
+document.querySelectorAll('.cd-r,.trk').forEach(el=>io.observe(el));
+
+/* ── CD: 20-секундные превью ──
+   Файлы кладём в audio/: 01.mp3 … 17.mp3. Пока файла нет —
+   у трека появится «soon». Длинный файл обрежется на previewLen. */
+const player=$('player'); let curT=null, raf=0;
+const fmt=s=>`0:${String(Math.floor(s)).padStart(2,'0')}`;
+function stopTrack(){
+  player.pause(); cancelAnimationFrame(raf);
+  if(curT){curT.classList.remove('play'); curT.querySelector('.bar').style.transform='scaleX(0)'; curT.querySelector('.tm').textContent='';}
+  curT=null;
+}
+function tickTrack(){
+  if(!curT) return;
+  const t=player.currentTime, L=CFG.previewLen;
+  curT.querySelector('.bar').style.transform=`scaleX(${Math.min(t/L,1)})`;
+  curT.querySelector('.tm').textContent=fmt(Math.max(0,L-t));
+  if(t>=L) return stopTrack();
+  raf=requestAnimationFrame(tickTrack);
+}
+document.querySelectorAll('.trk').forEach(li=>li.querySelector('button').addEventListener('click',()=>{
+  const was=curT===li; stopTrack(); if(was||li.classList.contains('na')) return;
+  curT=li; li.classList.add('play');
+  player.src=CFG.audio(li.dataset.n); player.currentTime=0;
+  player.play().then(()=>{raf=requestAnimationFrame(tickTrack);}).catch(()=>{});
+}));
+player.addEventListener('ended',stopTrack);
+player.addEventListener('error',()=>{
+  if(!curT) return; const li=curT; stopTrack();
+  li.classList.add('na'); li.querySelector('.tm').textContent='soon';
+});
 </script>
 </body>
 </html>
