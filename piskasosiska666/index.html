@@ -49,19 +49,11 @@ img{display:block;max-width:100%}
 .reveal{opacity:0;translate:0 18px;transition:opacity .7s ease,translate .7s cubic-bezier(.2,.75,.15,1)}
 .reveal.on{opacity:1;translate:0 0}
 
-.pair{position:relative;aspect-ratio:1.18}
-.pair button{all:unset;position:absolute;top:6%;left:0;width:72%;aspect-ratio:1;
-  transition:transform 1s cubic-bezier(.2,.75,.15,1),filter 1s ease,opacity 1s ease,z-index 0s .28s}
-.pair img{width:100%;height:100%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 30px 40px rgba(0,0,0,.7))}
-/* выбранная сторона — спереди */
-.pair button.front{z-index:2;transform:translate(0,4%) scale(1);filter:none;opacity:1;cursor:default}
-/* неактивная — назад, меньше, размыта; по нажатию выходит вперёд */
-.pair button.back{z-index:1;transform:translate(38%,-6%) scale(.74);filter:blur(5px) brightness(.55);opacity:.85;cursor:pointer}
-.pair button.back:hover{filter:blur(3px) brightness(.8)}
-.pair button:focus-visible{outline:2px solid #fff;outline-offset:4px}
-/* до появления: задняя сторона спрятана за передней */
-.pair:not(.open) button.back{transform:translate(0,4%) scale(.9);opacity:0;pointer-events:none}
-.pair .tip{position:absolute;right:0;bottom:2%;font:900 12px/1 var(--display);color:var(--dim);letter-spacing:.06em}
+.spin{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,20px)}
+#medalCv{width:min(100%,62svh);aspect-ratio:920/946;display:block;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;
+  filter:drop-shadow(0 30px 40px rgba(0,0,0,.7))}
+#medalCv.drag{cursor:grabbing}
+#medalCv:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
 
 .fine{margin-top:clamp(18px,3vh,32px);font:900 11px/1.6 var(--display);color:rgba(255,255,255,.45);max-width:44em;letter-spacing:.02em}
@@ -72,7 +64,7 @@ img{display:block;max-width:100%}
 .tee{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,3vh,28px)}
 #teeCv{width:min(100%,62svh);aspect-ratio:760/791;display:block;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
 #teeCv.drag{cursor:grabbing}
-.teehint{font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
+.teehint,.spinhint{font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
 #teeCv:focus-visible{outline:2px solid #fff;outline-offset:4px}
 .rot{width:min(100%,420px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;
   font:900 11px/1 var(--display);color:var(--dim);letter-spacing:.06em}
@@ -130,7 +122,8 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;gap:18px}
-  .pair{order:-1;width:min(100%,46svh*1.18);margin:0 auto}
+  .spin.medalbox{order:-1}
+  #medalCv{width:min(100%,42svh)}
   .wrap.flip{grid-template-columns:1fr}
   #teeCv{width:min(100%,40svh)}
   .tee{gap:8px}
@@ -162,10 +155,9 @@ footer .logos img{height:22px;width:auto;opacity:.75}
         <p class="credit reveal" data-r="credit">Designer: Petro Petrov</p>
         <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
       </div>
-      <div class="pair reveal stagebox" id="pair" data-r="item">
-        <button class="front" data-side="logo" aria-label="Logo side" aria-pressed="true"><img src="img/medal-logo.webp" alt="Neverland medal, logo side"></button>
-        <button class="back"  data-side="tree" aria-label="Show the tree side" aria-pressed="false"><img src="img/medal-tree.webp" alt="Neverland medal, tree side"></button>
-        <span class="tip reveal" id="tip" data-r="open">Tap the other side</span>
+      <div class="spin medalbox reveal stagebox" data-r="item">
+        <canvas id="medalCv" role="img" aria-label="Neverland medal. Swipe or use arrow keys to turn it from the logo side to the tree side"></canvas>
+        <span class="spinhint reveal" data-r="open">Swipe to turn the medal</span>
       </div>
     </div>
   </div>
@@ -234,6 +226,7 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 const CFG = {
   frames:125, videoEnd:.9, ease:.16,
   teeFrames:160,
+  medalFrames:65,                             // medal/One_00000.webp … One_00064.webp
   previewLen:20,                              // длина превью трека, сек
   audio:n=>`audio/${n}.mp3`,                  // путь к превью: audio/01.mp3 …
   /* тайминги блоков товаров (доля скролла блока 0…1) */
@@ -310,72 +303,60 @@ function loop(){
     const t=clamp((m-R.text[0])/(R.text[1]-R.text[0]),0,1), n=Math.round(t*words.length);
     words.forEach((w,i)=>w.classList.toggle('on',i<n));
   });
-  $('pair').classList.toggle('open',progOf(medal)>=R.open);
 
-  teeTick();
+  spinners.forEach(sp=>sp.tick());
   requestAnimationFrame(loop);
 }
 
-/* ── футболка: ползунок → кадр ── */
-const TEE=Array.from({length:CFG.teeFrames},(_,i)=>`tee/t${String(i+1).padStart(3,'0')}.webp`);
-const tcv=$('teeCv'), tcx=tcv.getContext('2d'), range={value:0};
-const timgs=TEE.map(s=>{const im=new Image(); im.onload=()=>{tprev=-1}; im.src=s; return im;});
-let tprev=-1;
-function tsize(){const d=Math.min(devicePixelRatio||1,2);tcv.width=Math.round(tcv.clientWidth*d);tcv.height=Math.round(tcv.clientHeight*d);tprev=-1;}
-function tdraw(f){
-  const im=timgs[clamp(Math.round(f),0,TEE.length-1)]; if(!im||!im.naturalWidth) return;
-  tcx.clearRect(0,0,tcv.width,tcv.height);
-  const k=Math.min(tcv.width/im.naturalWidth,tcv.height/im.naturalHeight), w=im.naturalWidth*k, h=im.naturalHeight*k;
-  tcx.drawImage(im,(tcv.width-w)/2,(tcv.height-h)/2,w,h);
+/* ── вращалки: футболка и медаль ──
+   loop:true  — крутится по кругу (футболка, полный оборот)
+   loop:false — ходит туда-сюда между первым и последним кадром (медаль) */
+function Spinner(cv,src,o){
+  const cx=cv.getContext('2d'), N=src.length, hint=cv.parentElement.querySelector('.spinhint,.teehint');
+  const imgs=src.map(s=>{const im=new Image(); im.onload=()=>{prev=-1}; im.src=s; return im;});
+  let prev=-1, ang=0, angT=0, vel=0, drag=null, inertia=false;
+  const mod=(v,n)=>((v%n)+n)%n;
+  const lim=v=>o.loop?v:clamp(v,0,N-1);
+  function size(){const d=Math.min(devicePixelRatio||1,2);cv.width=Math.round(cv.clientWidth*d);cv.height=Math.round(cv.clientHeight*d);prev=-1;}
+  function draw(f){
+    const im=imgs[f]; if(!im||!im.naturalWidth) return;
+    cx.clearRect(0,0,cv.width,cv.height);
+    const k=Math.min(cv.width/im.naturalWidth,cv.height/im.naturalHeight),w=im.naturalWidth*k,h=im.naturalHeight*k;
+    cx.drawImage(im,(cv.width-w)/2,(cv.height-h)/2,w,h);
+  }
+  function used(){ if(hint){hint.dataset.used='1'; hint.classList.remove('on');} }
+  function tick(){
+    if(inertia&&!drag){ const n=lim(angT+vel); if(n===angT) inertia=false; angT=n; vel*=.94; if(Math.abs(vel)<.02) inertia=false; }
+    ang+=(angT-ang)*.25; if(Math.abs(angT-ang)<.02) ang=angT;
+    const f=o.loop?Math.round(mod(ang,N))%N:clamp(Math.round(ang),0,N-1);
+    if(f!==prev){prev=f; draw(f);}
+  }
+  cv.tabIndex=0;
+  cv.addEventListener('keydown',e=>{
+    if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return;
+    e.preventDefault(); angT=lim(angT+(e.key==='ArrowRight'?1:-1)*o.step*N); inertia=false; used();
+  });
+  const PX=()=>cv.clientWidth*o.span/N;   // px на кадр
+  cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,a:angT,lt:performance.now()};vel=0;inertia=false;cv.setPointerCapture(e.pointerId);cv.classList.add('drag');});
+  cv.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    const now=performance.now(), dx=e.clientX-drag.x, na=lim(drag.a-dx/PX());
+    vel=(na-angT)/Math.max(1,(now-drag.lt)/16.7); drag.lt=now; angT=na; if(Math.abs(dx)>6) used();
+  });
+  const end=()=>{ if(!drag) return; drag=null; cv.classList.remove('drag'); vel=clamp(vel,-3,3); inertia=Math.abs(vel)>.05; };
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end);
+  addEventListener('resize',size); size();
+  return {tick};
 }
-/* угол храним «непрерывным» (в кадрах), чтобы свайп крутил по кругу без скачков */
-const N=TEE.length;
-let ang=0, angT=0, vel=0, drag=null, inertia=false;
-const mod=(v,n)=>((v%n)+n)%n;
-function teeTick(){
-  if(inertia && !drag){ angT+=vel; vel*=.94; if(Math.abs(vel)<.02) inertia=false; syncRange(); }
-  ang+=(angT-ang)*.25; if(Math.abs(angT-ang)<.02) ang=angT;
-  const f=Math.round(mod(ang,N))%N; if(f!==tprev){tprev=f; tdraw(f);}
-}
-function syncRange(){}
-function used(){ const h=$('teeHint'); if(h){h.dataset.used='1'; h.classList.remove('on');} }
-
-/* клавиатура: стрелки влево/вправо */
-tcv.tabIndex=0;
-tcv.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault(); angT+=(e.key==='ArrowRight'?1:-1)*N/16; inertia=false; used();}
-});
-
-/* свайп / перетаскивание по футболке */
-const PX=()=>tcv.clientWidth/N*1.25;   // сколько px на кадр (≈ 0.8 оборота на ширину)
-tcv.addEventListener('pointerdown',e=>{
-  drag={x:e.clientX,t:performance.now(),a:angT}; vel=0; inertia=false;
-  tcv.setPointerCapture(e.pointerId); tcv.classList.add('drag');
-});
-tcv.addEventListener('pointermove',e=>{
-  if(!drag) return;
-  const now=performance.now(), dx=e.clientX-drag.x;
-  const na=drag.a-dx/PX();
-  vel=(na-angT)/Math.max(1,(now-(drag.lt||drag.t))/16.7);
-  drag.lt=now; angT=na; syncRange(); if(Math.abs(dx)>6) used();
-});
-const end=()=>{ if(!drag) return; drag=null; tcv.classList.remove('drag'); inertia=Math.abs(vel)>.05; vel=Math.max(-3,Math.min(3,vel)); };
-tcv.addEventListener('pointerup',end); tcv.addEventListener('pointercancel',end);
-addEventListener('resize',tsize); tsize();
+const seqNames=(n,f)=>Array.from({length:n},(_,i)=>f(i));
+const spinners=[
+  /* медаль: medal/One_00000.webp … One_00064.webp, туда-сюда */
+  Spinner($('medalCv'), seqNames(CFG.medalFrames,i=>`medal/One_${String(i).padStart(5,'0')}.webp`), {loop:false, span:.9, step:1/8}),
+  /* футболка: полный оборот по кругу */
+  Spinner($('teeCv'), seqNames(CFG.teeFrames,i=>`tee/t${String(i+1).padStart(3,'0')}.webp`), {loop:true, span:1.25, step:1/16}),
+];
 
 resize(); requestAnimationFrame(loop);
-
-/* ── выбор стороны: нажатие на нужную сторону ── */
-document.querySelectorAll('.pair button').forEach(b=>b.addEventListener('click',()=>{
-  if(b.classList.contains('front')) return;
-  document.querySelectorAll('.pair button').forEach(x=>{
-    const on=x===b;
-    x.classList.toggle('front',on); x.classList.toggle('back',!on);
-    x.setAttribute('aria-pressed',on);
-    x.setAttribute('aria-label',on?(x.dataset.side==='logo'?'Logo side':'Tree side'):(x.dataset.side==='logo'?'Show the logo side':'Show the tree side'));
-  });
-  $('tip').dataset.used='1'; $('tip').classList.remove('on');
-}));
 
 /* ── CD: появление по мере прокрутки ── */
 const io=new IntersectionObserver(es=>es.forEach(e=>{
