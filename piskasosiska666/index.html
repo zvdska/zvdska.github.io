@@ -57,8 +57,13 @@ img{display:block;max-width:100%}
 
 
 .fine{margin-top:clamp(18px,3vh,32px);font:900 11px/1.6 var(--display);color:rgba(255,255,255,.45);max-width:44em;letter-spacing:.02em}
-.wrap.flip{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
-.wrap.flip .stagebox{order:-1}
+.prod .wrap{grid-template-areas:"copy item" "cta item";grid-template-rows:auto auto;row-gap:0}
+.prod .wrap>.copy{grid-area:copy;align-self:end}
+.prod .wrap>.stagebox{grid-area:item}
+.prod .wrap>.cta{grid-area:cta;align-self:start}
+.wrap.flip{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"item copy" "item cta"}
+.cta .shopnow{margin-top:clamp(22px,4vh,40px)}
+.cta .fine{margin-top:12px}
 
 /* футболка + ползунок */
 .tee{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,3vh,28px)}
@@ -77,7 +82,7 @@ img{display:block;max-width:100%}
 .rot input:focus-visible{outline:2px solid #fff;outline-offset:4px}
 
 #tee-title{font-size:clamp(34px,4.2vw,64px)}
-@media (max-width:860px){#tee-title{font-size:26px}}
+@media (max-width:860px){#tee-title{font-size:24px}}
 /* ── 4. CD: раскрытый бокс едет справа налево, трек-лист меняется ── */
 #cd{position:relative;height:320vh}
 #cd .pin{position:sticky;top:0;height:100svh;overflow:hidden}
@@ -101,10 +106,20 @@ img{display:block;max-width:100%}
   display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;pointer-events:none}
 .cdcap h2{font:900 13px/1 var(--display);letter-spacing:.06em;color:var(--dim)}
 .cdcap .fine{margin:0;text-align:right;max-width:40em}
+.tlnav{display:none}
 @media (max-width:860px){
-  .case{top:auto;bottom:18svh;height:28svh}
-  .tl{top:7svh;translate:0 0;font-size:clamp(14px,4.3vw,19px)}
-  .tl.a,.tl.b{left:0;width:100%}
+  /* телефон: блок не закреплён, трек-лист листается стрелками, бокс едет вслед */
+  #cd{height:auto}
+  #cd .pin{position:relative;height:100svh;min-height:600px}
+  .case{top:auto;bottom:19svh;height:27svh;transition:transform .9s cubic-bezier(.2,.75,.15,1)}
+  .tl{top:8svh;translate:0 0;font-size:clamp(14px,4.2vw,19px)}
+  .tl.a,.tl.b{left:52px;width:calc(100% - 104px)}
+  .tlnav{display:grid;place-items:center;position:absolute;top:calc(8svh + 118px);width:44px;height:44px;
+    border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font:400 20px/1 var(--text);cursor:pointer;
+    transition:opacity .3s,border-color .2s}
+  .tlnav.prev{left:10px}.tlnav.next{right:10px}
+  .tlnav:disabled{opacity:.2;cursor:default}
+  .tlnav:focus-visible{outline:2px solid #fff;outline-offset:2px}
   .cdcap{flex-direction:column;align-items:flex-start;gap:8px}
   .cdcap .fine{text-align:left}
 }
@@ -194,14 +209,18 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;gap:18px}
-  .spin.medalbox{order:-1}
-  #medalCv{width:min(100%,42svh)}
-  .wrap.flip{grid-template-columns:1fr}
-  #teeCv{width:min(100%,40svh)}
+  /* мобильные: текст → предмет → Shop now → сноска */
+  .prod .wrap,.wrap.flip{grid-template-columns:1fr;grid-template-areas:"copy" "item" "cta";row-gap:10px;text-align:center}
+  .prod .desc{margin-left:auto;margin-right:auto}
+  .prod .pin{align-items:center;padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  #medalCv{width:min(100%,36svh)}
+  #teeCv{width:min(100%,35svh)}
+  .cta .shopnow{margin-top:4px;padding:14px 30px;font-size:17px}
+  .cta .fine{margin:8px auto 0}
   .tee{gap:8px}
   .fine{font-size:10px;margin-top:14px}
-  .copy h2{font-size:34px}
-  .desc{margin-top:16px;font-size:13.5px;line-height:1.5}
+  .copy h2{font-size:28px}
+  .desc{margin-top:12px;font-size:12.5px;line-height:1.5}
   .credit{margin-top:22px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -224,11 +243,14 @@ footer .logos img{height:22px;width:auto;opacity:.75}
       <div class="copy">
         <h2 id="medal-title" class="reveal" data-r="title">"The Tree"*</h2>
         <p class="desc">A standout accessory built around a complex, sculptural bas-relief. It features a highly detailed, silver-finished barren tree with an intricate root system over a pitch-black core. A heavy, 3D-crafted piece with a distinct industrial vibe to elevate any fit.</p>
-        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle.</p>
       </div>
       <div class="spin medalbox reveal stagebox" data-r="item">
         <canvas id="medalCv" role="img" aria-label="Neverland medal. Swipe or use arrow keys to turn it from the logo side to the tree side"></canvas>
         <span class="spinhint reveal" data-r="open">Swipe to turn the medal</span>
+      </div>
+      <div class="cta reveal" data-r="credit">
+        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Shop now</button>
+        <p class="fine">*Available as a complete collector's bundle.</p>
       </div>
     </div>
   </div>
@@ -244,7 +266,10 @@ footer .logos img{height:22px;width:auto;opacity:.75}
       <div class="copy">
         <h2 id="tee-title" class="reveal" data-r="title">Never Land Oversized Tee*</h2>
         <p class="desc">A premium black tee with a relaxed, oversized streetwear silhouette. Keeps it clean on the front with a compact chest logo, while the back carries a massive, statement print of the tree design. Bold lines, maximum comfort, and pure monochrome aesthetic.</p>
-        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle.</p>
+      </div>
+      <div class="cta reveal" data-r="credit">
+        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Shop now</button>
+        <p class="fine">*Available as a complete collector's bundle.</p>
       </div>
     </div>
   </div>
@@ -274,6 +299,8 @@ footer .logos img{height:22px;width:auto;opacity:.75}
         <li data-n="16"><button type="button" aria-label="Play 20-second preview: Signali">Signali</button><span class="st" aria-live="polite"></span></li>
         <li data-n="17"><button type="button" aria-label="Play 20-second preview: Da budet tak">Da budet tak</button><span class="st" aria-live="polite"></span></li>
     </ol>
+    <button type="button" class="tlnav prev" id="tlPrev" aria-label="Tracks 1–9" aria-controls="tlA">←</button>
+    <button type="button" class="tlnav next" id="tlNext" aria-label="Tracks 10–17" aria-controls="tlB">→</button>
     <div class="cdcap">
       <h2 id="cd-title">"Never Land" CD Release*</h2>
       <p class="fine">*Available as a complete collector's bundle.</p>
@@ -386,7 +413,9 @@ const CFG = {
   previewLen:20,                              // длина превью трека, сек
   audio:n=>`audio/${n}.mp3`,                  // путь к превью: audio/01.mp3 …
   /* тайминги блоков товаров (доля скролла блока 0…1) */
-  reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 }
+  reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 },
+  /* на телефоне: сначала текст, потом предмет, потом кнопка */
+  revealMobile:{ title:.02, text:[.04,.42], item:.46, open:.56, credit:.6 }
 };
 
 const SRC=Array.from({length:CFG.frames},(_,i)=>`frames/Never_land_v002_${String(i).padStart(5,'0')}.png`);  // 00000 … 00124
@@ -452,7 +481,7 @@ function loop(){
   if(cur!==prev) draw(cur);
   $('hint').style.opacity=Math.max(0,1-p*14);
 
-  const R=CFG.reveal;
+  const R=innerWidth<=860?CFG.revealMobile:CFG.reveal;
   prods.forEach(({el,words,parts})=>{
     const m=progOf(el);
     parts.forEach(x=>x.classList.toggle('on',m>=R[x.dataset.r] && !(x.dataset.used)));
@@ -521,16 +550,34 @@ resize(); requestAnimationFrame(loop);
                  второй появляется, когда бокс почти доехал               */
 const cdSec=$('cd'), caseEl=$('case'), tlA=$('tlA'), tlB=$('tlB');
 let cdX=null;
+let cdPage=0;                                  // телефон: 0 — треки 1–9, 1 — треки 10–17
+function setCdPage(n){
+  cdPage=n; $('tlPrev').disabled=n===0; $('tlNext').disabled=n===1;
+}
+$('tlPrev').onclick=()=>setCdPage(0); $('tlNext').onclick=()=>setCdPage(1);
+setCdPage(0);
+// свайп по блоку на телефоне тоже листает
+(()=>{ let sx=null,sy=0; const pin=cdSec.querySelector('.pin');
+  pin.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  pin.addEventListener('touchend',e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
+    if(innerWidth<=860&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5) setCdPage(dx<0?1:0); },{passive:true});
+})();
 function cdTick(){
-  const p=progOf(cdSec), W=innerWidth, cw=caseEl.offsetWidth, narrow=W<=860;
+  const W=innerWidth, cw=caseEl.offsetWidth, narrow=W<=860;
   const x0=narrow?W*.06:W*.44;                 // старт: видна левая часть (буклет)
   const x1=narrow?W*.94-cw:W*.583-cw;          // финиш: видна правая часть (диск)
+  if(narrow){
+    caseEl.style.transform=`translate(${(cdPage?x1:x0).toFixed(1)}px,0)`;
+    tlA.classList.toggle('off',cdPage===1); tlB.classList.toggle('off',cdPage===0);
+    cdX=null; return;
+  }
+  const p=progOf(cdSec);
   const t=clamp((p-CFG.cd.move[0])/(CFG.cd.move[1]-CFG.cd.move[0]),0,1), e=t*t*(3-2*t);
   const x=x0+(x1-x0)*e;
   cdX=cdX===null?x:cdX+(x-cdX)*.18;
-  caseEl.style.transform=`translate(${cdX.toFixed(1)}px,${narrow?0:'-50%'})`;
+  caseEl.style.transform=`translate(${cdX.toFixed(1)}px,-50%)`;
   // пока бокс едет, текст убран, чтобы не наезжал на него
-  const ee=cdX===null?e:clamp((cdX-x0)/(x1-x0),0,1);
+  const ee=clamp((cdX-x0)/(x1-x0),0,1);
   tlA.classList.toggle('off',ee>CFG.cd.hide); tlB.classList.toggle('off',ee<1-CFG.cd.hide);
 }
 
@@ -587,6 +634,7 @@ function closeCo(){
   lastFocus&&lastFocus.focus();
 }
 $('shopNow').onclick=openCo;
+document.querySelectorAll('[data-shop]').forEach(b=>b.addEventListener('click',openCo));
 co.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeCo));
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&co.classList.contains('open')) closeCo(); });
 // фокус не уходит за пределы панели
