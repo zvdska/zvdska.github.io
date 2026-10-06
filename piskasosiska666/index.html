@@ -17,6 +17,7 @@
   --text:'Google Sans','Product Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+html{scroll-snap-type:y proximity}
 body{background:var(--bg);color:var(--fg);font-family:var(--display);
   -webkit-font-smoothing:antialiased;overflow-x:hidden}
 img{display:block;max-width:100%}
@@ -36,14 +37,14 @@ img{display:block;max-width:100%}
 @keyframes bob{0%,100%{translate:0 0;opacity:.3}50%{translate:0 6px;opacity:1}}
 
 /* ── 2–3. PRODUCTS ───────────────────────────────────────── */
-.prod{position:relative;height:300vh}
-.prod .pin{position:sticky;top:0;height:100svh;overflow:hidden;display:grid;align-items:center;padding:0 var(--pad)}
+.prod{position:relative;scroll-snap-align:start}
+.prod .pin{position:relative;height:100svh;min-height:560px;overflow:hidden;display:grid;align-items:center;padding:0 var(--pad)}
 .wrap{max-width:1440px;width:100%;margin:0 auto;display:grid;align-items:center;
   grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(24px,5vw,80px)}
 
 .copy h2{font:900 clamp(40px,5.6vw,84px)/.9 var(--display)}
 .desc{margin-top:clamp(24px,5vh,56px);font:900 clamp(15px,1.45vw,21px)/1.55 var(--display);max-width:34em;letter-spacing:.01em}
-.prod .desc .w{opacity:.12;transition:opacity .25s linear}
+.prod .desc .w{opacity:.12;transition:opacity .45s ease}
 .desc .w.on{opacity:1}
 .credit{margin-top:clamp(28px,6vh,64px);font:900 13px/1 var(--display);color:var(--dim)}
 .reveal{opacity:0;translate:0 18px;transition:opacity .7s ease,translate .7s cubic-bezier(.2,.75,.15,1)}
@@ -84,9 +85,9 @@ img{display:block;max-width:100%}
 #tee-title{font-size:clamp(34px,4.2vw,64px)}
 @media (max-width:860px){#tee-title{font-size:24px}}
 /* ── 4. CD: раскрытый бокс едет справа налево, трек-лист меняется ── */
-#cd{position:relative;height:320vh}
-#cd .pin{position:sticky;top:0;height:100svh;overflow:hidden}
-.case{position:absolute;top:50%;left:0;height:59vh;aspect-ratio:2272/1018;will-change:transform;
+#cd{position:relative;scroll-snap-align:start}
+#cd .pin{position:relative;height:100svh;min-height:560px;overflow:hidden}
+.case{position:absolute;top:50%;left:0;height:59vh;aspect-ratio:2272/1018;will-change:transform;transition:transform 1s cubic-bezier(.2,.75,.15,1);
   filter:drop-shadow(0 40px 70px rgba(0,0,0,.6))}
 .case img{width:100%;height:100%;display:block}
 .tl{position:absolute;top:50%;translate:0 -50%;list-style:none;text-align:center;
@@ -106,41 +107,48 @@ img{display:block;max-width:100%}
   display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;pointer-events:none}
 .cdcap h2{font:900 13px/1 var(--display);letter-spacing:.06em;color:var(--dim)}
 .cdcap .fine{margin:0;text-align:right;max-width:40em}
-.tlnav{display:none}
+.tlnav{display:grid;place-items:center;position:absolute;z-index:2;top:50%;translate:0 -50%;width:52px;height:52px;border-radius:50%;
+  border:2px solid #fff;background:#000;color:#fff;font:400 22px/1 var(--text);cursor:pointer;transition:opacity .3s,background .25s,color .25s}
+@media (hover:hover){.tlnav:not(:disabled):hover{background:#fff;color:#000}}
+.tlnav.prev{left:calc(var(--pad) * .5)}.tlnav.next{right:calc(var(--pad) * .5)}
+.tlnav:disabled{opacity:0;pointer-events:none}
+.tlnav:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media (max-width:860px){
   /* телефон: блок не закреплён, трек-лист листается стрелками, бокс едет вслед */
-  #cd{height:auto}
-  #cd .pin{position:relative;height:100svh;min-height:600px}
+  #cd .pin{min-height:600px}
   .case{top:auto;bottom:19svh;height:27svh;transition:transform .9s cubic-bezier(.2,.75,.15,1)}
   .tl{top:8svh;translate:0 0;font-size:clamp(14px,4.2vw,19px)}
   .tl.a,.tl.b{left:52px;width:calc(100% - 104px)}
-  .tlnav{display:grid;place-items:center;position:absolute;top:calc(8svh + 118px);width:44px;height:44px;
-    border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;font:400 20px/1 var(--text);cursor:pointer;
-    transition:opacity .3s,border-color .2s}
-  .tlnav.prev{left:10px}.tlnav.next{right:10px}
-  .tlnav:disabled{opacity:.2;cursor:default}
-  .tlnav:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .tlnav{top:calc(8svh + 118px);translate:0 0;width:44px;height:44px;font-size:20px}
+  .tlnav.prev{left:6px}.tlnav.next{right:6px}
+  .tlnav:disabled{opacity:.2;pointer-events:none}
   .cdcap{flex-direction:column;align-items:flex-start;gap:8px}
   .cdcap .fine{text-align:left}
 }
 
-/* ── 5. BOX ─────────────────────────────────────────────── */
-#box{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;
-  padding:clamp(80px,14vh,160px) var(--pad)}
-.boxstage{position:relative;width:min(92vw,820px,74svh);aspect-ratio:744/434;margin:0 auto}
-.boxstage::before{content:'';position:absolute;inset:-30% -20%;z-index:-1;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(255,255,255,.13),rgba(255,255,255,.04) 55%,transparent 75%)}
-.boxstage img,.boxstage canvas{width:100%;height:100%;display:block;object-fit:contain}
-#box h2{margin-top:clamp(28px,5vh,56px);font:900 clamp(30px,4.2vw,64px)/.95 var(--display)}
-.boxinc{margin-top:16px;font:900 clamp(12px,1vw,15px)/1.5 var(--display);color:var(--dim);letter-spacing:.04em}
-.boxprice{margin-top:22px;font:900 clamp(24px,2.4vw,36px)/1 var(--display)}
-.shopnow{display:inline-block;margin-top:clamp(22px,4vh,40px);background:#fff;color:#000;border:0;cursor:pointer;
-  padding:18px 34px;font:900 clamp(18px,1.7vw,26px)/1 var(--display);letter-spacing:.02em;transition:opacity .2s,transform .2s}
-.shopnow:hover{opacity:.88}.shopnow:active{transform:scale(.98)}
+/* кнопка BUY: чёрная капсула с тонкой белой обводкой */
+.shopnow{display:inline-flex;align-items:center;justify-content:center;margin-top:clamp(22px,4vh,40px);
+  min-width:clamp(150px,13vw,210px);padding:.62em 1.5em .55em;border-radius:999px;
+  background:#000;color:#fff;border:2px solid #fff;cursor:pointer;text-transform:uppercase;
+  font:900 clamp(22px,2.1vw,34px)/1 var(--display);letter-spacing:.06em;
+  transition:background .25s,color .25s,transform .2s}
+@media (hover:hover){.shopnow:hover{background:#fff;color:#000}}
+.shopnow:active{background:#fff;color:#000}
 .shopnow:focus-visible{outline:2px solid #fff;outline-offset:4px}
-#box .fine{margin:clamp(18px,3vh,28px) auto 0}
-.bx-r{opacity:0;translate:0 20px;transition:opacity .8s ease,translate .8s cubic-bezier(.2,.75,.15,1)}
-.bx-r.on{opacity:1;translate:0 0}
+.shopnow:disabled{opacity:.5;cursor:default}.shopnow:disabled:hover{background:#000;color:#fff}
+.place{font-size:18px;letter-spacing:.04em}
+.boxinc{margin-top:16px;font:900 clamp(12px,1vw,15px)/1.5 var(--display);color:var(--dim);letter-spacing:.04em}
+
+/* ── 5. BOX: секвенция — крупный план крышки, камера отъезжает, крышка закрывается, появляется BUY ── */
+#box{position:relative;height:380vh}
+#box .pin{position:sticky;top:0;height:100svh;overflow:hidden;background:#000}
+#boxCv{position:absolute;inset:0;width:100%;height:100%}
+.boxbuy{position:absolute;left:50%;top:30%;margin:0;translate:-50% -50%;z-index:2;opacity:0;pointer-events:none;
+  transition:background .25s,color .25s,transform .2s}
+.boxbuy.live{pointer-events:auto}
+.boxcap{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom,0px));text-align:center;opacity:0;padding:0 var(--pad)}
+.boxcap h2{font:900 clamp(18px,1.6vw,24px)/1 var(--display);letter-spacing:.04em}
+.boxcap .boxinc{margin-top:10px}
 
 /* ── CHECKOUT ───────────────────────────────────────────── */
 #co{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;visibility:hidden}
@@ -198,6 +206,18 @@ img{display:block;max-width:100%}
 .done p{margin-top:18px;font:400 16px/1.55 var(--text);color:rgba(255,255,255,.8)}
 .done .oid{font:900 14px/1 var(--display);color:#fff}
 body.lock{overflow:hidden}
+.ac{position:relative}
+.ac label span{font:900 12px/1 var(--display);letter-spacing:.04em}
+.ac input:disabled{opacity:.4}
+.sug{position:absolute;left:0;right:0;top:100%;z-index:3;list-style:none;margin-top:-4px;max-height:260px;overflow-y:auto;
+  background:#141414;border:1px solid rgba(255,255,255,.18);box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.sug li{padding:11px 14px;font:400 15px/1.35 var(--text);cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)}
+.sug li small{display:block;margin-top:2px;color:var(--dim);font-size:12px}
+.sug li[aria-selected="true"],.sug li:hover{background:#fff;color:#000}
+.sug li[aria-selected="true"] small,.sug li:hover small{color:rgba(0,0,0,.55)}
+.sug li.muted{cursor:default;color:var(--dim)}.sug li.muted:hover{background:none;color:var(--dim)}
+.shopnow[hidden]{display:none}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 @media (max-width:520px){.row2{grid-template-columns:1fr}}
 
 footer{border-top:1px solid rgba(255,255,255,.13);padding:24px var(--pad) calc(24px + env(safe-area-inset-bottom,0px));
@@ -209,13 +229,13 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;gap:18px}
-  /* мобильные: текст → предмет → Shop now → сноска */
+  /* мобильные: текст → предмет → Buy → сноска */
   .prod .wrap,.wrap.flip{grid-template-columns:1fr;grid-template-areas:"copy" "item" "cta";row-gap:10px;text-align:center}
   .prod .desc{margin-left:auto;margin-right:auto}
   .prod .pin{align-items:center;padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   #medalCv{width:min(100%,36svh)}
   #teeCv{width:min(100%,35svh)}
-  .cta .shopnow{margin-top:4px;padding:14px 30px;font-size:17px}
+  .cta .shopnow{margin-top:4px;font-size:22px;min-width:150px}
   .cta .fine{margin:8px auto 0}
   .tee{gap:8px}
   .fine{font-size:10px;margin-top:14px}
@@ -249,7 +269,7 @@ footer .logos img{height:22px;width:auto;opacity:.75}
         <span class="spinhint reveal" data-r="open">Swipe to turn the medal</span>
       </div>
       <div class="cta reveal" data-r="credit">
-        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Shop now</button>
+        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Buy</button>
         <p class="fine">*Available as a complete collector's bundle.</p>
       </div>
     </div>
@@ -268,7 +288,7 @@ footer .logos img{height:22px;width:auto;opacity:.75}
         <p class="desc">A premium black tee with a relaxed, oversized streetwear silhouette. Keeps it clean on the front with a compact chest logo, while the back carries a massive, statement print of the tree design. Bold lines, maximum comfort, and pure monochrome aesthetic.</p>
       </div>
       <div class="cta reveal" data-r="credit">
-        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Shop now</button>
+        <button type="button" class="shopnow" data-shop aria-haspopup="dialog" aria-controls="co">Buy</button>
         <p class="fine">*Available as a complete collector's bundle.</p>
       </div>
     </div>
@@ -310,14 +330,13 @@ footer .logos img{height:22px;width:auto;opacity:.75}
 </section>
 
 <section id="box" aria-labelledby="box-title">
-  <div>
-    <div class="boxstage bx-r" id="boxStage">
-      <img src="img/box.webp" alt="Never Land collector's box: black box with the Never Land wordmark and the tree emblem" width="744" height="434">
+  <div class="pin">
+    <canvas id="boxCv" role="img" aria-label="The Never Land box closing"></canvas>
+    <button type="button" class="shopnow boxbuy" id="shopNow" aria-haspopup="dialog" aria-controls="co">Buy</button>
+    <div class="boxcap" id="boxCap">
+      <h2 id="box-title">Never Land Box</h2>
+      <p class="boxinc">CD · "The Tree" Medal · Oversized Tee · <span id="boxPrice"></span></p>
     </div>
-    <h2 id="box-title" class="bx-r">Never Land Box</h2>
-    <p class="boxinc bx-r">CD · "The Tree" Medal · Oversized Tee</p>
-    <p class="boxprice bx-r" id="boxPrice"></p>
-    <button type="button" class="shopnow bx-r" id="shopNow" aria-haspopup="dialog" aria-controls="co">Shop now</button>
   </div>
 </section>
 
@@ -366,23 +385,36 @@ footer .logos img{height:22px;width:auto;opacity:.75}
       </fieldset>
 
       <fieldset>
-        <legend>Delivery</legend>
-        <div class="row2">
-          <label class="f"><span>Country</span><input name="country" autocomplete="country-name" required><span class="err"></span></label>
-          <label class="f"><span>City</span><input name="city" autocomplete="address-level2" required><span class="err"></span></label>
+        <legend>Delivery · Nova Poshta</legend>
+        <div class="f ac" id="acCity">
+          <label for="npCity"><span>City</span></label>
+          <input id="npCity" name="cityName" required autocomplete="off" placeholder="Start typing — Київ, Запоріжжя…"
+                 role="combobox" aria-expanded="false" aria-controls="npCityList" aria-autocomplete="list">
+          <ul class="sug" id="npCityList" role="listbox" hidden></ul>
+          <span class="err"></span>
         </div>
-        <label class="f"><span>Address or Nova Poshta branch</span><input name="address" autocomplete="street-address" required><span class="err"></span></label>
+        <div class="f ac" id="acBranch">
+          <label for="npBranch"><span>Branch or parcel locker</span></label>
+          <input id="npBranch" name="branchName" required autocomplete="off" placeholder="Choose a city first" disabled
+                 role="combobox" aria-expanded="false" aria-controls="npBranchList" aria-autocomplete="list">
+          <ul class="sug" id="npBranchList" role="listbox" hidden></ul>
+          <span class="err"></span>
+        </div>
+        <input type="hidden" name="cityRef" id="npCityRef">
+        <input type="hidden" name="branchRef" id="npBranchRef">
         <label class="f"><span>Comment <i>optional</i></span><textarea name="comment" rows="2"></textarea></label>
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       </fieldset>
 
       <div class="total"><span>Total</span><b id="coTotal"></b></div>
-      <button type="submit" class="shopnow place" id="place">Place order</button>
-      <p class="conote">No payment now — we'll message you to confirm the order and arrange payment and shipping.</p>
+      <button type="submit" class="shopnow place" id="place">Pay with monobank</button>
+      <p class="conote" id="coNote">You'll be taken to a secure monobank page to pay by card, Apple Pay or Google Pay.</p>
     </form>
 
     <div class="done" aria-live="polite">
-      <h3>Order received</h3>
-      <p>Thank you! Your order <span class="oid" id="oid"></span> is in. We'll contact you shortly to confirm details, payment and delivery.</p>
+      <h3 id="doneTitle">Order received</h3>
+      <p id="doneText">Thank you! Your order <span class="oid" id="oid"></span> is in. We'll contact you shortly to confirm details and delivery.</p>
+      <button type="button" class="shopnow place" id="payAgain" hidden style="margin-top:28px">Try paying again</button>
       <button type="button" class="shopnow place" data-close style="margin-top:28px">Back to site</button>
     </div>
   </div>
@@ -405,17 +437,21 @@ const CFG = {
   frames:125, videoEnd:.9, ease:.16,
   teeFrames:160,
   medalFrames:65,                             // medal/One_00000.webp … One_00064.webp
-  cd:{ move:[.12,.82], hide:.08 },           // CD-блок: отрезок проезда бокса; доля пути, после которой прячется/появляется список
   /* заказ коробки:
      endpoint — куда POST-ить заказ JSON-ом (Formspree, Google Apps Script, свой бот).
                 Пусто → заказ откроется сообщением в Telegram (telegram), иначе письмом (email). */
-  order:{ price:300, currency:'$', maxQty:5, endpoint:'', telegram:'YOUR_USERNAME', email:'' },
+  order:{ price:300, currency:'$', maxQty:5,
+    /* адрес сервера заказов (Cloudflare Worker из папки server/), без слэша в конце */
+    api:'https://neverland-shop.YOUR-SUBDOMAIN.workers.dev' },
+  box:{ frames:120, end:.82, zoom:2.1, zoomEnd:.42, focus:[.5,.27], buy:[.46,.72], buyY:.33 },
   previewLen:20,                              // длина превью трека, сек
   audio:n=>`audio/${n}.mp3`,                  // путь к превью: audio/01.mp3 …
   /* тайминги блоков товаров (доля скролла блока 0…1) */
-  reveal:{ title:.02, item:.06, text:[.08,.62], credit:.66, open:.72 },
+  /* появление блоков медали и футболки: всё проигрывается само за один скролл.
+     Время в мс от момента, когда блок заехал на экран; text — [начало, длительность] */
+  reveal:{ title:0, item:250, text:[450,1400], credit:1900, open:2200 },
   /* на телефоне: сначала текст, потом предмет, потом кнопка */
-  revealMobile:{ title:.02, text:[.04,.42], item:.46, open:.56, credit:.6 }
+  revealMobile:{ title:0, text:[200,1300], item:1300, open:1800, credit:1700 }
 };
 
 const SRC=Array.from({length:CFG.frames},(_,i)=>`frames/Never_land_v002_${String(i).padStart(5,'0')}.png`);  // 00000 … 00124
@@ -470,6 +506,16 @@ const prods=[...document.querySelectorAll('.prod')].map(el=>{
   return {el, words:[...d.querySelectorAll('.w')], parts:[...el.querySelectorAll('[data-r]')]};
 });
 
+/* ── появление блока за один скролл ── */
+const pio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting) return; pio.unobserve(e.target);
+  const p=prods.find(x=>x.el===e.target), R=innerWidth<=860?CFG.revealMobile:CFG.reveal;
+  p.parts.forEach(x=>setTimeout(()=>{ if(!x.dataset.used) x.classList.add('on'); },R[x.dataset.r]));
+  const step=R.text[1]/Math.max(1,p.words.length);
+  p.words.forEach((w,i)=>setTimeout(()=>w.classList.add('on'),R.text[0]+i*step));
+}),{threshold:.45});
+prods.forEach(p=>pio.observe(p.el));
+
 /* ── scroll loop ── */
 let cur=0;
 const progOf=el=>{const r=el.getBoundingClientRect();return clamp(-r.top/(el.offsetHeight-innerHeight),0,1);};
@@ -481,15 +527,9 @@ function loop(){
   if(cur!==prev) draw(cur);
   $('hint').style.opacity=Math.max(0,1-p*14);
 
-  const R=innerWidth<=860?CFG.revealMobile:CFG.reveal;
-  prods.forEach(({el,words,parts})=>{
-    const m=progOf(el);
-    parts.forEach(x=>x.classList.toggle('on',m>=R[x.dataset.r] && !(x.dataset.used)));
-    const t=clamp((m-R.text[0])/(R.text[1]-R.text[0]),0,1), n=Math.round(t*words.length);
-    words.forEach((w,i)=>w.classList.toggle('on',i<n));
-  });
 
   spinners.forEach(sp=>sp.tick());
+  boxTick();
   cdTick();
   requestAnimationFrame(loop);
 }
@@ -544,13 +584,9 @@ const spinners=[
 
 resize(); requestAnimationFrame(loop);
 
-/* ── CD: бокс едет справа налево, первая половина треков сменяется второй ──
-   CFG.cd.move — отрезок скролла блока, за который бокс проезжает (0…1)
-   CFG.cd.hide — первый список уходит, как только бокс тронулся,
-                 второй появляется, когда бокс почти доехал               */
+/* ── CD: стрелки (или свайп) листают трек-лист, бокс едет следом ── */
 const cdSec=$('cd'), caseEl=$('case'), tlA=$('tlA'), tlB=$('tlB');
-let cdX=null;
-let cdPage=0;                                  // телефон: 0 — треки 1–9, 1 — треки 10–17
+let cdPage=0;                                  // 0 — треки 1–9, 1 — треки 10–17
 function setCdPage(n){
   cdPage=n; $('tlPrev').disabled=n===0; $('tlNext').disabled=n===1;
 }
@@ -560,25 +596,14 @@ setCdPage(0);
 (()=>{ let sx=null,sy=0; const pin=cdSec.querySelector('.pin');
   pin.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
   pin.addEventListener('touchend',e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
-    if(innerWidth<=860&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5) setCdPage(dx<0?1:0); },{passive:true});
+    if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5) setCdPage(dx<0?1:0); },{passive:true});
 })();
 function cdTick(){
   const W=innerWidth, cw=caseEl.offsetWidth, narrow=W<=860;
-  const x0=narrow?W*.06:W*.44;                 // старт: видна левая часть (буклет)
-  const x1=narrow?W*.94-cw:W*.583-cw;          // финиш: видна правая часть (диск)
-  if(narrow){
-    caseEl.style.transform=`translate(${(cdPage?x1:x0).toFixed(1)}px,0)`;
-    tlA.classList.toggle('off',cdPage===1); tlB.classList.toggle('off',cdPage===0);
-    cdX=null; return;
-  }
-  const p=progOf(cdSec);
-  const t=clamp((p-CFG.cd.move[0])/(CFG.cd.move[1]-CFG.cd.move[0]),0,1), e=t*t*(3-2*t);
-  const x=x0+(x1-x0)*e;
-  cdX=cdX===null?x:cdX+(x-cdX)*.18;
-  caseEl.style.transform=`translate(${cdX.toFixed(1)}px,-50%)`;
-  // пока бокс едет, текст убран, чтобы не наезжал на него
-  const ee=clamp((cdX-x0)/(x1-x0),0,1);
-  tlA.classList.toggle('off',ee>CFG.cd.hide); tlB.classList.toggle('off',ee<1-CFG.cd.hide);
+  const x0=narrow?W*.06:W*.44;                 // треки 1–9: видна левая часть (буклет)
+  const x1=narrow?W*.94-cw:W*.583-cw;          // треки 10–17: видна правая часть (диск)
+  caseEl.style.transform=`translate(${(cdPage?x1:x0).toFixed(1)}px,${narrow?0:'-50%'})`;
+  tlA.classList.toggle('off',cdPage===1); tlB.classList.toggle('off',cdPage===0);
 }
 
 /* ── CD: 20-секундные превью ──
@@ -610,18 +635,59 @@ player.addEventListener('error',()=>{
   if(!curT) return; const li=curT; stopTrack(); li.dataset.na='1'; li.querySelector('.st').textContent='soon';
 });
 
-/* ── BOX: появление ── */
-const bio=new IntersectionObserver(es=>es.forEach((e,i)=>{
-  if(!e.isIntersecting) return; bio.unobserve(e.target);
-  setTimeout(()=>e.target.classList.add('on'),[...document.querySelectorAll('.bx-r')].indexOf(e.target)*90);
-}),{rootMargin:'0px 0px -10% 0px'});
-document.querySelectorAll('.bx-r').forEach(el=>bio.observe(el));
+/* ── BOX: секвенция по скроллу ──
+   CFG.box: frames — кадров в box/, end — на какой доле скролла видео доигрывает,
+   zoom — во сколько раз крупнее в начале (крышка), zoomEnd — когда камера полностью отъехала,
+   focus — точка кадра, на которую наведён крупный план (доли ширины/высоты),
+   buy — от какой до какой доли видео проявляется кнопка (пока закрывается крышка),
+   buyY — высота кнопки в кадре (доля высоты кадра)                                      */
+const BOX=Array.from({length:CFG.box.frames},(_,i)=>`box/b${String(i+1).padStart(3,'0')}.webp`);
+const bcv=$('boxCv'), bcx=bcv.getContext('2d',{alpha:false}), boxSec=$('box'), buyBtn=$('shopNow'), boxCap=$('boxCap');
+const bimgs=BOX.map(src=>{const im=new Image(); im.onload=()=>{bprev=-1}; im.src=src; return im;});
+let bcur=0, bprev=-1, bzoom=CFG.box.zoom, bsize=0;
+const sstep=t=>t*t*(3-2*t);
+function bResize(){const d=Math.min(devicePixelRatio||1,2); bcv.width=Math.round(bcv.clientWidth*d); bcv.height=Math.round(bcv.clientHeight*d); bprev=-1;}
+addEventListener('resize',bResize); bResize();
+function bDraw(f,z){
+  const im=bimgs[clamp(Math.round(f),0,BOX.length-1)]; if(!im||!im.naturalWidth) return;
+  const W=bcv.width,H=bcv.height,iw=im.naturalWidth,ih=im.naturalHeight;
+  // коробка в кадре ~ половина ширины: на узком экране не даём ей вылезти за края
+  const base=Math.min(Math.max(W/iw,H/ih), W*.92/(iw*.5));
+  const k=base*z, w=iw*k, h=ih*k;
+  const [fx,fy]=CFG.box.focus, t=(z-1)/(CFG.box.zoom-1||1);    // 1 → смотрим на крышку, 0 → кадр по центру
+  let x=W/2-w*(.5+(fx-.5)*t), y=H/2-h*(.5+(fy-.5)*t);
+  bcx.fillStyle='#000'; bcx.fillRect(0,0,W,H); bcx.drawImage(im,x,y,w,h);
+  // края кадра растворяются в чёрном
+  const fade=(x0,y0,x1,y1,rx,ry,rw,rh)=>{const g=bcx.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');bcx.fillStyle=g;bcx.fillRect(rx,ry,rw,rh);};
+  if(x>0){ const e=w*.12; fade(x,0,x+e,0,x,y,e,h); fade(x+w,0,x+w-e,0,x+w-e,y,e,h); }
+  if(y>0){ const e=h*.3; fade(0,y,0,y+e,x,y,w,e); fade(0,y+h,0,y+h-e,x,y+h-e,w,e); }
+  // кнопка BUY над коробкой — привязана к кадру
+  buyBtn.style.top=((y+h*CFG.box.buyY)/(bcv.height/bcv.clientHeight))+'px';
+}
+function boxTick(){
+  const p=progOf(boxSec), C=CFG.box;
+  const target=clamp(p/C.end,0,1)*(BOX.length-1);
+  bcur+=(target-bcur)*.18; if(Math.abs(target-bcur)<.01) bcur=target;
+  const zt=C.zoom-(C.zoom-1)*sstep(clamp(p/C.zoomEnd,0,1));
+  bzoom+=(zt-bzoom)*.18; if(Math.abs(zt-bzoom)<.001) bzoom=zt;
+  const key=Math.round(bcur)+'|'+bzoom.toFixed(3);
+  if(key!==bprev){ bprev=key; bDraw(bcur,bzoom); }
+  const b=sstep(clamp((bcur/(BOX.length-1)-C.buy[0])/(C.buy[1]-C.buy[0]),0,1));
+  buyBtn.style.opacity=b; buyBtn.style.transform=`scale(${.92+.08*b})`; buyBtn.classList.toggle('live',b>.6);
+  buyBtn.tabIndex=b>.6?0:-1; boxCap.style.opacity=b;
+}
 const money=v=>CFG.order.currency+v.toLocaleString('en-US');
 $('boxPrice').textContent=money(CFG.order.price);
 
 /* ── CHECKOUT ── */
 const co=$('co'), cof=$('cof'); let qty=1, lastFocus=null;
-const setQty=n=>{ qty=clamp(n,1,CFG.order.maxQty); $('qVal').textContent=qty; $('coTotal').textContent=money(CFG.order.price*qty); };
+let priceUAH=0;   // берётся с сервера; оплата идёт в гривнах
+const fmtUAH=n=>n.toLocaleString('uk-UA').replace(/\u00a0/g,' ')+' ₴';
+const setQty=n=>{ qty=clamp(n,1,CFG.order.maxQty); $('qVal').textContent=qty;
+  $('coTotal').textContent=priceUAH?fmtUAH(priceUAH*qty):money(CFG.order.price*qty); };
+const API=(CFG.order.api||'').replace(/\/+$/,'');
+const apiGet=path=>fetch(API+path).then(r=>{if(!r.ok) throw new Error(r.status); return r.json();});
+if(API) apiGet('/config').then(c=>{ priceUAH=c.priceUAH||0; setQty(qty); }).catch(()=>{});
 setQty(1);
 $('qMinus').onclick=()=>setQty(qty-1); $('qPlus').onclick=()=>setQty(qty+1);
 function openCo(){
@@ -630,7 +696,7 @@ function openCo(){
 }
 function closeCo(){
   co.classList.remove('open'); co.setAttribute('aria-hidden','true'); document.body.classList.remove('lock');
-  if(co.classList.contains('ok')){ co.classList.remove('ok'); cof.reset(); setQty(1); }
+  if(co.classList.contains('ok')){ co.classList.remove('ok'); cof.reset(); resetNP(); setQty(1); }
   lastFocus&&lastFocus.focus();
 }
 $('shopNow').onclick=openCo;
@@ -646,7 +712,7 @@ co.addEventListener('keydown',e=>{
   else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}
 });
 
-function validate(){
+var validate=function(){
   let ok=true, first=null;
   const size=cof.querySelector('input[name=size]:checked');
   $('sz').classList.toggle('bad',!size); $('e-size').textContent=size?'':'Pick a size';
@@ -655,39 +721,124 @@ function validate(){
     let msg='';
     const v=inp.value.trim();
     if(inp.required&&!v) msg='Required';
-    else if(inp.name==='phone'&&v&&v.replace(/\D/g,'').length<7) msg='Check the number';
+    else if(inp.name==='phone'&&v&&v.replace(/\D/g,'').length<10) msg='Check the number';
     else if(inp.name==='email'&&v&&!/^\S+@\S+\.\S+$/.test(v)) msg='Check the email';
     inp.parentElement.classList.toggle('bad',!!msg); inp.parentElement.querySelector('.err').textContent=msg;
     if(msg){ok=false; first=first||inp;}
   });
   first&&first.focus();
   return ok;
-}
+};
 cof.addEventListener('input',e=>{ const f=e.target.closest('.f'); if(f&&f.classList.contains('bad')){f.classList.remove('bad');f.querySelector('.err').textContent='';} if(e.target.name==='size'){$('sz').classList.remove('bad');$('e-size').textContent='';} });
+
+/* ── Нова пошта: автодополнение города и отделения ── */
+function Combo(box,{load,render,onPick,minLen=0}){
+  const inp=box.querySelector('input'), list=box.querySelector('.sug');
+  let items=[], act=-1, timer=0, seq=0;
+  const show=on=>{ list.hidden=!on; inp.setAttribute('aria-expanded',on); };
+  function paint(msg){
+    list.innerHTML='';
+    if(msg){ const li=document.createElement('li'); li.className='muted'; li.textContent=msg; list.append(li); show(true); return; }
+    items.forEach((it,i)=>{ const li=document.createElement('li'); li.id=box.id+'-o'+i; li.setAttribute('role','option');
+      li.setAttribute('aria-selected',i===act); li.innerHTML=render(it);
+      li.addEventListener('mousedown',e=>{e.preventDefault(); pick(i);}); list.append(li); });
+    inp.setAttribute('aria-activedescendant',act>=0?box.id+'-o'+act:''); show(items.length>0);
+  }
+  function pick(i){ const it=items[i]; if(!it) return; onPick(it,inp); show(false); }
+  async function search(){
+    const q=inp.value.trim(); if(q.length<minLen){ items=[]; show(false); return; }
+    const my=++seq; paint('Searching…');
+    try{ const r=await load(q); if(my!==seq) return; items=r; act=r.length?0:-1; r.length?paint():paint('Nothing found'); }
+    catch(_){ if(my===seq) paint('Nova Poshta is unavailable, try again'); }
+  }
+  inp.addEventListener('input',()=>{ box.dataset.ok=''; onPick(null,inp,true); clearTimeout(timer); timer=setTimeout(search,250); });
+  inp.addEventListener('focus',()=>{ if(!box.dataset.ok&&inp.value.trim().length>=minLen) search(); });
+  inp.addEventListener('blur',()=>setTimeout(()=>show(false),120));
+  inp.addEventListener('keydown',e=>{
+    if(list.hidden||!items.length) return;
+    if(e.key==='ArrowDown'){e.preventDefault(); act=(act+1)%items.length; paint();}
+    else if(e.key==='ArrowUp'){e.preventDefault(); act=(act-1+items.length)%items.length; paint();}
+    else if(e.key==='Enter'){e.preventDefault(); pick(act);}
+    else if(e.key==='Escape'){e.stopPropagation(); show(false);}
+  });
+  return {search};
+}
+const escH=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const npCity=$('npCity'), npBranch=$('npBranch');
+function resetNP(){ $('npCityRef').value=''; $('npBranchRef').value=''; npBranch.disabled=true; npBranch.placeholder='Choose a city first'; }
+const cityCombo=Combo($('acCity'),{ minLen:2,
+  load:q=>apiGet('/np/cities?q='+encodeURIComponent(q)),
+  render:c=>escH(c.name),
+  onPick:(c,inp,clearing)=>{
+    if(clearing){ $('npCityRef').value=''; $('npBranchRef').value=''; npBranch.value=''; npBranch.disabled=true; npBranch.placeholder='Choose a city first'; return; }
+    inp.value=c.name; $('acCity').dataset.ok='1'; $('npCityRef').value=c.ref;
+    npBranch.disabled=false; npBranch.value=''; npBranch.placeholder='Branch number or street'; $('npBranchRef').value='';
+    $('acCity').classList.remove('bad'); $('acCity').querySelector('.err').textContent='';
+    setTimeout(()=>{ npBranch.focus(); branchCombo.search(); },30);
+  }});
+const branchCombo=Combo($('acBranch'),{ minLen:0,
+  load:q=>apiGet(`/np/branches?city=${$('npCityRef').value}&q=${encodeURIComponent(q)}`),
+  render:b=>escH(b.name)+(b.kind==='postomat'?'<small>Parcel locker</small>':''),
+  onPick:(b,inp,clearing)=>{
+    if(clearing){ $('npBranchRef').value=''; return; }
+    inp.value=b.name; $('acBranch').dataset.ok='1'; $('npBranchRef').value=b.ref;
+    $('acBranch').classList.remove('bad'); $('acBranch').querySelector('.err').textContent='';
+  }});
+
+// город и отделение должны быть выбраны из списка
+const _validate=validate;
+validate=function(){
+  let ok=_validate();
+  [['acCity','npCityRef','Pick a city from the list'],['acBranch','npBranchRef','Pick a branch from the list']].forEach(([box,ref,msg])=>{
+    const el=$(box);
+    if(!$(ref).value){ ok=false; el.classList.add('bad'); el.querySelector('.err').textContent=el.querySelector('input').value.trim()?msg:'Required'; }
+  });
+  return ok;
+};
+
+/* ── оформление: заказ → сервер → страница оплаты monobank ── */
+const SKEY='nl-order';
+const store={ set:v=>{try{sessionStorage.setItem(SKEY,JSON.stringify(v));}catch(_){}},
+              get:()=>{try{return JSON.parse(sessionStorage.getItem(SKEY)||'null');}catch(_){return null;}},
+              del:()=>{try{sessionStorage.removeItem(SKEY);}catch(_){}} };
 
 cof.addEventListener('submit',async e=>{
   e.preventDefault(); if(!validate()) return;
+  if(!API){ alert('Checkout is not connected yet.'); return; }
   const d=Object.fromEntries(new FormData(cof));
-  const id='NL-'+Date.now().toString(36).slice(-5).toUpperCase();
-  const order={id,item:'Never Land Box',qty,size:d.size,total:money(CFG.order.price*qty),...d};
-  const text=[`New order ${id}`,`Never Land Box × ${qty} — ${order.total}`,`Tee size: ${d.size}`,
-    `Name: ${d.name}`,`Phone: ${d.phone}`,d.email&&`Email: ${d.email}`,d.handle&&`TG/IG: ${d.handle}`,
-    `Delivery: ${d.country}, ${d.city}, ${d.address}`,d.comment&&`Comment: ${d.comment}`].filter(Boolean).join('\n');
-  const btn=$('place'); btn.disabled=true; btn.textContent='Sending…';
+  const btn=$('place'); btn.disabled=true; btn.textContent='Creating payment…';
   try{
-    if(CFG.order.endpoint){
-      const r=await fetch(CFG.order.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({...order,message:text})});
-      if(!r.ok) throw new Error(r.status);
-    }else if(CFG.order.telegram){
-      open(`https://t.me/${CFG.order.telegram}?text=${encodeURIComponent(text)}`,'_blank','noopener');
-    }else if(CFG.order.email){
-      location.href=`mailto:${CFG.order.email}?subject=${encodeURIComponent('Order '+id)}&body=${encodeURIComponent(text)}`;
-    }
-    $('oid').textContent=id; co.classList.add('ok'); co.querySelector('.panel').scrollTop=0;
+    const r=await fetch(API+'/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...d,qty})});
+    const res=await r.json().catch(()=>({}));
+    if(!r.ok||!res.pageUrl) throw new Error(res.message||'Could not create the payment');
+    store.set({orderId:res.orderId,invoiceId:res.invoiceId,pageUrl:res.pageUrl});
+    location.href=res.pageUrl;                                  // → monobank
   }catch(err){
-    alert('Could not send the order. Please try again or DM us.');
-  }finally{ btn.disabled=false; btn.textContent='Place order'; }
+    btn.disabled=false; btn.textContent='Pay with monobank';
+    $('coNote').textContent=(err.message||'Something went wrong')+'. Please try again or DM us.';
+  }
 });
+
+/* ── возврат с monobank: ?order=NL-… ── */
+(async()=>{
+  const id=new URLSearchParams(location.search).get('order'); if(!id) return;
+  history.replaceState(null,'',location.pathname+'#box');
+  const saved=store.get();
+  const show=(title,text,again)=>{ $('doneTitle').textContent=title; $('doneText').innerHTML=text;
+    $('payAgain').hidden=!again; co.classList.add('ok'); openCo(); };
+  const idH=`<span class="oid">${escH(id)}</span>`;
+  if(!saved||saved.orderId!==id||!API){ show('Thank you','Your order '+idH+' is in. We\'ll message you to confirm the payment and delivery.'); return; }
+  $('payAgain').onclick=()=>{ location.href=saved.pageUrl; };
+  show('Checking payment…','One moment — confirming your payment with monobank.');
+  for(let i=0;i<8;i++){
+    let st='';
+    try{ st=(await apiGet('/status?inv='+encodeURIComponent(saved.invoiceId))).status; }catch(_){}
+    if(st==='success'){ store.del(); show('Paid — thank you!','Order '+idH+' is confirmed. We\'ll message you with the Nova Poshta tracking number once it ships.'); return; }
+    if(st==='failure'||st==='expired'||st==='reversed'){ show('Payment didn\'t go through','Order '+idH+' is not paid yet. You can try again — nothing was charged.',true); return; }
+    await new Promise(r=>setTimeout(r,2500));
+  }
+  show('Payment is processing','Order '+idH+' is saved. As soon as monobank confirms the payment, we\'ll message you.',true);
+})();
 </script>
 </body>
 </html>
