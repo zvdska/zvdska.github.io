@@ -109,6 +109,82 @@ img{display:block;max-width:100%}
   .cdcap .fine{text-align:left}
 }
 
+/* ── 5. BOX ─────────────────────────────────────────────── */
+#box{position:relative;min-height:100svh;display:grid;place-items:center;text-align:center;
+  padding:clamp(80px,14vh,160px) var(--pad)}
+.boxstage{position:relative;width:min(92vw,820px,74svh);aspect-ratio:744/434;margin:0 auto}
+.boxstage::before{content:'';position:absolute;inset:-30% -20%;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.13),rgba(255,255,255,.04) 55%,transparent 75%)}
+.boxstage img,.boxstage canvas{width:100%;height:100%;display:block;object-fit:contain}
+#box h2{margin-top:clamp(28px,5vh,56px);font:900 clamp(30px,4.2vw,64px)/.95 var(--display)}
+.boxinc{margin-top:16px;font:900 clamp(12px,1vw,15px)/1.5 var(--display);color:var(--dim);letter-spacing:.04em}
+.boxprice{margin-top:22px;font:900 clamp(24px,2.4vw,36px)/1 var(--display)}
+.shopnow{display:inline-block;margin-top:clamp(22px,4vh,40px);background:#fff;color:#000;border:0;cursor:pointer;
+  padding:18px 34px;font:900 clamp(18px,1.7vw,26px)/1 var(--display);letter-spacing:.02em;transition:opacity .2s,transform .2s}
+.shopnow:hover{opacity:.88}.shopnow:active{transform:scale(.98)}
+.shopnow:focus-visible{outline:2px solid #fff;outline-offset:4px}
+#box .fine{margin:clamp(18px,3vh,28px) auto 0}
+.bx-r{opacity:0;translate:0 20px;transition:opacity .8s ease,translate .8s cubic-bezier(.2,.75,.15,1)}
+.bx-r.on{opacity:1;translate:0 0}
+
+/* ── CHECKOUT ───────────────────────────────────────────── */
+#co{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;visibility:hidden}
+#co.open{visibility:visible}
+#co .scrim{position:absolute;inset:0;background:rgba(0,0,0,.7);opacity:0;transition:opacity .4s}
+#co.open .scrim{opacity:1}
+#co .panel{position:relative;width:min(560px,100%);height:100%;background:#0a0a0a;border-left:1px solid rgba(255,255,255,.12);
+  overflow-y:auto;overscroll-behavior:contain;transform:translateX(100%);transition:transform .55s cubic-bezier(.2,.75,.15,1);
+  padding:calc(28px + env(safe-area-inset-top,0px)) clamp(20px,4vw,40px) calc(40px + env(safe-area-inset-bottom,0px))}
+#co.open .panel{transform:none}
+.cohead{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.cohead h2{font:900 clamp(26px,3vw,38px)/1 var(--display)}
+.x{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25);font:400 20px/1 var(--text)}
+.x:hover{border-color:#fff}.x:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sum{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;margin-top:28px;padding:16px 0;
+  border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}
+.sum img{width:96px;height:auto}
+.sum b{display:block;font:900 17px/1.2 var(--display)}
+.sum small{display:block;margin-top:6px;font:900 11px/1.5 var(--display);color:var(--dim)}
+.qty{display:flex;align-items:center;gap:0;margin-top:10px;width:max-content;border:1px solid rgba(255,255,255,.25)}
+.qty button{all:unset;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;font:400 18px/1 var(--text)}
+.qty button:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.qty output{min-width:28px;text-align:center;font:900 14px/1 var(--display)}
+.cof{margin-top:26px;display:grid;gap:18px}
+.cof fieldset{border:0;display:grid;gap:14px}
+.cof legend{font:900 12px/1 var(--display);letter-spacing:.08em;color:var(--dim);margin-bottom:12px}
+.f{display:grid;gap:7px}
+.f span{font:900 12px/1 var(--display);letter-spacing:.04em}
+.f span i{font-style:normal;color:var(--dim)}
+.f input,.f textarea,.f select{width:100%;background:transparent;color:#fff;border:0;border-bottom:1px solid rgba(255,255,255,.28);
+  padding:10px 0;font:400 16px/1.4 var(--text);border-radius:0;outline:none;transition:border-color .2s}
+.f textarea{resize:vertical;min-height:64px}
+.f input:focus,.f textarea:focus{border-bottom-color:#fff}
+.f input::placeholder,.f textarea::placeholder{color:rgba(255,255,255,.3)}
+.f.bad input{border-bottom-color:#ff6b6b}
+.f .err{font:400 12px/1.3 var(--text);color:#ff8a8a;min-height:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sz{display:flex;flex-wrap:wrap;gap:6px}
+.sz input{position:absolute;opacity:0;pointer-events:none}
+.sz label{min-width:54px;height:42px;display:grid;place-items:center;padding:0 10px;border:1px solid rgba(255,255,255,.25);
+  font:900 14px/1 var(--display);cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.sz label:hover{border-color:#fff}
+.sz input:checked+label{background:#fff;color:#000;border-color:#fff}
+.sz input:focus-visible+label{outline:2px solid #fff;outline-offset:2px}
+.sz.bad label{border-color:#ff6b6b}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding-top:18px;border-top:1px solid rgba(255,255,255,.12)}
+.total span{font:900 13px/1 var(--display);color:var(--dim)}
+.total b{font:900 28px/1 var(--display)}
+.place{width:100%;margin-top:4px}
+.conote{font:400 13px/1.5 var(--text);color:var(--dim)}
+.done{display:none;margin-top:40px}
+#co.ok .cof,#co.ok .sum{display:none}
+#co.ok .done{display:block}
+.done h3{font:900 clamp(28px,3.4vw,44px)/1 var(--display)}
+.done p{margin-top:18px;font:400 16px/1.55 var(--text);color:rgba(255,255,255,.8)}
+.done .oid{font:900 14px/1 var(--display);color:#fff}
+body.lock{overflow:hidden}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+
 footer{border-top:1px solid rgba(255,255,255,.13);padding:24px var(--pad) calc(24px + env(safe-area-inset-bottom,0px));
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:900 12px/1.4 var(--display);color:var(--dim)}
 footer{align-items:center}
@@ -148,8 +224,7 @@ footer .logos img{height:22px;width:auto;opacity:.75}
       <div class="copy">
         <h2 id="medal-title" class="reveal" data-r="title">"The Tree"*</h2>
         <p class="desc">A standout accessory built around a complex, sculptural bas-relief. It features a highly detailed, silver-finished barren tree with an intricate root system over a pitch-black core. A heavy, 3D-crafted piece with a distinct industrial vibe to elevate any fit.</p>
-        <p class="credit reveal" data-r="credit">Designer: Petro Petrov</p>
-        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
+        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle.</p>
       </div>
       <div class="spin medalbox reveal stagebox" data-r="item">
         <canvas id="medalCv" role="img" aria-label="Neverland medal. Swipe or use arrow keys to turn it from the logo side to the tree side"></canvas>
@@ -169,7 +244,7 @@ footer .logos img{height:22px;width:auto;opacity:.75}
       <div class="copy">
         <h2 id="tee-title" class="reveal" data-r="title">Never Land Oversized Tee*</h2>
         <p class="desc">A premium black tee with a relaxed, oversized streetwear silhouette. Keeps it clean on the front with a compact chest logo, while the back carries a massive, statement print of the tree design. Bold lines, maximum comfort, and pure monochrome aesthetic.</p>
-        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
+        <p class="fine reveal" data-r="credit">*Available as a complete collector's bundle.</p>
       </div>
     </div>
   </div>
@@ -200,12 +275,91 @@ footer .logos img{height:22px;width:auto;opacity:.75}
         <li data-n="17"><button type="button" aria-label="Play 20-second preview: Da budet tak">Da budet tak</button><span class="st" aria-live="polite"></span></li>
     </ol>
     <div class="cdcap">
-      <h2 id="cd-title">"Never Land" CD Release* · tap a track for a 20-sec preview</h2>
-      <p class="fine">*Available as a complete collector's bundle or as individual pieces. DM or hit the link to secure yours.</p>
+      <h2 id="cd-title">"Never Land" CD Release*</h2>
+      <p class="fine">*Available as a complete collector's bundle.</p>
     </div>
   </div>
   <audio id="player" preload="none"></audio>
 </section>
+
+<section id="box" aria-labelledby="box-title">
+  <div>
+    <div class="boxstage bx-r" id="boxStage">
+      <img src="img/box.webp" alt="Never Land collector's box: black box with the Never Land wordmark and the tree emblem" width="744" height="434">
+    </div>
+    <h2 id="box-title" class="bx-r">Never Land Box</h2>
+    <p class="boxinc bx-r">CD · "The Tree" Medal · Oversized Tee</p>
+    <p class="boxprice bx-r" id="boxPrice"></p>
+    <button type="button" class="shopnow bx-r" id="shopNow" aria-haspopup="dialog" aria-controls="co">Shop now</button>
+  </div>
+</section>
+
+<div id="co" role="dialog" aria-modal="true" aria-labelledby="co-title" aria-hidden="true">
+  <div class="scrim" data-close></div>
+  <div class="panel" tabindex="-1">
+    <div class="cohead">
+      <h2 id="co-title">Checkout</h2>
+      <button type="button" class="x" data-close aria-label="Close checkout">✕</button>
+    </div>
+
+    <div class="sum">
+      <img src="img/box.webp" alt="" width="744" height="434">
+      <div>
+        <b>Never Land Box</b>
+        <small>CD · "The Tree" Medal · Oversized Tee</small>
+        <div class="qty" role="group" aria-label="Quantity">
+          <button type="button" id="qMinus" aria-label="Decrease quantity">−</button>
+          <output id="qVal" aria-live="polite">1</output>
+          <button type="button" id="qPlus" aria-label="Increase quantity">+</button>
+        </div>
+      </div>
+    </div>
+
+    <form class="cof" id="cof" novalidate>
+      <fieldset>
+        <legend>Tee size</legend>
+        <div class="sz" id="sz">
+          <input type="radio" name="size" id="z-S" value="S"><label for="z-S">S</label>
+          <input type="radio" name="size" id="z-M" value="M"><label for="z-M">M</label>
+          <input type="radio" name="size" id="z-L" value="L"><label for="z-L">L</label>
+          <input type="radio" name="size" id="z-XL" value="XL"><label for="z-XL">XL</label>
+          <input type="radio" name="size" id="z-XXL" value="XXL"><label for="z-XXL">XXL</label>
+        </div>
+        <div class="f"><span class="err" id="e-size" aria-live="polite"></span></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Contact</legend>
+        <label class="f"><span>Full name</span><input name="name" autocomplete="name" required><span class="err"></span></label>
+        <div class="row2">
+          <label class="f"><span>Phone</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+380" required><span class="err"></span></label>
+          <label class="f"><span>Email <i>optional</i></span><input name="email" type="email" autocomplete="email"><span class="err"></span></label>
+        </div>
+        <label class="f"><span>Telegram / Instagram <i>optional</i></span><input name="handle" placeholder="@username" autocapitalize="off"><span class="err"></span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Delivery</legend>
+        <div class="row2">
+          <label class="f"><span>Country</span><input name="country" autocomplete="country-name" required><span class="err"></span></label>
+          <label class="f"><span>City</span><input name="city" autocomplete="address-level2" required><span class="err"></span></label>
+        </div>
+        <label class="f"><span>Address or Nova Poshta branch</span><input name="address" autocomplete="street-address" required><span class="err"></span></label>
+        <label class="f"><span>Comment <i>optional</i></span><textarea name="comment" rows="2"></textarea></label>
+      </fieldset>
+
+      <div class="total"><span>Total</span><b id="coTotal"></b></div>
+      <button type="submit" class="shopnow place" id="place">Place order</button>
+      <p class="conote">No payment now — we'll message you to confirm the order and arrange payment and shipping.</p>
+    </form>
+
+    <div class="done" aria-live="polite">
+      <h3>Order received</h3>
+      <p>Thank you! Your order <span class="oid" id="oid"></span> is in. We'll contact you shortly to confirm details, payment and delivery.</p>
+      <button type="button" class="shopnow place" data-close style="margin-top:28px">Back to site</button>
+    </div>
+  </div>
+</div>
 
 <footer>
   <span class="pline">© 2026 <span class="logos"><img src="img/simptom.png" alt="Sимптом" width="800" height="208"></span></span>
@@ -225,6 +379,10 @@ const CFG = {
   teeFrames:160,
   medalFrames:65,                             // medal/One_00000.webp … One_00064.webp
   cd:{ move:[.12,.82], hide:.08 },           // CD-блок: отрезок проезда бокса; доля пути, после которой прячется/появляется список
+  /* заказ коробки:
+     endpoint — куда POST-ить заказ JSON-ом (Formspree, Google Apps Script, свой бот).
+                Пусто → заказ откроется сообщением в Telegram (telegram), иначе письмом (email). */
+  order:{ price:300, currency:'$', maxQty:5, endpoint:'', telegram:'YOUR_USERNAME', email:'' },
   previewLen:20,                              // длина превью трека, сек
   audio:n=>`audio/${n}.mp3`,                  // путь к превью: audio/01.mp3 …
   /* тайминги блоков товаров (доля скролла блока 0…1) */
@@ -403,6 +561,84 @@ document.querySelectorAll('.tl li').forEach(li=>li.querySelector('button').addEv
 player.addEventListener('ended',stopTrack);
 player.addEventListener('error',()=>{
   if(!curT) return; const li=curT; stopTrack(); li.dataset.na='1'; li.querySelector('.st').textContent='soon';
+});
+
+/* ── BOX: появление ── */
+const bio=new IntersectionObserver(es=>es.forEach((e,i)=>{
+  if(!e.isIntersecting) return; bio.unobserve(e.target);
+  setTimeout(()=>e.target.classList.add('on'),[...document.querySelectorAll('.bx-r')].indexOf(e.target)*90);
+}),{rootMargin:'0px 0px -10% 0px'});
+document.querySelectorAll('.bx-r').forEach(el=>bio.observe(el));
+const money=v=>CFG.order.currency+v.toLocaleString('en-US');
+$('boxPrice').textContent=money(CFG.order.price);
+
+/* ── CHECKOUT ── */
+const co=$('co'), cof=$('cof'); let qty=1, lastFocus=null;
+const setQty=n=>{ qty=clamp(n,1,CFG.order.maxQty); $('qVal').textContent=qty; $('coTotal').textContent=money(CFG.order.price*qty); };
+setQty(1);
+$('qMinus').onclick=()=>setQty(qty-1); $('qPlus').onclick=()=>setQty(qty+1);
+function openCo(){
+  lastFocus=document.activeElement; co.classList.add('open'); co.setAttribute('aria-hidden','false');
+  document.body.classList.add('lock'); setTimeout(()=>co.querySelector('.panel').focus(),50);
+}
+function closeCo(){
+  co.classList.remove('open'); co.setAttribute('aria-hidden','true'); document.body.classList.remove('lock');
+  if(co.classList.contains('ok')){ co.classList.remove('ok'); cof.reset(); setQty(1); }
+  lastFocus&&lastFocus.focus();
+}
+$('shopNow').onclick=openCo;
+co.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeCo));
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&co.classList.contains('open')) closeCo(); });
+// фокус не уходит за пределы панели
+co.addEventListener('keydown',e=>{
+  if(e.key!=='Tab') return;
+  const f=[...co.querySelectorAll('button,input,textarea,[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent);
+  if(!f.length) return; const a=f[0], z=f[f.length-1];
+  if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}
+  else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}
+});
+
+function validate(){
+  let ok=true, first=null;
+  const size=cof.querySelector('input[name=size]:checked');
+  $('sz').classList.toggle('bad',!size); $('e-size').textContent=size?'':'Pick a size';
+  if(!size){ok=false; first=first||cof.querySelector('input[name=size]');}
+  cof.querySelectorAll('.f input').forEach(inp=>{
+    let msg='';
+    const v=inp.value.trim();
+    if(inp.required&&!v) msg='Required';
+    else if(inp.name==='phone'&&v&&v.replace(/\D/g,'').length<7) msg='Check the number';
+    else if(inp.name==='email'&&v&&!/^\S+@\S+\.\S+$/.test(v)) msg='Check the email';
+    inp.parentElement.classList.toggle('bad',!!msg); inp.parentElement.querySelector('.err').textContent=msg;
+    if(msg){ok=false; first=first||inp;}
+  });
+  first&&first.focus();
+  return ok;
+}
+cof.addEventListener('input',e=>{ const f=e.target.closest('.f'); if(f&&f.classList.contains('bad')){f.classList.remove('bad');f.querySelector('.err').textContent='';} if(e.target.name==='size'){$('sz').classList.remove('bad');$('e-size').textContent='';} });
+
+cof.addEventListener('submit',async e=>{
+  e.preventDefault(); if(!validate()) return;
+  const d=Object.fromEntries(new FormData(cof));
+  const id='NL-'+Date.now().toString(36).slice(-5).toUpperCase();
+  const order={id,item:'Never Land Box',qty,size:d.size,total:money(CFG.order.price*qty),...d};
+  const text=[`New order ${id}`,`Never Land Box × ${qty} — ${order.total}`,`Tee size: ${d.size}`,
+    `Name: ${d.name}`,`Phone: ${d.phone}`,d.email&&`Email: ${d.email}`,d.handle&&`TG/IG: ${d.handle}`,
+    `Delivery: ${d.country}, ${d.city}, ${d.address}`,d.comment&&`Comment: ${d.comment}`].filter(Boolean).join('\n');
+  const btn=$('place'); btn.disabled=true; btn.textContent='Sending…';
+  try{
+    if(CFG.order.endpoint){
+      const r=await fetch(CFG.order.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({...order,message:text})});
+      if(!r.ok) throw new Error(r.status);
+    }else if(CFG.order.telegram){
+      open(`https://t.me/${CFG.order.telegram}?text=${encodeURIComponent(text)}`,'_blank','noopener');
+    }else if(CFG.order.email){
+      location.href=`mailto:${CFG.order.email}?subject=${encodeURIComponent('Order '+id)}&body=${encodeURIComponent(text)}`;
+    }
+    $('oid').textContent=id; co.classList.add('ok'); co.querySelector('.panel').scrollTop=0;
+  }catch(err){
+    alert('Could not send the order. Please try again or DM us.');
+  }finally{ btn.disabled=false; btn.textContent='Place order'; }
 });
 </script>
 </body>
