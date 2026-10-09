@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0f08">
+<title>Пивная лотерея 🍺</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍺</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script>
+/* ============ НАСТРОЙКИ — меняй только это ============ */
+const CONFIG = {
+  friendName: "",          // имя друга, например "Саня" (можно оставить пустым)
+  botToken: "",            // токен бота от @BotFather, вида 123456:ABC-...
+  chatId: "",              // твой chat_id (число), куда бот пришлёт дату
+  telegramUser: "zvdsk"    // запасной вариант: если бот не сработает — откроется чат с тобой
+};
+</script>
+<style>
+:root{
+  --bar:#1a0f08;
+  --stout:#26150a;
+  --amber:#f2a516;
+  --amber-hi:#ffc64a;
+  --amber-deep:#b86a06;
+  --foam:#fff4d8;
+  --cap:#b3322a;
+  --base:16px;           /* толщина дна бокала */
+  --lv:0;                /* уровень пива 0..1 */
+  --ink:var(--foam);
+  --ink-soft:#d9c4a6;
+  box-sizing:border-box;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;min-height:100%}
+body{
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.015) 0 2px, transparent 2px 9px),
+    linear-gradient(#2a180c, var(--bar));
+  color:var(--ink);
+  font-family:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:color .6s;
+}
+body.full{--ink:var(--stout);--ink-soft:#5a3410}
+
+/* ================= БОКАЛ ================= */
+.glass{
+  position:fixed;top:0;bottom:0;left:50%;
+  width:min(100%,520px);transform:translateX(-50%);
+  clip-path:polygon(0 0,100% 0,93% 100%,7% 100%);
+  background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.025) 30%,rgba(255,255,255,.04));
+  overflow:hidden;z-index:0;
+}
+.beer{
+  position:absolute;left:0;right:0;bottom:var(--base);
+  height:calc((100% - var(--base)) * var(--lv));
+  background:linear-gradient(to top,#a85c05 0%,var(--amber) 45%,var(--amber-hi) 100%);
+  transition:height 1.3s cubic-bezier(.3,.8,.3,1);
+  overflow:hidden;
+}
+.foam{
+  position:absolute;left:0;right:0;
+  bottom:calc(var(--base) + (100% - var(--base)) * var(--lv) - 10px);
+  height:24px;background:var(--foam);
+  transition:bottom 1.3s cubic-bezier(.3,.8,.3,1), opacity .4s;
+  opacity:0;
+}
+.foam::before{
+  content:"";position:absolute;left:-10px;right:-10px;top:-13px;height:16px;
+  background:radial-gradient(circle at 13px 13px,var(--foam) 12.5px,transparent 13.5px) 0 0/26px 16px repeat-x;
+  animation:sway 4s ease-in-out infinite alternate;
+}
+.glass.has-beer .foam{opacity:1}
+@keyframes sway{to{transform:translateX(9px)}}
+.foam.thick{height:46px}
+
+.base{
+  position:absolute;left:0;right:0;bottom:0;height:var(--base);
+  background:linear-gradient(rgba(255,255,255,.22),rgba(255,255,255,.08));
+}
+.edges{position:absolute;inset:0;width:100%;height:100%}
+.shine{
+  position:absolute;top:0;bottom:var(--base);left:12%;width:5%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+  pointer-events:none;
+}
+.stream{
+  position:absolute;top:0;left:76%;width:10px;margin-left:-5px;
+  height:calc((100% - var(--base)) * (1 - var(--lv)) + 6px);
+  background:linear-gradient(90deg,var(--amber-deep),var(--amber-hi),var(--amber));
+  border-radius:0 0 6px 6px;
+  transform:scaleY(0);transform-origin:top;opacity:0;
+  transition:height 1.3s cubic-bezier(.3,.8,.3,1);
+}
+.stream.on{animation:pour 1.6s ease forwards}
+@keyframes pour{
+  0%{transform:scaleY(0);opacity:1}
+  25%{transform:scaleY(1);opacity:1}
+  75%{transform:scaleY(1) translateY(0);opacity:1}
+  100%{transform:scaleY(1) translateY(100%);opacity:0}
+}
+.beer i{
+  position:absolute;bottom:-10px;border-radius:50%;
+  background:rgba(255,248,225,.55);
+  animation:rise linear infinite;
+}
+@keyframes rise{to{transform:translateY(-100vh)}}
+
+/* ================= КОНТЕНТ ================= */
+main{
+  position:relative;z-index:1;
+  width:min(100%,520px);margin:0 auto;
+  padding:calc(26px + env(safe-area-inset-top,0px)) 11% calc(40px + env(safe-area-inset-bottom,0px));
+}
+.screen{display:none}
+.screen.active{display:block}
+
+h1{
+  font-family:"Unbounded","Arial Black",sans-serif;font-weight:900;
+  font-size:clamp(28px,8.4vw,40px);line-height:1.02;letter-spacing:-.02em;
+  margin:4px 0 10px;color:var(--amber);
+  text-shadow:0 3px 0 var(--amber-deep),0 6px 0 #4a2a05;
+}
+body.full h1{color:var(--stout);text-shadow:0 3px 0 rgba(255,244,216,.6)}
+h2{font-family:"Unbounded","Arial Black",sans-serif;font-weight:800;font-size:22px;line-height:1.15;margin:0 0 10px}
+.greet{font-weight:800;color:var(--ink-soft);margin:0;font-size:15px}
+.lead{margin:0 0 16px;max-width:30ch}
+.small{font-size:13px;color:var(--ink-soft)}
+
+.pill{
+  display:inline-block;margin:0 0 16px;padding:8px 14px;border-radius:999px;
+  background:rgba(26,15,8,.85);color:var(--foam);font-weight:800;font-size:15px;
+  box-shadow:inset 0 0 0 1.5px rgba(242,165,22,.5);
+}
+
+/* ===== поле 3×3 ===== */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,3vw,14px);max-width:330px;margin:0 auto}
+.cell{
+  aspect-ratio:1;border:0;padding:0;background:none;cursor:pointer;
+  perspective:600px;-webkit-tap-highlight-color:transparent;border-radius:18px;
+}
+.cell:focus-visible{outline:3px solid var(--foam);outline-offset:3px}
+.inner{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,1.4,.5,1)}
+.cell.open .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-items:center}
+.front{
+  background:radial-gradient(circle at 35% 25%,#3a2312,#1e1108);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.35);
+}
+.front svg{width:66%;height:66%;transition:transform .25s}
+@media (hover:hover){.cell:not(.open):hover .front svg{transform:rotate(25deg) scale(1.05)}}
+.back{
+  transform:rotateY(180deg);background:var(--foam);
+  box-shadow:inset 0 0 0 3px var(--amber),0 6px 14px rgba(0,0,0,.3);
+}
+.back svg{width:70%;height:70%}
+.cell.win .back{animation:pop .55s ease}
+@keyframes pop{45%{transform:rotateY(180deg) scale(1.15)}}
+.grid.locked .cell{cursor:default}
+
+.odds{margin:16px 0 0;text-align:center}
+.odds span{display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(26,15,8,.75);color:var(--foam)}
+
+#reveal{
+  margin-top:20px;padding:20px;border-radius:18px;
+  background:var(--foam);color:var(--stout);display:none;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+#reveal.show{display:block;animation:up .5s ease both}
+#reveal p{margin:0 0 14px}
+@keyframes up{from{opacity:0;transform:translateY(16px)}}
+
+/* ===== кнопки, формы ===== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:100%;min-height:54px;padding:14px 20px;
+  font-family:"Unbounded","Arial Black",sans-serif;font-weight:800;font-size:16px;
+  color:var(--foam);background:var(--stout);
+  border:0;border-radius:999px;cursor:pointer;text-decoration:none;
+  box-shadow:0 5px 0 #000;transition:transform .1s,box-shadow .1s,filter .2s;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #000}
+.btn:focus-visible{outline:3px solid var(--foam);outline-offset:3px}
+.btn[disabled]{filter:brightness(.8);cursor:wait}
+.btn.ghost{background:transparent;color:var(--stout);box-shadow:inset 0 0 0 2.5px var(--stout)}
+
+.field{display:block;margin:0 0 16px}
+.field > .lbl{display:block;font-weight:800;margin-bottom:6px}
+input[type=date],textarea{
+  width:100%;font:inherit;color:var(--stout);
+  background:var(--foam);border:2.5px solid var(--stout);border-radius:14px;
+  padding:13px 14px;
+}
+input[type=date]{min-height:52px}
+textarea{resize:vertical;min-height:84px}
+input:focus,textarea:focus{outline:3px solid var(--foam);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font:inherit;font-weight:800;font-size:14px;padding:10px 14px;border-radius:999px;cursor:pointer;
+  background:rgba(255,244,216,.55);color:var(--stout);border:2.5px solid var(--stout);
+}
+.chip[aria-pressed="true"]{background:var(--stout);color:var(--foam)}
+.chip:focus-visible{outline:3px solid var(--foam);outline-offset:2px}
+.error{color:#7a0d05;font-weight:800;font-size:14px;min-height:1.4em;margin:8px 0 0}
+#fallback{display:none;margin-top:14px;padding:16px;border-radius:14px;background:var(--foam);color:var(--stout)}
+#fallback.show{display:block}
+#fallback p{margin:0 0 12px}
+
+.ticket{
+  margin:20px 0;padding:22px 22px;border-radius:18px;position:relative;
+  background:var(--foam);color:var(--stout);box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:var(--amber)}
+.ticket::before{left:-11px}.ticket::after{right:-11px}
+.ticket .date{font-family:"Unbounded",sans-serif;font-weight:900;font-size:clamp(21px,6.2vw,27px);line-height:1.1;margin:4px 0 6px}
+.ticket .meta{font-weight:800;margin:0}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- бокал (фон) -->
+<div class="glass" id="glass" aria-hidden="true">
+  <div class="shine"></div>
+  <div class="beer" id="beer"></div>
+  <div class="foam" id="foam"></div>
+  <div class="stream" id="stream"></div>
+  <div class="base"></div>
+  <svg class="edges" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M0 0 L7 100 L93 100 L100 0" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3" vector-effect="non-scaling-stroke"/>
+  </svg>
+</div>
+
+<main>
+  <!-- ЭКРАН 1 -->
+  <section class="screen active" id="game" aria-labelledby="t1">
+    <p class="greet" id="greet">С днём рождения!</p>
+    <h1 id="t1">Пивная лотерея</h1>
+    <p class="lead">Под 9 крышками спрятаны 3 бокала. Найди все три — и приз твой.</p>
+    <div class="pill" id="status" role="status" aria-live="polite">Бокал пока пустой</div>
+
+    <div class="grid" id="grid" role="grid" aria-label="Поле 3 на 3"></div>
+    <p class="odds small"><span id="odds">Шанс угадать все три: 1 к 84</span></p>
+
+    <div id="reveal" role="region" aria-live="polite">
+      <h2>Ладно, признаюсь</h2>
+      <p>Пиво было под каждой крышкой. Проиграть тут было невозможно.</p>
+      <p><b>Твой приз — поход на пиво со мной.</b> Осталось выбрать дату.</p>
+      <button class="btn" id="toForm">Выбрать дату</button>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 2 -->
+  <section class="screen" id="form" aria-labelledby="t2">
+    <h1 id="t2">Когда идём?</h1>
+    <p class="lead">Бокал полный. Выбери день — я сразу получу его в Telegram.</p>
+
+    <label class="field">
+      <span class="lbl">Дата</span>
+      <input type="date" id="date" required>
+    </label>
+
+    <div class="field" role="group" aria-labelledby="timeLabel">
+      <span class="lbl" id="timeLabel">Во сколько</span>
+      <div class="chips" id="chips">
+        <button type="button" class="chip" aria-pressed="false">Днём</button>
+        <button type="button" class="chip" aria-pressed="true">Вечером</button>
+        <button type="button" class="chip" aria-pressed="false">Поздно вечером</button>
+        <button type="button" class="chip" aria-pressed="false">Как скажешь</button>
+      </div>
+    </div>
+
+    <label class="field">
+      <span class="lbl">Пожелания <span class="small">(необязательно)</span></span>
+      <textarea id="note" placeholder="Куда хочешь пойти, какое пиво, кого позвать…"></textarea>
+    </label>
+
+    <button class="btn" id="send">Отправить дату</button>
+    <p class="error" id="err" role="alert"></p>
+
+    <div id="fallback">
+      <p>Бот не ответил, но текст уже скопирован. Открой чат и вставь его.</p>
+      <a class="btn ghost" id="tgLink" target="_blank" rel="noopener">Открыть Telegram</a>
+    </div>
+  </section>
+
+  <!-- ЭКРАН 3 -->
+  <section class="screen" id="done" aria-labelledby="t3">
+    <h1 id="t3">Забито!</h1>
+    <div class="ticket">
+      <p class="meta">Пиво за мной 🍺</p>
+      <p class="date" id="ticketDate"></p>
+      <p class="meta" id="ticketTime"></p>
+    </div>
+    <p class="lead">Дата уже у меня. Сделай скриншот билета на всякий случай.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const glass = $("#glass"), beer = $("#beer"), stream = $("#stream"), foam = $("#foam");
+
+  const MUG = '<svg viewBox="0 0 32 32" aria-hidden="true">'
+    + '<path d="M22 13h2.5a3 3 0 0 1 3 3v4.5a3 3 0 0 1-3 3H22" fill="none" stroke="#c97a08" stroke-width="2.6"/>'
+    + '<path d="M7 11h15v15.5a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3z" fill="#f2a516"/>'
+    + '<path d="M10 14v12M14.5 14v12M19 14v12" stroke="#c97a08" stroke-width="1.4" stroke-linecap="round"/>'
+    + '<path d="M5.5 11.5c-.6-3 2-5 4.6-4.3.9-2.4 4.5-3 6.3-1.2 2.4-.9 5.6.6 5.7 3.6.8.3 1.4 1.1 1.2 1.9z" fill="#fff" stroke="#e8d6ae" stroke-width=".6"/>'
+    + '</svg>';
+
+  // крышка от бутылки
+  let pts = [];
+  for (let i = 0; i < 42; i++) {
+    const r = i % 2 ? 44 : 48, a = i / 42 * Math.PI * 2;
+    pts.push((50 + r * Math.cos(a)).toFixed(1) + "," + (50 + r * Math.sin(a)).toFixed(1));
+  }
+  const CAP = '<svg viewBox="0 0 100 100" aria-hidden="true">'
+    + '<polygon points="' + pts.join(" ") + '" fill="#b3322a"/>'
+    + '<circle cx="50" cy="50" r="36" fill="#cf4337"/>'
+    + '<circle cx="50" cy="50" r="30" fill="none" stroke="#fff4d8" stroke-width="2" stroke-dasharray="3 4"/>'
+    + '<text x="50" y="62" text-anchor="middle" font-family="Unbounded,Arial Black,sans-serif" font-weight="900" font-size="34" fill="#fff4d8">?</text>'
+    + '</svg>';
+
+  const name = (CONFIG.friendName || "").trim();
+  if (name) $("#greet").textContent = "С днём рождения, " + name + "!";
+
+  // ---------- бокал ----------
+  function setLevel(v, withStream){
+    if (withStream) {
+      stream.classList.remove("on"); void stream.offsetWidth; stream.classList.add("on");
+      setTimeout(() => apply(v), 350);
+    } else apply(v);
+  }
+  function apply(v){
+    glass.style.setProperty("--lv", v);
+    glass.classList.toggle("has-beer", v > 0);
+  }
+  // пузырьки
+  for (let i = 0; i < 26; i++) {
+    const b = document.createElement("i"), s = 2 + Math.random() * 5;
+    b.style.cssText = "left:" + (Math.random() * 100) + "%;width:" + s + "px;height:" + s + "px;"
+      + "animation-duration:" + (5 + Math.random() * 8) + "s;animation-delay:" + (-Math.random() * 12) + "s";
+    beer.appendChild(b);
+  }
+
+  // ---------- лотерея ----------
+  const grid = $("#grid"), N = 3, NEED = 3;
+  const LEVELS = [0.22, 0.44, 0.66];
+  const lines = ["Есть первый! Наливаю 🍺", "Второй?! Ты везунчик", "ТРЕТИЙ. Как ты это сделал?"];
+  let found = 0, locked = false;
+
+  for (let i = 0; i < N * N; i++) {
+    const b = document.createElement("button");
+    b.className = "cell"; b.dataset.i = i;
+    b.setAttribute("role", "gridcell");
+    b.setAttribute("aria-label", "Крышка " + (i + 1));
+    b.innerHTML = '<span class="inner"><span class="face front">' + CAP + '</span><span class="face back"></span></span>';
+    b.addEventListener("click", () => pick(b));
+    grid.appendChild(b);
+  }
+
+  function open(c){
+    c.querySelector(".back").innerHTML = MUG;
+    c.classList.add("open");
+    c.setAttribute("aria-label", "Пиво");
+  }
+
+  function pick(c){
+    if (locked || c.classList.contains("open")) return;
+    open(c); c.classList.add("win");
+    if (navigator.vibrate) navigator.vibrate(30);
+    $("#status").textContent = lines[found];
+    setLevel(LEVELS[found], true);
+    found++;
+    if (found === NEED) {
+      locked = true; grid.classList.add("locked");
+      setTimeout(() => flood(+c.dataset.i), 1600);
+    }
+  }
+
+  function flood(from){
+    const fx = from % N, fy = Math.floor(from / N);
+    let max = 0;
+    grid.querySelectorAll(".cell:not(.open)").forEach(c => {
+      const i = +c.dataset.i, d = Math.hypot(i % N - fx, Math.floor(i / N) - fy) * 140;
+      max = Math.max(max, d);
+      setTimeout(() => open(c), d);
+    });
+    $("#status").textContent = "Подожди-ка…";
+    $("#odds").textContent = "Шанс выиграть: 1 к 1";
+    setTimeout(() => {
+      foam.classList.add("thick");
+      $("#reveal").classList.add("show");
+      $("#reveal").scrollIntoView({behavior:"smooth", block:"center"});
+    }, max + 800);
+  }
+
+  // ---------- переходы ----------
+  function show(id){
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    $("#" + id).classList.add("active");
+    window.scrollTo(0, 0);
+  }
+  $("#toForm").addEventListener("click", () => {
+    setLevel(1.02, true);           // доливаем до краёв
+    setTimeout(() => { document.body.classList.add("full"); show("form"); }, 900);
+  });
+
+  // ---------- форма ----------
+  const dateIn = $("#date");
+  const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  dateIn.min = iso(new Date());
+
+  let time = "Вечером";
+  $("#chips").addEventListener("click", e => {
+    const c = e.target.closest(".chip"); if (!c) return;
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", "false"));
+    c.setAttribute("aria-pressed", "true"); time = c.textContent;
+  });
+
+  const human = v => new Date(v + "T12:00:00").toLocaleDateString("ru-RU", {weekday:"long", day:"numeric", month:"long"});
+
+  $("#send").addEventListener("click", async () => {
+    const err = $("#err"); err.textContent = "";
+    if (!dateIn.value) { err.textContent = "Выбери дату в календаре выше."; dateIn.focus(); return; }
+    if (dateIn.value < dateIn.min) { err.textContent = "Эта дата уже прошла. Выбери сегодня или позже."; return; }
+
+    const when = human(dateIn.value), note = $("#note").value.trim();
+    const text = "🍺 Приз из лотереи забран!\n"
+      + (name || "Именинник") + " выбрал дату: " + when + "\nВремя: " + time
+      + (note ? "\nПожелания: " + note : "");
+
+    const btn = $("#send"); btn.disabled = true; btn.textContent = "Отправляю…";
+    let ok = false;
+    if (CONFIG.botToken && CONFIG.chatId) {
+      try {
+        const r = await fetch("https://api.telegram.org/bot" + CONFIG.botToken + "/sendMessage", {
+          method:"POST", body:new URLSearchParams({chat_id:CONFIG.chatId, text})
+        });
+        ok = !!(await r.json()).ok;
+      } catch (e) { ok = false; }
+    }
+    if (ok) finish(when);
+    else {
+      btn.disabled = false; btn.textContent = "Отправить ещё раз";
+      try { await navigator.clipboard.writeText(text); } catch (e) {}
+      $("#tgLink").href = "https://t.me/" + CONFIG.telegramUser;
+      $("#tgLink").onclick = () => setTimeout(() => finish(when), 400);
+      $("#fallback").classList.add("show");
+    }
+  });
+
+  function finish(when){
+    $("#ticketDate").textContent = when;
+    $("#ticketTime").textContent = time;
+    show("done");
+  }
+})();
+</script>
+</body>
+</html>
