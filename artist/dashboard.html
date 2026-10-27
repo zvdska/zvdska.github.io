@@ -107,8 +107,9 @@
   .detail-title { font-size:26px; font-weight:400; line-height:1.1; }
   .detail-date { font-size:12px; color:var(--muted); margin-top:6px; }
 
-  /* три плашки метрик: Clicks / Streams / Revenue */
-  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:22px 0 4px; }
+  /* плашки метрик: Clicks / Streams / Revenue / Conversion */
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:22px 0 4px; }
+  @media (max-width:860px) { .metrics { grid-template-columns:repeat(2,1fr); } }
   @media (max-width:520px) { .metrics { grid-template-columns:1fr; } }
   .metric { background:rgba(255,255,255,.04); border:1px solid var(--stroke); border-radius:16px; padding:16px; }
   .metric .m-val { font-size:24px; font-weight:400; line-height:1.05; }
@@ -388,6 +389,14 @@
     const revHigh = Math.round(ytStreams * RATE_HIGH);
     const revenue = ytStreams > 0 ? `$${nf.format(revLow)} – $${nf.format(revHigh)}` : '—';
 
+    // конверсия клик → стрим: сколько стримов приходится на один клик
+    const clicksN = Number(t.total_clicks || 0);
+    const convRatio = clicksN > 0 ? streams / clicksN : 0;
+    const convVal = clicksN > 0 ? `${nf.format(Math.round(convRatio))}×` : '—';
+    const convSub = clicksN > 0
+      ? `${nf.format(streams)} streams / ${nf.format(clicksN)} clicks`
+      : 'no clicks yet';
+
     document.getElementById('detail').innerHTML = `
       <div class="detail-head">
         ${cover}
@@ -415,6 +424,11 @@
           <div class="m-val">${revenue}</div>
           <div class="m-lbl">Revenue</div>
           <div class="m-sub">approx. YouTube Music · ${nf.format(ytStreams)} streams × $0.002–0.005</div>
+        </div>
+        <div class="metric">
+          <div class="m-val">${convVal}</div>
+          <div class="m-lbl">Conversion</div>
+          <div class="m-sub">streams per link click<br>${convSub}</div>
         </div>
       </div>
 
