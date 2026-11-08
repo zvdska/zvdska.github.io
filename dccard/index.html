@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Альбом карт</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#fff);
+  --tx:var(--tg-theme-text-color,#111);
+  --hint:var(--tg-theme-hint-color,#8a8a8e);
+  --btn:var(--tg-theme-button-color,#2481cc);
+  --btx:var(--tg-theme-button-text-color,#fff);
+  --sec:var(--tg-theme-secondary-bg-color,#f0f0f3);
+  --gold:#f5b301;
+  --ok:#2fb344;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:16px/1.35 -apple-system,system-ui,Roboto,sans-serif}
+#app{display:flex;flex-direction:column;height:100dvh}
+header{padding:10px 14px 8px;background:var(--bg)}
+.stats{display:flex;justify-content:space-between;font-size:14px;color:var(--hint)}
+.stats b{color:var(--tx)}
+.bar{height:6px;border-radius:3px;background:var(--sec);margin-top:6px;overflow:hidden}
+.bar>div{height:100%;background:var(--btn);width:0;transition:width .3s}
+main{flex:1;overflow-y:auto;padding:4px 12px 16px;-webkit-overflow-scrolling:touch}
+section[hidden]{display:none}
+nav{display:flex;background:var(--sec);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--hint);padding:9px 0 7px;font-size:11px}
+nav button span{display:block;font-size:20px;line-height:1.2}
+nav button.on{color:var(--btn)}
+.chips{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto}
+.chip{border:0;border-radius:16px;padding:6px 12px;background:var(--sec);color:var(--tx);font-size:14px;white-space:nowrap}
+.chip.on{background:var(--btn);color:var(--btx)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.cell{position:relative;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--hint);background:none;color:var(--hint);font-size:15px;font-weight:600;padding:0}
+.cell.have{border:1.5px solid var(--btn);background:var(--btn);color:var(--btx)}
+.cell.dup{border-color:var(--gold);background:var(--btn)}
+.cell i{position:absolute;top:-5px;right:-4px;background:var(--gold);color:#000;border-radius:9px;font-size:11px;font-style:normal;padding:1px 5px;font-weight:700}
+.cam{position:relative;border-radius:14px;overflow:hidden;background:#000;height:42vh;min-height:230px}
+.cam video{width:100%;height:100%;object-fit:cover}
+#frame{position:absolute;left:50%;top:50%;width:46%;height:16%;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.45)}
+.camhint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#fff;font-size:12px;opacity:.9}
+.muted{color:var(--hint);font-size:14px;margin:8px 0}
+.row{display:flex;gap:8px;margin:8px 0;align-items:center}
+.btn{flex:1;border:0;border-radius:12px;padding:12px;background:var(--btn);color:var(--btx);font-size:16px;text-align:center;font-weight:600}
+.btn.sec{background:var(--sec);color:var(--tx)}
+input[type=text],input[type=number],input:not([type]),textarea{width:100%;border:1px solid var(--sec);background:var(--sec);color:var(--tx);border-radius:10px;padding:11px;font-size:16px}
+textarea{min-height:90px;font-size:13px}
+.card{background:var(--sec);border-radius:14px;padding:14px;margin:10px 0}
+.big input{font-size:34px;font-weight:700;text-align:center;background:var(--bg)}
+.msg{text-align:center;margin:8px 0;font-size:15px}
+.cands{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+pre{white-space:pre-wrap;word-break:break-word;font:14px/1.45 ui-monospace,Menlo,monospace;margin:6px 0}
+h3{margin:14px 0 4px;font-size:16px}
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:10}
+#sheet[hidden]{display:none}
+#sheet>div{width:100%;background:var(--bg);border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));text-align:center}
+.step{display:flex;justify-content:center;align-items:center;gap:22px;margin:14px 0}
+.step button{width:56px;height:56px;border-radius:50%;border:0;background:var(--sec);color:var(--tx);font-size:28px}
+.step b{font-size:40px;min-width:60px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90%;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="stats"><span>Собрано <b id="stHave">0</b>/<b id="stTotal">0</b></span><span>Нет: <b id="stMiss">0</b></span><span>Лишних: <b id="stDup">0</b></span></div>
+    <div class="bar"><div id="bar"></div></div>
+  </header>
+  <main>
+    <section id="v-album">
+      <div class="chips" id="chips">
+        <button class="chip on" data-f="all">Все</button>
+        <button class="chip" data-f="miss">Нет</button>
+        <button class="chip" data-f="have">Есть</button>
+        <button class="chip" data-f="dup">Дубли</button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <section id="v-scan" hidden>
+      <div class="cam">
+        <video id="vid" playsinline muted autoplay></video>
+        <div id="frame"></div>
+        <div class="camhint">Помести номер (в чёрной плашке) в рамку</div>
+      </div>
+      <div id="status" class="muted"></div>
+      <div class="row">
+        <button class="btn" id="shot">📸 Распознать</button>
+        <label class="btn sec">🖼 Фото<input id="photo" type="file" accept="image/*" capture="environment" hidden></label>
+      </div>
+      <label class="row" style="margin:4px 0"><input type="checkbox" id="auto" checked> Авто-режим (сам ловит номер)</label>
+      <div class="row">
+        <input id="manual" inputmode="text" placeholder="Номер вручную: 177 или T05" autocomplete="off">
+        <button class="btn" id="manualBtn" style="flex:0 0 70px">OK</button>
+      </div>
+      <div id="result" class="card" hidden>
+        <div class="big"><input id="resId" autocomplete="off"></div>
+        <div class="msg" id="resMsg"></div>
+        <div class="cands" id="resCands"></div>
+        <div class="row">
+          <button class="btn" id="resOk">＋1 в альбом</button>
+          <button class="btn sec" id="resNo">Отмена</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-lists" hidden>
+      <h3>Нужны</h3>
+      <pre id="txtMiss"></pre>
+      <div class="row"><button class="btn sec" data-copy="miss">Копировать</button><button class="btn" data-share="miss">Отправить</button></div>
+      <h3>Лишние (для обмена)</h3>
+      <pre id="txtDup"></pre>
+      <div class="row"><button class="btn sec" data-copy="dup">Копировать</button><button class="btn" data-share="dup">Отправить</button></div>
+    </section>
+
+    <section id="v-set" hidden>
+      <h3>Размер коллекции</h3>
+      <div class="muted">Сколько карт всего (1…N) и сколько стикеров (T01…TNN)</div>
+      <div class="row"><input type="number" id="setCards" min="1" max="999" inputmode="numeric"><input type="number" id="setSt" min="0" max="99" inputmode="numeric"></div>
+      <div class="row"><button class="btn" id="setSave">Сохранить</button></div>
+      <h3>Резервная копия</h3>
+      <textarea id="backup" placeholder="Код альбома"></textarea>
+      <div class="row"><button class="btn sec" id="bkExport">Показать код</button><button class="btn sec" id="bkImport">Загрузить код</button></div>
+      <h3>Сброс</h3>
+      <div class="row"><button class="btn sec" id="reset" style="color:#e5484d">Очистить альбом</button></div>
+      <div class="muted">Альбом хранится в облаке Telegram отдельно для каждого пользователя.</div>
+    </section>
+  </main>
+  <nav id="tabs">
+    <button data-t="album" class="on"><span>📒</span>Альбом</button>
+    <button data-t="scan"><span>📷</span>Скан</button>
+    <button data-t="lists"><span>🔁</span>Обмен</button>
+    <button data-t="set"><span>⚙️</span>Настройки</button>
+  </nav>
+</div>
+
+<div id="sheet" hidden><div>
+  <div class="muted" id="shLabel">Карта</div>
+  <div class="step"><button id="shMinus">−</button><b id="shCnt">0</b><button id="shPlus">+</button></div>
+  <button class="btn sec" id="shClose" style="width:100%">Готово</button>
+</div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+const $ = s => document.querySelector(s);
+const CS = tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9') ? tg.CloudStorage : null;
+const haptic = (k) => { try { tg && tg.HapticFeedback && (k==='ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred('light')); } catch(e){} };
+
+/* ---------- state ---------- */
+let cfg = { cards: 200, stickers: 10 };
+let have = {};            // id -> count
+let ids = [];
+let flt = 'all';
+const cnt = id => have[id] || 0;
+
+function buildIds() {
+  ids = [];
+  for (let i = 1; i <= cfg.cards; i++) ids.push(String(i));
+  for (let i = 1; i <= cfg.stickers; i++) ids.push('T' + String(i).padStart(2, '0'));
+}
+function normalize(s) {
+  s = String(s || '').trim().toUpperCase().replace(/\s+/g, '');
+  let m;
+  if ((m = s.match(/^T(\d{1,2})$/))) s = 'T' + m[1].padStart(2, '0');
+  else if (/^\d{1,3}$/.test(s)) s = String(+s);
+  else return null;
+  return ids.includes(s) ? s : null;
+}
+
+/* ---------- storage ---------- */
+const CHUNK = 3500;
+function encode() {
+  const body = Object.entries(have).filter(([, v]) => v > 0).map(([k, v]) => v > 1 ? k + '*' + v : k).join(',');
+  return 'v1|' + cfg.cards + '|' + cfg.stickers + '|' + body;
+}
+function decode(s) {
+  const p = String(s).split('|');
+  if (p[0] !== 'v1' || p.length < 4) return false;
+  const c = +p[1], st = +p[2];
+  if (!(c >= 1 && c <= 999 && st >= 0 && st <= 99)) return false;
+  const h = {};
+  (p.slice(3).join('|')).split(',').filter(Boolean).forEach(x => {
+    const [k, v] = x.split('*'); h[k] = v ? +v : 1;
+  });
+  cfg = { cards: c, stickers: st }; have = h; buildIds();
+  return true;
+}
+let saveT = null;
+function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 350); }
+function saveNow() {
+  const s = encode();
+  try { localStorage.setItem('album', s); } catch (e) {}
+  if (!CS) return;
+  const parts = [];
+  for (let i = 0; i < s.length; i += CHUNK) parts.push(s.slice(i, i + CHUNK));
+  parts.forEach((p, i) => CS.setItem('a' + i, p, () => {}));
+  CS.setItem('an', String(parts.length), () => {});
+}
+function csGet(key) { return new Promise(r => CS.getItem(key, (e, v) => r(e ? null : v))); }
+function csGetMany(keys) { return new Promise(r => CS.getItems(keys, (e, v) => r(e ? {} : v))); }
+async function load() {
+  let s = null;
+  if (CS) {
+    try {
+      const n = +(await csGet('an'));
+      if (n > 0) {
+        const keys = [...Array(n).keys()].map(i => 'a' + i);
+        const r = await csGetMany(keys);
+        s = keys.map(k => r[k] || '').join('');
+      }
+    } catch (e) {}
+  }
+  if (!s) { try { s = localStorage.getItem('album'); } catch (e) {} }
+  if (!(s && decode(s))) buildIds();
+}
+
+/* ---------- helpers ---------- */
+function toast(t) {
+  const el = $('#toast'); el.textContent = t; el.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800);
+}
+function setCount(id, n) {
+  n = Math.max(0, n);
+  if (n) have[id] = n; else delete have[id];
+  save(); render();
+}
+function fmtRanges(list) {
+  const nums = list.filter(x => x[0] !== 'T').map(Number).sort((a, b) => a - b);
+  const st = list.filter(x => x[0] === 'T');
+  const out = [];
+  let i = 0;
+  while (i < nums.length) {
+    let j = i;
+    while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+    out.push(j - i >= 2 ? nums[i] + '–' + nums[j] : nums.slice(i, j + 1).join(', '));
+    i = j + 1;
+  }
+  return out.concat(st).join(', ') || '—';
+}
+function listText(kind) {
+  if (kind === 'miss') return fmtRanges(ids.filter(id => !cnt(id)));
+  const d = ids.filter(id => cnt(id) > 1);
+  return d.length ? d.map(id => id + (cnt(id) > 2 ? ' ×' + (cnt(id) - 1) : '')).join(', ') : '—';
+}
+
+/* ---------- render ---------- */
+function render() {
+  const uniq = ids.filter(id => cnt(id) > 0).length;
+  const extra = ids.reduce((a, id) => a + Math.max(0, cnt(id) - 1), 0);
+  $('#stHave').textContent = uniq;
+  $('#stTotal').textContent = ids.length;
+  $('#stMiss').textContent = ids.length - uniq;
+  $('#stDup').textContent = extra;
+  $('#bar').style.width = (ids.length ? uniq / ids.length * 100 : 0) + '%';
+
+  const shown = ids.filter(id => flt === 'all' || (flt === 'miss' && !cnt(id)) || (flt === 'have' && cnt(id) > 0) || (flt === 'dup' && cnt(id) > 1));
+  $('#grid').innerHTML = shown.map(id => {
+    const n = cnt(id);
+    return `<button class="cell ${n ? 'have' : ''} ${n > 1 ? 'dup' : ''}" data-id="${id}">${id}${n > 1 ? `<i>×${n}</i>` : ''}</button>`;
+  }).join('') || '<div class="muted">Пусто</div>';
+
+  $('#txtMiss').textContent = listText('miss');
+  $('#txtDup').textContent = listText('dup');
+  $('#setCards').value = cfg.cards;
+  $('#setSt').value = cfg.stickers;
+  if (cur) { $('#shCnt').textContent = cnt(cur); }
+}
+
+/* ---------- card sheet ---------- */
+let cur = null;
+function openSheet(id) { cur = id; $('#shLabel').textContent = 'Карта ' + id; $('#shCnt').textContent = cnt(id); $('#sheet').hidden = false; haptic(); }
+function closeSheet() { cur = null; $('#sheet').hidden = true; }
+$('#grid').addEventListener('click', e => { const b = e.target.closest('.cell'); if (b) openSheet(b.dataset.id); });
+$('#shPlus').onclick = () => { setCount(cur, cnt(cur) + 1); haptic(); };
+$('#shMinus').onclick = () => { setCount(cur, cnt(cur) - 1); haptic(); };
+$('#shClose').onclick = closeSheet;
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+$('#chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  flt = b.dataset.f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+  render();
+});
+
+/* ---------- tabs ---------- */
+function tab(name) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === name));
+  ['album', 'scan', 'lists', 'set'].forEach(t => $('#v-' + t).hidden = t !== name);
+  if (name === 'scan') startCam(); else stopCam();
+  haptic();
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) tab(b.dataset.t); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopCam(); else if (!$('#v-scan').hidden) startCam(); });
+
+/* ---------- OCR ---------- */
+let worker = null, stream = null, loopT = null, busy = false, pending = false;
+let lastRead = null, lastAdded = null, tick = 0;
+const vid = $('#vid');
+const setStatus = t => $('#status').textContent = t;
+
+async function getWorker() {
+  if (worker) return worker;
+  if (!window.Tesseract) throw new Error('no-tesseract');
+  setStatus('Загружаю модуль распознавания…');
+  worker = await Tesseract.createWorker('eng');
+  await worker.setParameters({ tessedit_char_whitelist: '0123456789T', tessedit_pageseg_mode: '7' });
+  return worker;
+}
+async function ocr(canvas, psm) {
+  const w = await getWorker();
+  await w.setParameters({ tessedit_pageseg_mode: String(psm) });
+  const r = await w.recognize(canvas);
+  return r.data.text || '';
+}
+function binarize(src, flip) {
+  const w = src.width, h = src.height;
+  const ctx = src.getContext('2d');
+  const img = ctx.getImageData(0, 0, w, h), d = img.data;
+  const g = new Uint8Array(w * h), hist = new Array(256).fill(0);
+  for (let i = 0, j = 0; i < d.length; i += 4, j++) { const v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 | 0; g[j] = v; hist[v]++; }
+  // Otsu
+  const tot = g.length; let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+  let sB = 0, wB = 0, best = 0, thr = 128;
+  for (let t = 0; t < 256; t++) {
+    wB += hist[t]; if (!wB) continue; const wF = tot - wB; if (!wF) break;
+    sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF;
+    const v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; thr = t; }
+  }
+  let dark = 0; for (let j = 0; j < g.length; j++) if (g[j] <= thr) dark++;
+  let invert = dark > g.length / 2;      // text should be the minority
+  if (flip) invert = !invert;
+  const pad = 14, out = document.createElement('canvas');
+  out.width = w + pad * 2; out.height = h + pad * 2;
+  const oc = out.getContext('2d');
+  oc.fillStyle = '#fff'; oc.fillRect(0, 0, out.width, out.height);
+  const oi = oc.getImageData(pad, pad, w, h), od = oi.data;
+  for (let i = 0, j = 0; i < od.length; i += 4, j++) {
+    let isDark = g[j] <= thr; if (invert) isDark = !isDark;
+    const v = isDark ? 0 : 255; od[i] = od[i + 1] = od[i + 2] = v; od[i + 3] = 255;
+  }
+  oc.putImageData(oi, pad, pad);
+  return out;
+}
+function grabCrop() {
+  const vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return null;
+  const vr = vid.getBoundingClientRect(), fr = $('#frame').getBoundingClientRect();
+  const s = Math.max(vr.width / vw, vr.height / vh);
+  const ox = (vw * s - vr.width) / 2, oy = (vh * s - vr.height) / 2;
+  const sx = (fr.left - vr.left + ox) / s, sy = (fr.top - vr.top + oy) / s, sw = fr.width / s, sh = fr.height / s;
+  const k = Math.min(4, Math.max(0.6, 110 / sh));
+  const c = document.createElement('canvas');
+  c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+  c.getContext('2d').drawImage(vid, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+function parseText(text) {
+  const t = text.toUpperCase();
+  const found = [];
+  for (const m of t.matchAll(/T\s?(\d{1,2})|(\d{1,3})/g)) {
+    const id = m[1] ? 'T' + m[1].padStart(2, '0') : String(+m[2]);
+    if (ids.includes(id) && !found.includes(id)) found.push(id);
+  }
+  return found;
+}
+async function readFrame(manual) {
+  if (busy || !stream) return;
+  busy = true;
+  try {
+    const crop = grabCrop(); if (!crop) return;
+    const polarities = manual ? [false, true] : [tick++ % 2 === 1];
+    let found = [];
+    for (const flip of polarities) {
+      found = parseText(await ocr(binarize(crop, flip), 7));
+      if (found.length) break;
+    }
+    if (manual) {
+      if (found.length) { showResult(found[0], found); setStatus('Готово — проверь номер'); }
+      else setStatus('Не распознал. Ближе, ровнее, без бликов — или введи вручную.');
+      return;
+    }
+    const id = found[0];
+    if (!id) { lastRead = null; lastAdded = null; return; }
+    if (id === lastAdded) return;
+    if (id === lastRead) { lastRead = null; showResult(id, found); haptic(); }
+    else lastRead = id;
+  } catch (e) {
+    setStatus('Ошибка распознавания (нужен интернет для первой загрузки). Введи номер вручную.');
+  } finally { busy = false; }
+}
+async function loop() {
+  clearTimeout(loopT);
+  if (!stream) return;
+  if (!pending && $('#auto').checked && !busy) await readFrame(false);
+  loopT = setTimeout(loop, 450);
+}
+async function startCam() {
+  if (stream) return;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    vid.srcObject = stream; await vid.play();
+    setStatus('Наведи рамку на номер карты');
+    getWorker().catch(() => setStatus('Не загрузился модуль распознавания — доступен ручной ввод.'));
+    loop();
+  } catch (e) {
+    stream = null;
+    setStatus('Нет доступа к камере. Нажми «Фото» или введи номер вручную.');
+  }
+}
+function stopCam() {
+  clearTimeout(loopT);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; vid.srcObject = null;
+}
+$('#shot').onclick = () => { if (stream) { setStatus('Распознаю…'); readFrame(true); } else toast('Камера недоступна — жми «Фото»'); };
+
+/* photo fallback: whole image, sparse-text mode */
+$('#photo').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  setStatus('Распознаю фото…');
+  try {
+    const bmp = await createImageBitmap(f);
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    let found = [];
+    for (const flip of [false, true]) {
+      found = parseText(await ocr(binarize(c, flip), 11));
+      if (found.length) break;
+    }
+    if (found.length) { showResult(found[0], found); setStatus('Готово — проверь номер'); }
+    else setStatus('На фото номер не нашёл. Сфотографируй ближе или введи вручную.');
+  } catch (err) { setStatus('Не получилось распознать фото. Введи номер вручную.'); }
+};
+
+/* ---------- result card ---------- */
+function updateRes() {
+  const id = normalize($('#resId').value);
+  $('#resOk').disabled = !id;
+  if (!id) { $('#resMsg').textContent = 'Нет такого номера в коллекции'; return; }
+  const n = cnt(id);
+  $('#resMsg').textContent = n === 0 ? '🆕 Этой карты ещё нет' : `🔁 Уже есть ×${n} — станет дублем`;
+}
+function showResult(id, cands) {
+  pending = true;
+  $('#resId').value = id;
+  $('#resCands').innerHTML = (cands && cands.length > 1) ? cands.map(c => `<button class="chip" data-c="${c}">${c}</button>`).join('') : '';
+  $('#result').hidden = false; updateRes();
+}
+function hideResult() { pending = false; $('#result').hidden = true; }
+$('#resId').addEventListener('input', updateRes);
+$('#resCands').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { $('#resId').value = b.dataset.c; updateRes(); } });
+$('#resOk').onclick = () => {
+  const id = normalize($('#resId').value); if (!id) return;
+  const n = cnt(id) + 1; setCount(id, n);
+  lastAdded = id; lastRead = null;
+  toast(n === 1 ? `✅ ${id} добавлена` : `🔁 ${id}: дубль, теперь ×${n}`);
+  haptic('ok'); hideResult();
+};
+$('#resNo').onclick = () => { lastAdded = $('#resId').value ? normalize($('#resId').value) : null; hideResult(); };
+function manualAdd() { const id = normalize($('#manual').value); if (!id) { toast('Нет такого номера'); return; } $('#manual').value = ''; showResult(id, [id]); }
+$('#manualBtn').onclick = manualAdd;
+$('#manual').addEventListener('keydown', e => { if (e.key === 'Enter') manualAdd(); });
+
+/* ---------- lists / share ---------- */
+function fullText(kind) { return (kind === 'miss' ? '🃏 Мне нужны: ' : '🔁 Могу обменять: ') + listText(kind); }
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]'), s = e.target.closest('[data-share]');
+  if (c) {
+    const t = fullText(c.dataset.copy);
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Скопировано')).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); toast('Скопировано'); } catch (x) {} ta.remove();
+    });
+  }
+  if (s) {
+    const t = fullText(s.dataset.share);
+    const u = 'https://t.me/share/url?url=' + encodeURIComponent('Коллекция карт DC') + '&text=' + encodeURIComponent(t);
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(u); else window.open(u, '_blank');
+  }
+});
+
+/* ---------- settings ---------- */
+$('#setSave').onclick = () => {
+  const c = +$('#setCards').value, st = +$('#setSt').value;
+  if (!(c >= 1 && c <= 999 && st >= 0 && st <= 99)) { toast('Карт 1–999, стикеров 0–99'); return; }
+  cfg = { cards: c, stickers: st }; buildIds(); save(); render(); toast('Сохранено');
+};
+$('#bkExport').onclick = () => { $('#backup').value = encode(); $('#backup').select(); };
+$('#bkImport').onclick = () => {
+  if (decode($('#backup').value.trim())) { save(); render(); toast('Альбом загружен'); } else toast('Неверный код');
+};
+$('#reset').onclick = () => {
+  const go = () => { have = {}; save(); render(); toast('Альбом очищен'); };
+  if (tg && tg.showConfirm) tg.showConfirm('Удалить все пометки в альбоме?', ok => ok && go()); else if (confirm('Удалить все пометки?')) go();
+};
+
+/* ---------- init ---------- */
+(async function () { await load(); render(); })();
+</script>
+</body>
+</html>
