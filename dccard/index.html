@@ -46,6 +46,8 @@ section[hidden]{display:none}
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .tile img.ls{object-fit:contain;background:#0d0d10}
 .tile.miss{background:var(--fill);box-shadow:none}
+.tile.ghost img{filter:grayscale(1);opacity:.26}
+.tile.ghost .pill{display:block}
 .tile .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;letter-spacing:-1px;color:var(--sub);opacity:.55}
 .tile.noimg.have{background:linear-gradient(160deg,#3a7bff,#6a4dff)}
 .tile.noimg.have .big{color:#fff;opacity:.95}
@@ -77,11 +79,9 @@ textarea{min-height:90px;font-size:13px;font-family:ui-monospace,Menlo,monospace
 /* scan */
 .cam{position:relative;border-radius:22px;overflow:hidden;background:#000;height:52vh;min-height:300px}
 .cam video{width:100%;height:100%;object-fit:cover}
-#frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2.5px solid rgba(255,255,255,.95);border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.5)}
-#numbox{position:absolute;right:3%;bottom:3%;width:44%;height:19%;border:2px dashed #ffd60a;border-radius:8px}
-#numbox span{position:absolute;top:-18px;right:2px;font-size:11px;color:#ffd60a;font-weight:700}
+#ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .camhint{position:absolute;left:0;right:0;top:10px;text-align:center;color:#fff;font-size:12px;opacity:.85}
-.ctl{display:flex;align-items:center;justify-content:space-around;margin:14px 0 4px}
+.ctl{display:flex;align-items:center;justify-content:center;gap:64px;margin:14px 0 4px}
 .rb{width:50px;height:50px;border-radius:50%;background:var(--fill);border:0;color:var(--tx);display:flex;align-items:center;justify-content:center}
 .rb svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .shutter{width:72px;height:72px;border-radius:50%;border:4px solid var(--tx);background:none;padding:4px}
@@ -139,8 +139,8 @@ nav svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.8;st
     <section id="v-scan" hidden>
       <div class="cam" id="cam">
         <video id="vid" playsinline muted autoplay></video>
-        <div id="frame"><div id="numbox"><span>№</span></div></div>
-        <div class="camhint">Карта в рамку · номер в жёлтый прямоугольник</div>
+        <canvas id="ov"></canvas>
+        <div class="camhint">Покажи карту целиком — карту и номер найду сам</div>
       </div>
       <div class="ctl">
         <label class="rb" aria-label="Фото из камеры">
@@ -148,7 +148,6 @@ nav svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.8;st
           <input id="photo" type="file" accept="image/*" capture="environment" hidden>
         </label>
         <button class="shutter" id="shot" aria-label="Распознать"><i></i></button>
-        <button class="rb" id="rot" aria-label="Повернуть рамку"><svg viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="2.5" id="rotRect"/><path d="M20 7.5a8.5 8.5 0 0 0-3-3.5M4 16.5a8.5 8.5 0 0 0 3 3.5" opacity=".0"/></svg></button>
       </div>
       <div id="status" class="muted" style="text-align:center"></div>
       <div class="group" style="padding:8px 16px"><label class="switch"><span>Авто-режим</span><input type="checkbox" id="auto" checked></label></div>
@@ -225,7 +224,9 @@ try { tg && tg.onEvent && tg.onEvent('themeChanged', applyTheme); } catch (e) {}
 const UNIQUE = new Set(['9','14','17','22','25','30','33','38','44','46','56','58','65','68','69','73','75','79','84','88','91','97','98','101','103','106','115','139','155','160','164','183']);
 let cfg = { cards: 187, stickers: 12 };
 let have = {};
-let imgs = {};            // id -> {src, vec, hex, ori}
+let imgs = {};            // scanned by you: id -> {src, vec, hex, ori}
+let covers = {};          // bundled covers: id -> {src, ori}
+let refs = {};            // fingerprints of bundled covers: id -> {vec, ori}
 let ids = [];
 let flt = 'all';
 let popId = null;
@@ -372,15 +373,35 @@ async function loadImages() {
     } catch (e) {}
   }
 }
+async function loadCovers() {
+  try {
+    const r = await fetch('cards/index.json'); if (!r.ok) return;
+    const m = await r.json();
+    for (const id in m) covers[id] = { src: 'cards/' + id + '.jpg', ori: m[id] };
+    render();
+    for (const id in covers) {           // reference fingerprints: these cards are recognised by picture from day one
+      const im = new Image();
+      im.onload = () => {
+        try {
+          const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+          c.getContext('2d').drawImage(im, 0, 0);
+          refs[id] = { vec: fpDecode(fpEncode(computeFp(c, covers[id].ori))), ori: covers[id].ori };
+        } catch (e) {}
+      };
+      im.src = covers[id].src;
+    }
+  } catch (e) {}
+}
 function matchImage(card, o) {
   const fp = computeFp(card, o);
   let best = null, b = -1, second = -1;
-  for (const id in imgs) {
-    const it = imgs[id]; if (it.ori !== o) continue;
+  const all = Object.assign({}, refs, imgs);
+  for (const id in all) {
+    const it = all[id]; if (it.ori !== o) continue;
     const s = cosine(fp, it.vec);
     if (s > b) { second = b; b = s; best = id; } else if (s > second) second = s;
   }
-  return best && b >= .9 && (b - second) >= .04 ? { id: best, score: b } : null;
+  return best && b >= .55 && (b - second) >= .25 ? { id: best, score: b } : null;
 }
 
 /* ---------- helpers ---------- */
@@ -421,10 +442,11 @@ function render() {
 
   const shown = ids.filter(id => flt === 'all' || (flt === 'miss' && !cnt(id)) || (flt === 'have' && cnt(id) > 0) || (flt === 'dup' && cnt(id) > 1));
   $('#grid').innerHTML = shown.map(id => {
-    const n = cnt(id), im = imgs[id], hasImg = n > 0 && im && im.src;
-    const cls = `tile ${n ? 'have' : 'miss'} ${hasImg ? '' : 'noimg'} ${popId === id ? 'pop' : ''}`;
+    const n = cnt(id), cv = covers[id], im = imgs[id];
+    const src = cv ? cv.src : (n > 0 && im && im.src ? im.src : ''), lo = cv ? cv.ori : (im && im.ori);
+    const cls = `tile ${n ? 'have' : 'miss'} ${src ? '' : 'noimg'} ${cv && !n ? 'ghost' : ''} ${popId === id ? 'pop' : ''}`;
     return `<button class="${cls}" data-id="${id}">` +
-      (hasImg ? `<img src="${im.src}" class="${im.ori === 'l' ? 'ls' : ''}" alt="" decoding="async">` : `<div class="big">${id}</div>`) +
+      (src ? `<img src="${src}" class="${lo === 'l' ? 'ls' : ''}" alt="" decoding="async">` : `<div class="big">${id}</div>`) +
       (UNIQUE.has(id) ? '<span class="star">★</span>' : '') +
       `<span class="pill">${id}</span>` + (n > 1 ? `<i class="x">×${n}</i>` : '') + '</button>';
   }).join('') || '<div class="muted">Пусто</div>';
@@ -440,11 +462,11 @@ function render() {
 /* ---------- sheet ---------- */
 let cur = null;
 function updateSheet() {
-  const im = imgs[cur];
-  $('#shArt').innerHTML = im && im.src ? `<img src="${im.src}" alt="">` : `<div class="ph">${cur}</div>`;
+  const im = imgs[cur], cv = covers[cur], src = cv ? cv.src : (im && im.src);
+  $('#shArt').innerHTML = src ? `<img src="${src}" alt="">` : `<div class="ph">${cur}</div>`;
   $('#shTitle').textContent = 'Карта ' + cur + (UNIQUE.has(cur) ? ' ★' : '');
   $('#shCnt').textContent = cnt(cur);
-  $('#shDelImg').hidden = !im;
+  $('#shDelImg').hidden = !im || !!cv;
 }
 function openSheet(id) { cur = id; updateSheet(); $('#sheet').classList.add('on'); haptic(); }
 function closeSheet() { cur = null; $('#sheet').classList.remove('on'); }
@@ -471,32 +493,38 @@ function tab(name) {
   TABS.forEach(t => $('#v-' + t).hidden = t !== name);
   $('#title').textContent = TITLES[name];
   $('main').scrollTop = 0;
-  if (name === 'scan') { layoutFrame(); startCam(); } else stopCam();
+  if (name === 'scan') { layoutOv(); startCam(); } else stopCam();
   haptic();
 }
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) tab(b.dataset.t); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopCam(); else if (!$('#v-scan').hidden) startCam(); });
-window.addEventListener('resize', () => { if (!$('#v-scan').hidden) layoutFrame(); });
+window.addEventListener('resize', () => { if (!$('#v-scan').hidden) layoutOv(); });
 
 /* ---------- OCR + scan ---------- */
 let worker = null, stream = null, loopT = null, busy = false, pending = false;
 let lastRead = null, lastAdded = null, tick = 0, imgId = null, imgStreak = 0;
-let ori = 'p', resCard = null, resSrc = '';
+let resCard = null, resSrc = '', resOri = 'p';
 const vid = $('#vid');
 const setStatus = t => $('#status').textContent = t;
 
-function layoutFrame() {
-  const cam = $('#cam'), f = $('#frame'), W = cam.clientWidth, H = cam.clientHeight; if (!W) return;
-  let w, h;
-  if (ori === 'p') { h = Math.min(H * .86, W * .9 / .75); w = h * .75; }
-  else { w = Math.min(W * .92, H * .86 / .75); h = w * .75; }
-  f.style.width = w + 'px'; f.style.height = h + 'px';
-  $('#rotRect').setAttribute('width', ori === 'p' ? 10 : 17);
-  $('#rotRect').setAttribute('height', ori === 'p' ? 17 : 10);
-  $('#rotRect').setAttribute('x', ori === 'p' ? 7 : 3.5);
-  $('#rotRect').setAttribute('y', ori === 'p' ? 3.5 : 7);
+function layoutOv() {
+  const cam = $('#cam'), ov = $('#ov');
+  ov.width = cam.clientWidth; ov.height = cam.clientHeight;
 }
-$('#rot').onclick = () => { ori = ori === 'p' ? 'l' : 'p'; imgId = null; imgStreak = 0; lastRead = null; layoutFrame(); haptic(); };
+function drawOverlay(det, label) {
+  const ov = $('#ov'), g = ov.getContext('2d');
+  g.clearRect(0, 0, ov.width, ov.height);
+  if (!det || !vid.videoWidth) return;
+  const vw = vid.videoWidth, vh = vid.videoHeight, k = Math.max(ov.width / vw, ov.height / vh);
+  const ox = (vw * k - ov.width) / 2, oy = (vh * k - ov.height) / 2;
+  const box = (r, col, lw) => {
+    g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+    if (g.roundRect) g.roundRect(r.x * k - ox, r.y * k - oy, r.w * k, r.h * k, 10); else g.rect(r.x * k - ox, r.y * k - oy, r.w * k, r.h * k);
+    g.stroke();
+  };
+  box(det, '#34c759', 3);
+  if (label) box(label, '#ffd60a', 2);
+}
 
 async function getWorker() {
   if (worker) return worker;
@@ -534,15 +562,187 @@ function binarize(src, flip) {
   }
   oc.putImageData(oi, pad, pad); return out;
 }
-function grabRegion(el, mode) {
-  const vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return null;
-  const vr = vid.getBoundingClientRect(), fr = el.getBoundingClientRect();
-  const s = Math.max(vr.width / vw, vr.height / vh);
-  const ox = (vw * s - vr.width) / 2, oy = (vh * s - vr.height) / 2;
-  const sx = (fr.left - vr.left + ox) / s, sy = (fr.top - vr.top + oy) / s, sw = fr.width / s, sh = fr.height / s;
-  const k = mode === 'num' ? Math.min(4, Math.max(.6, 110 / sh)) : Math.min(1, 320 / Math.max(sw, sh));
-  const c = document.createElement('canvas'); c.width = Math.max(8, Math.round(sw * k)); c.height = Math.max(8, Math.round(sh * k));
-  c.getContext('2d').drawImage(vid, sx, sy, sw, sh, 0, 0, c.width, c.height); return c;
+/* ---------- automatic card + number-label detection ---------- */
+let detC = null;
+const srcW = s => s.videoWidth || s.width, srcH = s => s.videoHeight || s.height;
+function components(mask, w, h) {
+  const seen = new Uint8Array(w * h), stack = new Int32Array(w * h), out = [];
+  for (let p0 = 0; p0 < w * h; p0++) {
+    if (!mask[p0] || seen[p0]) continue;
+    let sp = 0; stack[sp++] = p0; seen[p0] = 1;
+    let minx = w, miny = h, maxx = 0, maxy = 0, n = 0;
+    while (sp) {
+      const p = stack[--sp], x = p % w, y = (p / w) | 0; n++;
+      if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y;
+      if (x > 0 && mask[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; stack[sp++] = p - 1; }
+      if (x < w - 1 && mask[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; stack[sp++] = p + 1; }
+      if (y > 0 && mask[p - w] && !seen[p - w]) { seen[p - w] = 1; stack[sp++] = p - w; }
+      if (y < h - 1 && mask[p + w] && !seen[p + w]) { seen[p + w] = 1; stack[sp++] = p + w; }
+    }
+    out.push({ minx, miny, maxx, maxy, n });
+  }
+  return out;
+}
+function erode(m, w, h) {
+  const o = new Uint8Array(w * h);
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    let v = 1;
+    for (let dy = -1; dy <= 1 && v; dy++) for (let dx = -1; dx <= 1; dx++) if (!m[(y + dy) * w + x + dx]) { v = 0; break; }
+    o[y * w + x] = v;
+  }
+  return o;
+}
+function dilate(m, w, h) {
+  const o = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let v = 0;
+    for (let dy = -1; dy <= 1 && !v; dy++) {
+      const yy = y + dy; if (yy < 0 || yy >= h) continue;
+      for (let dx = -1; dx <= 1; dx++) { const xx = x + dx; if (xx < 0 || xx >= w) continue; if (m[yy * w + xx]) { v = 1; break; } }
+    }
+    o[y * w + x] = v;
+  }
+  return o;
+}
+/* the card is found by its blue frame; its shape gives the orientation (landscape / portrait) */
+function detectCard(src) {
+  const vw = srcW(src), vh = srcH(src); if (!vw) return null;
+  const sc = 220 / Math.max(vw, vh), w = Math.max(8, Math.round(vw * sc)), h = Math.max(8, Math.round(vh * sc));
+  detC = detC || document.createElement('canvas'); detC.width = w; detC.height = h;
+  const cx = detC.getContext('2d', { willReadFrequently: true }); cx.drawImage(src, 0, 0, w, h);
+  const d = cx.getImageData(0, 0, w, h).data;
+  let m = new Uint8Array(w * h);
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    if (b >= 85 && b - r >= 30 && b - g >= 22 && (b - Math.min(r, g)) / b >= .32) m[p] = 1;
+  }
+  const ok = ar => (ar >= .6 && ar <= .93) || (ar >= 1.07 && ar <= 1.67);   // cards are ~3:4 or 4:3
+  let best = null;
+  for (const mode of ['erode', 'plain', 'grow']) {   // eroding first cuts thin bridges to neighbouring blue cards
+    const mm = mode === 'erode' ? erode(m, w, h) : mode === 'grow' ? dilate(m, w, h) : m;
+    const e = mode === 'erode' ? 1 : mode === 'grow' ? -1 : 0;
+    for (const c of components(mm, w, h)) {
+      const bw = c.maxx - c.minx + 1, bh = c.maxy - c.miny + 1, area = bw * bh;
+      if (area < .05 * w * h || !ok(bw / bh)) continue;
+      if (c.n / area > .7) continue;           // solid blue blobs (sky art, mats) are not a frame
+      if (!best || area > best.area) best = { bw: bw + 2 * e, bh: bh + 2 * e, minx: c.minx - e, miny: c.miny - e, area };
+    }
+    if (best) break;
+  }
+  if (!best) return null;
+  const x = best.minx / sc, y = best.miny / sc, ww = best.bw / sc, hh = best.bh / sc;
+  return { x, y, w: ww, h: hh, ori: ww > hh * 1.05 ? 'l' : 'p' };
+}
+function cropRect(src, x, y, w, h, k) {
+  const W = srcW(src), H = srcH(src);
+  x = Math.max(0, x); y = Math.max(0, y); w = Math.min(W - x, w); h = Math.min(H - y, h);
+  const c = document.createElement('canvas'); c.width = Math.max(8, Math.round(w * k)); c.height = Math.max(8, Math.round(h * k));
+  const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(src, x, y, w, h, 0, 0, c.width, c.height); return c;
+}
+/* the number sits on a small black plaque with white digits near the bottom-right of the picture */
+function findLabels(cv) {
+  const w = cv.width, h = cv.height, d = cv.getContext('2d').getImageData(0, 0, w, h).data;
+  const res = [];
+  for (const light of [false, true]) {          // black plaque / white digits, or white plaque / dark digits
+    const mask = new Uint8Array(w * h);
+    for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+      if (light ? Math.min(d[i], d[i + 1], d[i + 2]) > 150 : Math.max(d[i], d[i + 1], d[i + 2]) < 70) mask[p] = 1;
+    }
+    for (const c of components(mask, w, h)) {
+      const bw = c.maxx - c.minx + 1, bh = c.maxy - c.miny + 1, ar = bw / bh;
+      if (ar < 1.4 || ar > 5.5 || bw < .05 * w || bw > .38 * w || bh < .02 * h || bh > .16 * h) continue;
+      const cx = (c.minx + bw / 2) / w, cy = (c.miny + bh / 2) / h;
+      if (cx < .45 || cy < .55) continue;        // plaque sits in the lower-right part
+      const fill = c.n / (bw * bh); if (fill < .4 || fill > .97) continue;
+      let other = 0;
+      for (let y = c.miny; y <= c.maxy; y++) for (let x = c.minx; x <= c.maxx; x++) {
+        const i = (y * w + x) * 4;
+        if (light ? Math.max(d[i], d[i + 1], d[i + 2]) < 100 : Math.min(d[i], d[i + 1], d[i + 2]) > 130) other++;
+      }
+      const bf = other / (bw * bh); if (bf < .03 || bf > .5) continue;
+      res.push({ x: c.minx, y: c.miny, w: bw, h: bh, s: (cx + cy) / 2 + (light ? 0 : .05) });
+    }
+  }
+  return res.sort((a, b) => b.s - a.s);
+}
+/* cleaned binary images for OCR: keep only glyph-sized ink, drop everything touching the border and big frames */
+function labelCC(mask, w, h) {
+  const lab = new Int32Array(w * h), stack = new Int32Array(w * h), comps = [];
+  for (let p0 = 0; p0 < w * h; p0++) {
+    if (!mask[p0] || lab[p0]) continue;
+    const id = comps.length + 1; let sp = 0; stack[sp++] = p0; lab[p0] = id;
+    let minx = w, miny = h, maxx = 0, maxy = 0, n = 0;
+    while (sp) {
+      const p = stack[--sp], x = p % w, y = (p / w) | 0; n++;
+      if (x < minx) minx = x; if (x > maxx) maxx = x; if (y < miny) miny = y; if (y > maxy) maxy = y;
+      if (x > 0 && mask[p - 1] && !lab[p - 1]) { lab[p - 1] = id; stack[sp++] = p - 1; }
+      if (x < w - 1 && mask[p + 1] && !lab[p + 1]) { lab[p + 1] = id; stack[sp++] = p + 1; }
+      if (y > 0 && mask[p - w] && !lab[p - w]) { lab[p - w] = id; stack[sp++] = p - w; }
+      if (y < h - 1 && mask[p + w] && !lab[p + w]) { lab[p + w] = id; stack[sp++] = p + w; }
+    }
+    comps.push({ minx, miny, maxx, maxy, n });
+  }
+  return { lab, comps };
+}
+function inkVariants(crop, minHfrac, maxWfrac) {
+  const w = crop.width, h = crop.height, d = crop.getContext('2d').getImageData(0, 0, w, h).data;
+  const gray = new Uint8Array(w * h), hist = new Array(256).fill(0);
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) { const v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 | 0; gray[p] = v; hist[v]++; }
+  let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
+  let sB = 0, wB = 0, best = 0, thr = 128;
+  for (let t = 0; t < 256; t++) {
+    wB += hist[t]; if (!wB) continue; const wF = w * h - wB; if (!wF) break;
+    sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF);
+    if (v > best) { best = v; thr = t; }
+  }
+  const out = [], pad = 24;
+  for (const darkInk of [false, true]) {
+    const ink = new Uint8Array(w * h);
+    for (let p = 0; p < w * h; p++) ink[p] = ((gray[p] <= thr) === darkInk) ? 1 : 0;
+    const { lab, comps } = labelCC(ink, w, h);
+    const o = document.createElement('canvas'); o.width = w + pad * 2; o.height = h + pad * 2;
+    const oc = o.getContext('2d'); oc.fillStyle = '#fff'; oc.fillRect(0, 0, o.width, o.height);
+    const oi = oc.getImageData(pad, pad, w, h), od = oi.data; let kept = 0;
+    for (let p = 0, i = 0; p < w * h; p++, i += 4) {
+      const c = lab[p] ? comps[lab[p] - 1] : null;
+      let on = !!c;
+      if (c) {
+        const cw = c.maxx - c.minx + 1, ch = c.maxy - c.miny + 1;
+        if (c.minx <= 0 || c.miny <= 0 || c.maxx >= w - 1 || c.maxy >= h - 1) on = false;   // touches border
+        else if (ch < minHfrac * h) on = false;                                               // too small for a digit
+        else if (cw > .6 * w && ch > .6 * h) on = false;                                      // frame / outline
+        else if (maxWfrac && cw > maxWfrac * w) on = false;                                   // plaque outline in a tight window
+      }
+      const v = on ? 0 : 255; if (on) kept++; od[i] = od[i + 1] = od[i + 2] = v; od[i + 3] = 255;
+    }
+    oc.putImageData(oi, pad, pad);
+    if (kept > 20) out.push(o);
+  }
+  return out;
+}
+/* one pass over a frame / photo: find card -> match picture -> find plaque -> read number */
+async function analyze(src, manual) {
+  const det = detectCard(src); if (!det) return null;
+  const card = cropRect(src, det.x, det.y, det.w, det.h, Math.min(1, 480 / Math.max(det.w, det.h)));
+  const im = matchImage(card, det.ori);
+  const sx = det.w / card.width, sy = det.h / card.height;
+  const fb = { x: card.width * .62, y: card.height * .79, w: card.width * .32, h: card.height * .16 };
+  let cands = findLabels(card);
+  cands = manual ? cands.slice(0, 3).concat([fb]) : (cands.length ? cands.slice(0, 1) : [fb]);
+  let found = [], label = null, first = null;
+  for (const c of cands) {
+    const pad = c === fb ? 0 : .1, mx = c.w * pad, my = c.h * pad * 1.4;
+    const rx = Math.max(0, c.x - mx), ry = Math.max(0, c.y - my);
+    const rw = Math.min(card.width - rx, c.w + 2 * mx), rh = Math.min(card.height - ry, c.h + 2 * my);
+    const R = { x: det.x + rx * sx, y: det.y + ry * sy, w: rw * sx, h: rh * sy };
+    if (!first) first = R;
+    const num = cropRect(src, R.x, R.y, R.w, R.h, Math.min(4, Math.max(.6, 110 / R.h)));
+    for (const v of inkVariants(num, c === fb ? .2 : .3, c === fb ? .55 : 0)) {
+      found = parseText(await ocr(v, 7)); if (found.length) break;
+    }
+    if (found.length) { label = R; break; }
+  }
+  return { det, card, im, found, label: label || first };
 }
 function parseText(text) {
   const found = [];
@@ -555,28 +755,30 @@ function parseText(text) {
 async function readFrame(manual) {
   if (busy || !stream) return; busy = true;
   try {
-    const card = grabRegion($('#frame'), 'card'), num = grabRegion($('#numbox'), 'num');
-    if (!card || !num) return;
-    const im = matchImage(card, ori);
-    let found = [];
-    for (const flip of (manual ? [false, true] : [tick++ % 2 === 1])) {
-      found = parseText(await ocr(binarize(num, flip), 7)); if (found.length) break;
+    const r = await analyze(vid, manual);
+    drawOverlay(r && r.det, r && r.label);
+    if (!r) {
+      if (manual) setStatus('Не вижу карту. Покажи её целиком — синяя рамка должна быть видна.');
+      if (!pending) setStatus('Покажи карту целиком — синяя рамка должна быть видна');
+      lastRead = null; lastAdded = null; imgId = null; imgStreak = 0; return;
     }
+    const { det, card, im, found } = r;
     if (manual) {
       const c = [...found]; if (im && !c.includes(im.id)) c.push(im.id);
-      if (c.length) { showResult(c[0], c, card, found.length ? 'по номеру' : 'по картинке карты'); setStatus('Проверь номер и подтверди'); }
-      else setStatus('Не распознал. Ближе, ровнее, без бликов — или введи номер вручную.');
+      if (c.length) { showResult(c[0], c, card, found.length ? 'по номеру' : 'по картинке карты', det.ori); setStatus('Проверь номер и подтверди'); }
+      else setStatus('Карту вижу, номер не прочитал. Ближе, без бликов — или введи вручную.');
       return;
     }
     const o = found[0] || null;
-    if (!o && !im) { lastRead = null; lastAdded = null; imgId = null; imgStreak = 0; return; }
+    if (!pending) setStatus(o ? 'Номер найден…' : (det.w / vid.videoWidth < .3 ? 'Поднеси карту ближе — пусть займёт около половины кадра' : 'Держи ровно, без бликов…'));
     if (im && im.id === imgId) imgStreak++; else { imgId = im ? im.id : null; imgStreak = im ? 1 : 0; }
+    if (!o && !im) { lastRead = null; lastAdded = null; return; }
     const pick = o || (imgStreak >= 3 ? imgId : null);
     if (!pick || pick === lastAdded) return;
     if (o) {
-      if (o === lastRead) { lastRead = null; showResult(o, [o].concat(im && im.id !== o ? [im.id] : []), card, 'по номеру'); haptic(); }
+      if (o === lastRead) { lastRead = null; showResult(o, [o].concat(im && im.id !== o ? [im.id] : []), card, 'по номеру', det.ori); haptic(); }
       else lastRead = o;
-    } else { showResult(pick, [pick], card, 'по картинке карты'); haptic(); }
+    } else { showResult(pick, [pick], card, 'по картинке карты', det.ori); haptic(); }
   } catch (e) {
     setStatus('Ошибка распознавания (нужен интернет при первом запуске). Введи номер вручную.');
   } finally { busy = false; }
@@ -589,9 +791,9 @@ async function loop() {
 async function startCam() {
   if (stream) return;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false });
     vid.srcObject = stream; await vid.play();
-    setStatus(`Наведи камеру на карту · в памяти карт: ${Object.keys(imgs).length}`);
+    setStatus(`Покажи карту целиком · в памяти карт: ${Object.keys(Object.assign({}, refs, imgs)).length}`);
     getWorker().catch(() => setStatus('Не загрузился модуль распознавания — доступен ручной ввод.'));
     loop();
   } catch (e) { stream = null; setStatus('Нет доступа к камере. Нажми значок фото слева или введи номер вручную.'); }
@@ -600,6 +802,7 @@ function stopCam() {
   clearTimeout(loopT);
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = null; vid.srcObject = null;
+  try { const ov = $('#ov'); ov.getContext('2d').clearRect(0, 0, ov.width, ov.height); } catch (e) {}
 }
 $('#shot').onclick = () => { if (stream) { setStatus('Распознаю…'); readFrame(true); } else toast('Камера недоступна'); };
 
@@ -610,10 +813,16 @@ $('#photo').onchange = async e => {
     const bmp = await createImageBitmap(f), k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
     const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
     c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-    let found = [];
+    const r = await analyze(c, true);
+    if (r && (r.found.length || r.im)) {
+      const cs = [...r.found]; if (r.im && !cs.includes(r.im.id)) cs.push(r.im.id);
+      showResult(cs[0], cs, r.card, r.found.length ? 'по номеру на фото' : 'по картинке карты', r.det.ori);
+      setStatus('Проверь номер и подтверди'); return;
+    }
+    let found = [];                                   // fallback: sparse OCR over the whole photo
     for (const flip of [false, true]) { found = parseText(await ocr(binarize(c, flip), 11)); if (found.length) break; }
-    if (found.length) { showResult(found[0], found, null, 'по номеру на фото'); setStatus('Проверь номер и подтверди'); }
-    else setStatus('На фото номер не нашёл. Сфотографируй ближе или введи вручную.');
+    if (found.length) { showResult(found[0], found, null, 'по номеру на фото', 'p'); setStatus('Проверь номер и подтверди'); }
+    else setStatus('На фото не нашёл ни карту, ни номер. Сфотографируй карту целиком, ближе.');
   } catch (err) { setStatus('Не получилось распознать фото. Введи номер вручную.'); }
 };
 
@@ -625,8 +834,8 @@ function updateRes() {
   const n = cnt(id);
   $('#resMsg').textContent = n === 0 ? '🆕 Этой карты ещё нет' : `🔁 Уже есть ×${n} — станет дублем`;
 }
-function showResult(id, cands, card, src) {
-  pending = true; resCard = card; resSrc = src || '';
+function showResult(id, cands, card, src, o) {
+  pending = true; resCard = card; resSrc = src || ''; resOri = o || 'p';
   $('#resId').value = id;
   const ri = $('#resImg');
   if (card) ri.src = thumb(card, 120, .7); else ri.removeAttribute('src');
@@ -641,14 +850,14 @@ $('#resCands').addEventListener('click', e => { const b = e.target.closest('[dat
 $('#resOk').onclick = () => {
   const id = normalize($('#resId').value); if (!id) return;
   const n = cnt(id) + 1;
-  if (resCard && !imgs[id]) saveImage(id, resCard, ori);
+  if (resCard && !imgs[id] && !covers[id]) saveImage(id, resCard, resOri);
   setCount(id, n);
   lastAdded = id; lastRead = null; imgStreak = 0;
   toast(n === 1 ? `✅ ${id} добавлена` : `🔁 ${id}: дубль, теперь ×${n}`);
   haptic('ok'); hideResult();
 };
 $('#resNo').onclick = () => { lastAdded = normalize($('#resId').value); hideResult(); };
-function manualAdd() { const id = normalize($('#manual').value); if (!id) { toast('Нет такого номера'); return; } $('#manual').value = ''; showResult(id, [id], null, ''); }
+function manualAdd() { const id = normalize($('#manual').value); if (!id) { toast('Нет такого номера'); return; } $('#manual').value = ''; showResult(id, [id], null, '', 'p'); }
 $('#manualBtn').onclick = manualAdd;
 $('#manual').addEventListener('keydown', e => { if (e.key === 'Enter') manualAdd(); });
 
@@ -683,7 +892,7 @@ $('#reset').onclick = () => {
 };
 
 /* ---------- init ---------- */
-(async function () { await loadCounts(); render(); await loadImages(); render(); })();
+(async function () { await loadCounts(); render(); await loadImages(); render(); loadCovers(); })();
 </script>
 </body>
 </html>
