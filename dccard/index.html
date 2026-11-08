@@ -3,162 +3,232 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Альбом карт</title>
+<title>DC · Альбом</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 :root{
-  --bg:var(--tg-theme-bg-color,#fff);
-  --tx:var(--tg-theme-text-color,#111);
-  --hint:var(--tg-theme-hint-color,#8a8a8e);
-  --btn:var(--tg-theme-button-color,#2481cc);
-  --btx:var(--tg-theme-button-text-color,#fff);
-  --sec:var(--tg-theme-secondary-bg-color,#f0f0f3);
-  --gold:#f5b301;
-  --ok:#2fb344;
+  --bg:#f2f2f7; --card:#fff; --tx:#000; --sub:rgba(60,60,67,.6); --line:rgba(60,60,67,.14);
+  --fill:rgba(120,120,128,.12); --blue:#007aff; --gold:#ff9f0a; --green:#34c759; --red:#ff3b30;
+  --glass:rgba(250,250,252,.68); --glass-line:rgba(0,0,0,.08); --ind:rgba(0,0,0,.08);
+}
+[data-theme=dark]{
+  --bg:#000; --card:#1c1c1e; --tx:#fff; --sub:rgba(235,235,245,.6); --line:rgba(84,84,88,.55);
+  --fill:rgba(120,120,128,.24); --blue:#0a84ff; --gold:#ff9f0a; --green:#30d158; --red:#ff453a;
+  --glass:rgba(40,40,44,.62); --glass-line:rgba(255,255,255,.12); --ind:rgba(255,255,255,.16);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:16px/1.35 -apple-system,system-ui,Roboto,sans-serif}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:16px/1.35 -apple-system,"SF Pro Text",system-ui,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 #app{display:flex;flex-direction:column;height:100dvh}
-header{padding:10px 14px 8px;background:var(--bg)}
-.stats{display:flex;justify-content:space-between;font-size:14px;color:var(--hint)}
-.stats b{color:var(--tx)}
-.bar{height:6px;border-radius:3px;background:var(--sec);margin-top:6px;overflow:hidden}
-.bar>div{height:100%;background:var(--btn);width:0;transition:width .3s}
-main{flex:1;overflow-y:auto;padding:4px 12px 16px;-webkit-overflow-scrolling:touch}
+header{display:flex;align-items:flex-end;justify-content:space-between;padding:14px 20px 6px}
+h1{margin:0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.6px}
+.sub{color:var(--sub);font-size:14px;margin-top:2px;min-height:19px}
+.ring{position:relative;width:48px;height:48px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4.5}
+.ring .bg{stroke:var(--fill)}
+.ring .fg{stroke:var(--blue);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+main{flex:1;overflow-y:auto;padding:6px 16px 120px;-webkit-overflow-scrolling:touch}
 section[hidden]{display:none}
-nav{display:flex;background:var(--sec);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;color:var(--hint);padding:9px 0 7px;font-size:11px}
-nav button span{display:block;font-size:20px;line-height:1.2}
-nav button.on{color:var(--btn)}
-.chips{display:flex;gap:6px;margin:6px 0 10px;overflow-x:auto}
-.chip{border:0;border-radius:16px;padding:6px 12px;background:var(--sec);color:var(--tx);font-size:14px;white-space:nowrap}
-.chip.on{background:var(--btn);color:var(--btx)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
-.cell{position:relative;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--hint);background:none;color:var(--hint);font-size:15px;font-weight:600;padding:0}
-.cell.have{border:1.5px solid var(--btn);background:var(--btn);color:var(--btx)}
-.cell.dup{border-color:var(--gold);background:var(--btn)}
-.cell i{position:absolute;top:-5px;right:-4px;background:var(--gold);color:#000;border-radius:9px;font-size:11px;font-style:normal;padding:1px 5px;font-weight:700}
-.cam{position:relative;border-radius:14px;overflow:hidden;background:#000;height:42vh;min-height:230px}
+
+/* segmented */
+.seg{display:flex;background:var(--fill);border-radius:10px;padding:2px;margin:6px 0 14px}
+.seg button{flex:1;border:0;background:none;color:var(--tx);font-size:13px;font-weight:500;padding:7px 0;border-radius:8px;transition:.2s}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18);font-weight:600}
+
+/* gallery */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(min-width:520px){.grid{grid-template-columns:repeat(4,1fr)}}
+.tile{position:relative;border:0;padding:0;border-radius:14px;background:var(--card);aspect-ratio:3/4;overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.1),0 8px 18px rgba(0,0,0,.08);transition:transform .18s cubic-bezier(.3,1.4,.5,1);color:var(--tx)}
+.tile:active{transform:scale(.95)}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile img.ls{object-fit:contain;background:#0d0d10}
+.tile.miss{background:var(--fill);box-shadow:none}
+.tile .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;letter-spacing:-1px;color:var(--sub);opacity:.55}
+.tile.noimg.have{background:linear-gradient(160deg,#3a7bff,#6a4dff)}
+.tile.noimg.have .big{color:#fff;opacity:.95}
+.pill{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px}
+.tile.miss .pill{display:none}
+.x{position:absolute;top:6px;right:6px;background:var(--gold);color:#000;border-radius:10px;font-size:11px;font-style:normal;padding:1px 7px;font-weight:700}
+.star{position:absolute;top:6px;left:7px;color:var(--gold);font-size:13px;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tile.pop{animation:pop .45s cubic-bezier(.3,1.5,.5,1)}
+@keyframes pop{0%{transform:scale(.8)}100%{transform:scale(1)}}
+
+/* controls */
+.btn{border:0;border-radius:14px;padding:13px 16px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;text-align:center;flex:1}
+.btn.sec{background:var(--fill);color:var(--tx)}
+.btn.red{color:var(--red)}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px;margin:10px 0;align-items:center}
+input[type=text],input[type=number],input:not([type]),textarea{width:100%;border:0;background:var(--fill);color:var(--tx);border-radius:12px;padding:12px;font-size:16px;outline:none}
+textarea{min-height:90px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.group{background:var(--card);border-radius:16px;padding:14px 16px;margin:10px 0}
+.group h3{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.4px}
+.group pre{white-space:pre-wrap;word-break:break-word;font:15px/1.5 -apple-system,system-ui,sans-serif;margin:0 0 6px}
+.muted{color:var(--sub);font-size:13px;margin:6px 2px}
+.switch{display:flex;align-items:center;justify-content:space-between;padding:4px 2px;font-size:16px}
+.switch input{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:16px;background:var(--fill);position:relative;transition:.25s;flex:none}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:.25s}
+.switch input:checked{background:var(--green)}
+.switch input:checked::after{transform:translateX(20px)}
+
+/* scan */
+.cam{position:relative;border-radius:22px;overflow:hidden;background:#000;height:52vh;min-height:300px}
 .cam video{width:100%;height:100%;object-fit:cover}
-#frame{position:absolute;left:50%;top:50%;width:46%;height:16%;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.45)}
-.camhint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#fff;font-size:12px;opacity:.9}
-.muted{color:var(--hint);font-size:14px;margin:8px 0}
-.row{display:flex;gap:8px;margin:8px 0;align-items:center}
-.btn{flex:1;border:0;border-radius:12px;padding:12px;background:var(--btn);color:var(--btx);font-size:16px;text-align:center;font-weight:600}
-.btn.sec{background:var(--sec);color:var(--tx)}
-input[type=text],input[type=number],input:not([type]),textarea{width:100%;border:1px solid var(--sec);background:var(--sec);color:var(--tx);border-radius:10px;padding:11px;font-size:16px}
-textarea{min-height:90px;font-size:13px}
-.card{background:var(--sec);border-radius:14px;padding:14px;margin:10px 0}
-.big input{font-size:34px;font-weight:700;text-align:center;background:var(--bg)}
-.msg{text-align:center;margin:8px 0;font-size:15px}
-.cands{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-pre{white-space:pre-wrap;word-break:break-word;font:14px/1.45 ui-monospace,Menlo,monospace;margin:6px 0}
-h3{margin:14px 0 4px;font-size:16px}
-#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:10}
-#sheet[hidden]{display:none}
-#sheet>div{width:100%;background:var(--bg);border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));text-align:center}
-.step{display:flex;justify-content:center;align-items:center;gap:22px;margin:14px 0}
-.step button{width:56px;height:56px;border-radius:50%;border:0;background:var(--sec);color:var(--tx);font-size:28px}
-.step b{font-size:40px;min-width:60px}
-#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;max-width:90%;text-align:center}
-#toast.on{opacity:1}
+#frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:2.5px solid rgba(255,255,255,.95);border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.5)}
+#numbox{position:absolute;right:3%;bottom:3%;width:44%;height:19%;border:2px dashed #ffd60a;border-radius:8px}
+#numbox span{position:absolute;top:-18px;right:2px;font-size:11px;color:#ffd60a;font-weight:700}
+.camhint{position:absolute;left:0;right:0;top:10px;text-align:center;color:#fff;font-size:12px;opacity:.85}
+.ctl{display:flex;align-items:center;justify-content:space-around;margin:14px 0 4px}
+.rb{width:50px;height:50px;border-radius:50%;background:var(--fill);border:0;color:var(--tx);display:flex;align-items:center;justify-content:center}
+.rb svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shutter{width:72px;height:72px;border-radius:50%;border:4px solid var(--tx);background:none;padding:4px}
+.shutter i{display:block;width:100%;height:100%;border-radius:50%;background:var(--tx);transition:transform .12s}
+.shutter:active i{transform:scale(.88)}
+#result .rr{display:flex;gap:12px;align-items:center}
+#resImg{width:78px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+#resImg[src=""],#resImg:not([src]){display:none}
+#resId{font-size:34px;font-weight:700;text-align:center}
+.msg{text-align:center;margin:8px 0 2px;font-size:15px}
+.src{text-align:center;color:var(--sub);font-size:12px}
+.cands{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.cands button{border:0;border-radius:14px;padding:5px 12px;background:var(--fill);color:var(--tx);font-size:14px}
+
+/* floating glass tab bar */
+nav{position:fixed;left:18px;right:18px;bottom:calc(14px + env(safe-area-inset-bottom));height:64px;border-radius:32px;display:flex;padding:5px;z-index:5;
+  background:var(--glass);-webkit-backdrop-filter:blur(26px) saturate(190%);backdrop-filter:blur(26px) saturate(190%);
+  border:1px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.28)}
+#ind{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/4);border-radius:27px;background:var(--ind);transition:transform .35s cubic-bezier(.3,1.2,.4,1)}
+nav button{position:relative;flex:1;border:0;background:none;color:var(--sub);display:flex;align-items:center;justify-content:center;transition:color .2s}
+nav button.on{color:var(--tx)}
+nav svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* sheet */
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:10;opacity:0;pointer-events:none;transition:opacity .25s}
+#sheet.on{opacity:1;pointer-events:auto}
+#sheet>div{width:100%;max-height:92dvh;overflow:auto;background:var(--bg);border-radius:24px 24px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom));text-align:center;transform:translateY(100%);transition:transform .35s cubic-bezier(.3,1,.4,1)}
+#sheet.on>div{transform:none}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+#shArt{height:42vh;display:flex;align-items:center;justify-content:center}
+#shArt img{max-width:100%;max-height:100%;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+#shArt .ph{width:50%;aspect-ratio:3/4;border-radius:16px;background:var(--fill);display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:var(--sub)}
+#shTitle{font-size:22px;font-weight:700;margin:12px 0 0}
+.step{display:flex;justify-content:center;align-items:center;gap:26px;margin:10px 0 14px}
+.step button{width:54px;height:54px;border-radius:50%;border:0;background:var(--fill);color:var(--tx);font-size:28px}
+.step b{font-size:42px;min-width:60px}
+#toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%) translateY(10px);background:var(--glass);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--glass-line);color:var(--tx);padding:10px 18px;border-radius:22px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:90%;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <div class="stats"><span>Собрано <b id="stHave">0</b>/<b id="stTotal">0</b></span><span>Нет: <b id="stMiss">0</b></span><span>Лишних: <b id="stDup">0</b></span></div>
-    <div class="bar"><div id="bar"></div></div>
+    <div><h1 id="title">Галерея</h1><div class="sub" id="sub"></div></div>
+    <div class="ring"><svg width="48" height="48" viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="20"/><circle class="fg" id="ringFg" cx="24" cy="24" r="20" stroke-dasharray="125.66" stroke-dashoffset="125.66"/></svg><b id="ringTx">0%</b></div>
   </header>
   <main>
     <section id="v-album">
-      <div class="chips" id="chips">
-        <button class="chip on" data-f="all">Все</button>
-        <button class="chip" data-f="miss">Нет</button>
-        <button class="chip" data-f="have">Есть</button>
-        <button class="chip" data-f="dup">Дубли</button>
+      <div class="seg" id="chips">
+        <button class="on" data-f="all">Все</button><button data-f="miss">Нет</button><button data-f="have">Есть</button><button data-f="dup">Дубли</button>
       </div>
       <div class="grid" id="grid"></div>
     </section>
 
     <section id="v-scan" hidden>
-      <div class="cam">
+      <div class="cam" id="cam">
         <video id="vid" playsinline muted autoplay></video>
-        <div id="frame"></div>
-        <div class="camhint">Помести номер (в чёрной плашке) в рамку</div>
+        <div id="frame"><div id="numbox"><span>№</span></div></div>
+        <div class="camhint">Карта в рамку · номер в жёлтый прямоугольник</div>
       </div>
-      <div id="status" class="muted"></div>
+      <div class="ctl">
+        <label class="rb" aria-label="Фото из камеры">
+          <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+          <input id="photo" type="file" accept="image/*" capture="environment" hidden>
+        </label>
+        <button class="shutter" id="shot" aria-label="Распознать"><i></i></button>
+        <button class="rb" id="rot" aria-label="Повернуть рамку"><svg viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="2.5" id="rotRect"/><path d="M20 7.5a8.5 8.5 0 0 0-3-3.5M4 16.5a8.5 8.5 0 0 0 3 3.5" opacity=".0"/></svg></button>
+      </div>
+      <div id="status" class="muted" style="text-align:center"></div>
+      <div class="group" style="padding:8px 16px"><label class="switch"><span>Авто-режим</span><input type="checkbox" id="auto" checked></label></div>
       <div class="row">
-        <button class="btn" id="shot">📸 Распознать</button>
-        <label class="btn sec">🖼 Фото<input id="photo" type="file" accept="image/*" capture="environment" hidden></label>
+        <input id="manual" placeholder="Номер вручную: 177 или T05" autocomplete="off">
+        <button class="btn" id="manualBtn" style="flex:0 0 80px">OK</button>
       </div>
-      <label class="row" style="margin:4px 0"><input type="checkbox" id="auto" checked> Авто-режим (сам ловит номер)</label>
-      <div class="row">
-        <input id="manual" inputmode="text" placeholder="Номер вручную: 177 или T05" autocomplete="off">
-        <button class="btn" id="manualBtn" style="flex:0 0 70px">OK</button>
-      </div>
-      <div id="result" class="card" hidden>
-        <div class="big"><input id="resId" autocomplete="off"></div>
+      <div id="result" class="group" hidden>
+        <div class="rr"><img id="resImg" alt=""><input id="resId" autocomplete="off"></div>
         <div class="msg" id="resMsg"></div>
+        <div class="src" id="resSrc"></div>
         <div class="cands" id="resCands"></div>
-        <div class="row">
-          <button class="btn" id="resOk">＋1 в альбом</button>
-          <button class="btn sec" id="resNo">Отмена</button>
-        </div>
+        <div class="row"><button class="btn" id="resOk">＋1 в альбом</button><button class="btn sec" id="resNo">Отмена</button></div>
       </div>
     </section>
 
     <section id="v-lists" hidden>
-      <h3>Нужны</h3>
-      <pre id="txtMiss"></pre>
-      <div class="row"><button class="btn sec" data-copy="miss">Копировать</button><button class="btn" data-share="miss">Отправить</button></div>
-      <h3>Лишние (для обмена)</h3>
-      <pre id="txtDup"></pre>
-      <div class="row"><button class="btn sec" data-copy="dup">Копировать</button><button class="btn" data-share="dup">Отправить</button></div>
+      <div class="group"><h3>Нужны</h3><pre id="txtMiss"></pre>
+        <div class="row"><button class="btn sec" data-copy="miss">Копировать</button><button class="btn" data-share="miss">Отправить</button></div></div>
+      <div class="group"><h3>Лишние для обмена</h3><pre id="txtDup"></pre>
+        <div class="row"><button class="btn sec" data-copy="dup">Копировать</button><button class="btn" data-share="dup">Отправить</button></div></div>
     </section>
 
     <section id="v-set" hidden>
-      <h3>Размер коллекции</h3>
-      <div class="muted">Сколько карт всего (1…N) и сколько стикеров (T01…TNN)</div>
-      <div class="row"><input type="number" id="setCards" min="1" max="999" inputmode="numeric"><input type="number" id="setSt" min="0" max="99" inputmode="numeric"></div>
-      <div class="row"><button class="btn" id="setSave">Сохранить</button></div>
-      <h3>Резервная копия</h3>
-      <textarea id="backup" placeholder="Код альбома"></textarea>
-      <div class="row"><button class="btn sec" id="bkExport">Показать код</button><button class="btn sec" id="bkImport">Загрузить код</button></div>
-      <h3>Сброс</h3>
-      <div class="row"><button class="btn sec" id="reset" style="color:#e5484d">Очистить альбом</button></div>
-      <div class="muted">Альбом хранится в облаке Telegram отдельно для каждого пользователя.</div>
+      <div class="group"><h3>Размер коллекции</h3>
+        <div class="muted" style="margin-top:0">DC UNIVERSE INFINITE: номера 1–187 и фигурные T01–T12 (всего 199)</div>
+        <div class="row"><input type="number" id="setCards" min="1" max="999" inputmode="numeric"><input type="number" id="setSt" min="0" max="99" inputmode="numeric"></div>
+        <div class="row"><button class="btn" id="setSave">Сохранить</button></div></div>
+      <div class="group"><h3>Резервная копия</h3>
+        <textarea id="backup" placeholder="Код альбома (без картинок)"></textarea>
+        <div class="row"><button class="btn sec" id="bkExport">Показать код</button><button class="btn sec" id="bkImport">Загрузить код</button></div></div>
+      <div class="group"><h3>Сброс</h3>
+        <div class="row"><button class="btn sec red" id="reset">Очистить альбом</button></div></div>
+      <div class="muted">Альбом и картинки хранятся в облаке Telegram отдельно для каждого пользователя. ★ — номера, отмеченные как уникальные по данным ColleX (АТБ их редкость не подтверждал).</div>
     </section>
   </main>
+
   <nav id="tabs">
-    <button data-t="album" class="on"><span>📒</span>Альбом</button>
-    <button data-t="scan"><span>📷</span>Скан</button>
-    <button data-t="lists"><span>🔁</span>Обмен</button>
-    <button data-t="set"><span>⚙️</span>Настройки</button>
+    <i id="ind"></i>
+    <button data-t="album" class="on" aria-label="Галерея"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></button>
+    <button data-t="scan" aria-label="Скан"><svg viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="2.2"/></svg></button>
+    <button data-t="lists" aria-label="Обмен"><svg viewBox="0 0 24 24"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></button>
+    <button data-t="set" aria-label="Настройки"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button>
   </nav>
 </div>
 
-<div id="sheet" hidden><div>
-  <div class="muted" id="shLabel">Карта</div>
+<div id="sheet"><div>
+  <div class="grab"></div>
+  <div id="shArt"></div>
+  <div id="shTitle">Карта</div>
   <div class="step"><button id="shMinus">−</button><b id="shCnt">0</b><button id="shPlus">+</button></div>
-  <button class="btn sec" id="shClose" style="width:100%">Готово</button>
+  <div class="row"><button class="btn sec red" id="shDelImg" hidden>Удалить картинку</button><button class="btn" id="shClose">Готово</button></div>
 </div></div>
 <div id="toast"></div>
 
 <script>
 "use strict";
 const tg = window.Telegram && window.Telegram.WebApp;
-if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
 const $ = s => document.querySelector(s);
 const CS = tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9') ? tg.CloudStorage : null;
-const haptic = (k) => { try { tg && tg.HapticFeedback && (k==='ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred('light')); } catch(e){} };
+const haptic = k => { try { tg && tg.HapticFeedback && (k === 'ok' ? tg.HapticFeedback.notificationOccurred('success') : tg.HapticFeedback.impactOccurred('light')); } catch (e) {} };
+
+/* ---------- theme ---------- */
+function applyTheme() {
+  const dark = tg && tg.colorScheme ? tg.colorScheme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  try { tg && tg.setHeaderColor && tg.setHeaderColor(dark ? '#000000' : '#f2f2f7'); tg && tg.setBackgroundColor && tg.setBackgroundColor(dark ? '#000000' : '#f2f2f7'); } catch (e) {}
+}
+applyTheme();
+try { tg && tg.onEvent && tg.onEvent('themeChanged', applyTheme); } catch (e) {}
 
 /* ---------- state ---------- */
-let cfg = { cards: 200, stickers: 10 };
-let have = {};            // id -> count
+const UNIQUE = new Set(['9','14','17','22','25','30','33','38','44','46','56','58','65','68','69','73','75','79','84','88','91','97','98','101','103','106','115','139','155','160','164','183']);
+let cfg = { cards: 187, stickers: 12 };
+let have = {};
+let imgs = {};            // id -> {src, vec, hex, ori}
 let ids = [];
 let flt = 'all';
+let popId = null;
 const cnt = id => have[id] || 0;
 
 function buildIds() {
@@ -175,7 +245,7 @@ function normalize(s) {
   return ids.includes(s) ? s : null;
 }
 
-/* ---------- storage ---------- */
+/* ---------- storage: counts ---------- */
 const CHUNK = 3500;
 function encode() {
   const body = Object.entries(have).filter(([, v]) => v > 0).map(([k, v]) => v > 1 ? k + '*' + v : k).join(',');
@@ -187,9 +257,7 @@ function decode(s) {
   const c = +p[1], st = +p[2];
   if (!(c >= 1 && c <= 999 && st >= 0 && st <= 99)) return false;
   const h = {};
-  (p.slice(3).join('|')).split(',').filter(Boolean).forEach(x => {
-    const [k, v] = x.split('*'); h[k] = v ? +v : 1;
-  });
+  p.slice(3).join('|').split(',').filter(Boolean).forEach(x => { const [k, v] = x.split('*'); h[k] = v ? +v : 1; });
   cfg = { cards: c, stickers: st }; have = h; buildIds();
   return true;
 }
@@ -204,9 +272,9 @@ function saveNow() {
   parts.forEach((p, i) => CS.setItem('a' + i, p, () => {}));
   CS.setItem('an', String(parts.length), () => {});
 }
-function csGet(key) { return new Promise(r => CS.getItem(key, (e, v) => r(e ? null : v))); }
-function csGetMany(keys) { return new Promise(r => CS.getItems(keys, (e, v) => r(e ? {} : v))); }
-async function load() {
+const csGet = key => new Promise(r => CS.getItem(key, (e, v) => r(e ? null : v)));
+const csGetMany = keys => new Promise(r => CS.getItems(keys, (e, v) => r(e ? {} : v)));
+async function loadCounts() {
   let s = null;
   if (CS) {
     try {
@@ -222,26 +290,117 @@ async function load() {
   if (!(s && decode(s))) buildIds();
 }
 
+/* ---------- storage: images (IndexedDB hi-res + CloudStorage lo-res) ---------- */
+let idb = null;
+const idbOpen = () => new Promise(r => {
+  try {
+    const q = indexedDB.open('dc-album', 1);
+    q.onupgradeneeded = () => q.result.createObjectStore('img', { keyPath: 'id' });
+    q.onsuccess = () => { idb = q.result; r(idb); };
+    q.onerror = () => r(null);
+  } catch (e) { r(null); }
+});
+const idbPut = o => { if (idb) try { idb.transaction('img', 'readwrite').objectStore('img').put(o); } catch (e) {} };
+const idbDel = id => { if (idb) try { idb.transaction('img', 'readwrite').objectStore('img').delete(id); } catch (e) {} };
+const idbAll = () => new Promise(r => {
+  if (!idb) return r([]);
+  try { const q = idb.transaction('img').objectStore('img').getAll(); q.onsuccess = () => r(q.result || []); q.onerror = () => r([]); } catch (e) { r([]); }
+});
+
+/* fingerprint = z-scored colour grid; cosine similarity */
+function normVec(v) {
+  const n = v.length; let m = 0; for (let i = 0; i < n; i++) m += v[i]; m /= n;
+  let s = 0; for (let i = 0; i < n; i++) s += (v[i] - m) * (v[i] - m); s = Math.sqrt(s / n) || 1;
+  const z = new Float32Array(n); for (let i = 0; i < n; i++) z[i] = (v[i] - m) / s; return z;
+}
+const fpEncode = z => Array.from(z, x => Math.max(0, Math.min(15, Math.round(x * 2.5) + 8)).toString(16)).join('');
+const fpDecode = h => normVec(Array.from(h, c => (parseInt(c, 16) - 8) / 2.5));
+function cosine(a, b) { if (a.length !== b.length) return -1; let d = 0; for (let i = 0; i < a.length; i++) d += a[i] * b[i]; return d / a.length; }
+function shrink(src, w, h) {
+  let c = src;
+  while (c.width / 2 >= w && c.height / 2 >= h) {
+    const n = document.createElement('canvas'); n.width = Math.max(w, c.width >> 1); n.height = Math.max(h, c.height >> 1);
+    const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, n.width, n.height); c = n;
+  }
+  const o = document.createElement('canvas'); o.width = w; o.height = h;
+  const x = o.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(c, 0, 0, w, h); return o;
+}
+function computeFp(card, ori) {
+  const gw = ori === 'p' ? 12 : 16, gh = ori === 'p' ? 16 : 12, m = .07;
+  const cw = card.width * (1 - 2 * m), ch = card.height * (1 - 2 * m);
+  const tmp = document.createElement('canvas'); tmp.width = Math.round(cw); tmp.height = Math.round(ch);
+  tmp.getContext('2d').drawImage(card, card.width * m, card.height * m, cw, ch, 0, 0, tmp.width, tmp.height);
+  const d = shrink(tmp, gw, gh).getContext('2d').getImageData(0, 0, gw, gh).data;
+  const v = []; for (let i = 0; i < d.length; i += 4) v.push(d[i], d[i + 1], d[i + 2]);
+  return normVec(v);
+}
+function thumb(canvas, w, q) { const h = Math.round(canvas.height * w / canvas.width); return shrink(canvas, w, h).toDataURL('image/jpeg', q); }
+function thumbLo(canvas) {
+  for (const [w, q] of [[72, .5], [72, .4], [64, .4], [56, .35], [48, .3]]) {
+    const d = thumb(canvas, w, q).split(',')[1]; if (d.length <= 3300) return d;
+  }
+  return '';
+}
+function saveImage(id, card, o) {
+  try {
+    const hex = fpEncode(computeFp(card, o));
+    const hi = thumb(card, o === 'p' ? 220 : 300, .72);
+    imgs[id] = { src: hi, vec: fpDecode(hex), hex, ori: o };
+    idbPut({ id, hi, hex, ori: o });
+    if (CS) CS.setItem('c_' + id, o + '|' + hex + '|' + thumbLo(card), () => {});
+  } catch (e) {}
+}
+function removeImage(id) {
+  delete imgs[id]; idbDel(id);
+  if (CS) CS.removeItem('c_' + id, () => {});
+}
+async function loadImages() {
+  await idbOpen();
+  (await idbAll()).forEach(r => { imgs[r.id] = { src: r.hi, vec: fpDecode(r.hex), hex: r.hex, ori: r.ori }; });
+  if (CS) {
+    try {
+      const keys = await new Promise(r => CS.getKeys((e, k) => r(e ? [] : k)));
+      const ck = keys.filter(k => k.startsWith('c_') && !imgs[k.slice(2)]);
+      for (let i = 0; i < ck.length; i += 40) {
+        const part = ck.slice(i, i + 40), r = await csGetMany(part);
+        for (const k of part) {
+          const v = r[k]; if (!v) continue;
+          const [o, hex, lo] = v.split('|'); if (!hex) continue;
+          imgs[k.slice(2)] = { src: lo ? 'data:image/jpeg;base64,' + lo : '', vec: fpDecode(hex), hex, ori: o };
+        }
+      }
+    } catch (e) {}
+  }
+}
+function matchImage(card, o) {
+  const fp = computeFp(card, o);
+  let best = null, b = -1, second = -1;
+  for (const id in imgs) {
+    const it = imgs[id]; if (it.ori !== o) continue;
+    const s = cosine(fp, it.vec);
+    if (s > b) { second = b; b = s; best = id; } else if (s > second) second = s;
+  }
+  return best && b >= .9 && (b - second) >= .04 ? { id: best, score: b } : null;
+}
+
 /* ---------- helpers ---------- */
 function toast(t) {
   const el = $('#toast'); el.textContent = t; el.classList.add('on');
-  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1800);
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 1900);
 }
 function setCount(id, n) {
-  n = Math.max(0, n);
+  const prev = cnt(id); n = Math.max(0, n);
   if (n) have[id] = n; else delete have[id];
+  if (n > prev) popId = id;
   save(); render();
 }
 function fmtRanges(list) {
   const nums = list.filter(x => x[0] !== 'T').map(Number).sort((a, b) => a - b);
   const st = list.filter(x => x[0] === 'T');
-  const out = [];
-  let i = 0;
+  const out = []; let i = 0;
   while (i < nums.length) {
-    let j = i;
-    while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
-    out.push(j - i >= 2 ? nums[i] + '–' + nums[j] : nums.slice(i, j + 1).join(', '));
-    i = j + 1;
+    let j = i; while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+    out.push(j - i >= 2 ? nums[i] + '–' + nums[j] : nums.slice(i, j + 1).join(', ')); i = j + 1;
   }
   return out.concat(st).join(', ') || '—';
 }
@@ -255,56 +414,89 @@ function listText(kind) {
 function render() {
   const uniq = ids.filter(id => cnt(id) > 0).length;
   const extra = ids.reduce((a, id) => a + Math.max(0, cnt(id) - 1), 0);
-  $('#stHave').textContent = uniq;
-  $('#stTotal').textContent = ids.length;
-  $('#stMiss').textContent = ids.length - uniq;
-  $('#stDup').textContent = extra;
-  $('#bar').style.width = (ids.length ? uniq / ids.length * 100 : 0) + '%';
+  const pct = ids.length ? Math.round(uniq / ids.length * 100) : 0;
+  $('#sub').textContent = `${uniq} из ${ids.length} · лишних ${extra}`;
+  $('#ringTx').textContent = pct + '%';
+  $('#ringFg').style.strokeDashoffset = 125.66 * (1 - pct / 100);
 
   const shown = ids.filter(id => flt === 'all' || (flt === 'miss' && !cnt(id)) || (flt === 'have' && cnt(id) > 0) || (flt === 'dup' && cnt(id) > 1));
   $('#grid').innerHTML = shown.map(id => {
-    const n = cnt(id);
-    return `<button class="cell ${n ? 'have' : ''} ${n > 1 ? 'dup' : ''}" data-id="${id}">${id}${n > 1 ? `<i>×${n}</i>` : ''}</button>`;
+    const n = cnt(id), im = imgs[id], hasImg = n > 0 && im && im.src;
+    const cls = `tile ${n ? 'have' : 'miss'} ${hasImg ? '' : 'noimg'} ${popId === id ? 'pop' : ''}`;
+    return `<button class="${cls}" data-id="${id}">` +
+      (hasImg ? `<img src="${im.src}" class="${im.ori === 'l' ? 'ls' : ''}" alt="" decoding="async">` : `<div class="big">${id}</div>`) +
+      (UNIQUE.has(id) ? '<span class="star">★</span>' : '') +
+      `<span class="pill">${id}</span>` + (n > 1 ? `<i class="x">×${n}</i>` : '') + '</button>';
   }).join('') || '<div class="muted">Пусто</div>';
+  popId = null;
 
   $('#txtMiss').textContent = listText('miss');
   $('#txtDup').textContent = listText('dup');
   $('#setCards').value = cfg.cards;
   $('#setSt').value = cfg.stickers;
-  if (cur) { $('#shCnt').textContent = cnt(cur); }
+  if (cur) updateSheet();
 }
 
-/* ---------- card sheet ---------- */
+/* ---------- sheet ---------- */
 let cur = null;
-function openSheet(id) { cur = id; $('#shLabel').textContent = 'Карта ' + id; $('#shCnt').textContent = cnt(id); $('#sheet').hidden = false; haptic(); }
-function closeSheet() { cur = null; $('#sheet').hidden = true; }
-$('#grid').addEventListener('click', e => { const b = e.target.closest('.cell'); if (b) openSheet(b.dataset.id); });
+function updateSheet() {
+  const im = imgs[cur];
+  $('#shArt').innerHTML = im && im.src ? `<img src="${im.src}" alt="">` : `<div class="ph">${cur}</div>`;
+  $('#shTitle').textContent = 'Карта ' + cur + (UNIQUE.has(cur) ? ' ★' : '');
+  $('#shCnt').textContent = cnt(cur);
+  $('#shDelImg').hidden = !im;
+}
+function openSheet(id) { cur = id; updateSheet(); $('#sheet').classList.add('on'); haptic(); }
+function closeSheet() { cur = null; $('#sheet').classList.remove('on'); }
+$('#grid').addEventListener('click', e => { const b = e.target.closest('.tile'); if (b) openSheet(b.dataset.id); });
 $('#shPlus').onclick = () => { setCount(cur, cnt(cur) + 1); haptic(); };
 $('#shMinus').onclick = () => { setCount(cur, cnt(cur) - 1); haptic(); };
+$('#shDelImg').onclick = () => { removeImage(cur); render(); toast('Картинка удалена'); };
 $('#shClose').onclick = closeSheet;
 $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
 $('#chips').addEventListener('click', e => {
-  const b = e.target.closest('.chip'); if (!b) return;
+  const b = e.target.closest('button'); if (!b) return;
   flt = b.dataset.f;
-  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
+  document.querySelectorAll('#chips button').forEach(c => c.classList.toggle('on', c === b));
   render();
 });
 
 /* ---------- tabs ---------- */
+const TABS = ['album', 'scan', 'lists', 'set'];
+const TITLES = { album: 'Галерея', scan: 'Скан', lists: 'Обмен', set: 'Настройки' };
 function tab(name) {
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === name));
-  ['album', 'scan', 'lists', 'set'].forEach(t => $('#v-' + t).hidden = t !== name);
-  if (name === 'scan') startCam(); else stopCam();
+  const i = TABS.indexOf(name);
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === name));
+  $('#ind').style.transform = `translateX(${i * 100}%)`;
+  TABS.forEach(t => $('#v-' + t).hidden = t !== name);
+  $('#title').textContent = TITLES[name];
+  $('main').scrollTop = 0;
+  if (name === 'scan') { layoutFrame(); startCam(); } else stopCam();
   haptic();
 }
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) tab(b.dataset.t); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) stopCam(); else if (!$('#v-scan').hidden) startCam(); });
+window.addEventListener('resize', () => { if (!$('#v-scan').hidden) layoutFrame(); });
 
-/* ---------- OCR ---------- */
+/* ---------- OCR + scan ---------- */
 let worker = null, stream = null, loopT = null, busy = false, pending = false;
-let lastRead = null, lastAdded = null, tick = 0;
+let lastRead = null, lastAdded = null, tick = 0, imgId = null, imgStreak = 0;
+let ori = 'p', resCard = null, resSrc = '';
 const vid = $('#vid');
 const setStatus = t => $('#status').textContent = t;
+
+function layoutFrame() {
+  const cam = $('#cam'), f = $('#frame'), W = cam.clientWidth, H = cam.clientHeight; if (!W) return;
+  let w, h;
+  if (ori === 'p') { h = Math.min(H * .86, W * .9 / .75); w = h * .75; }
+  else { w = Math.min(W * .92, H * .86 / .75); h = w * .75; }
+  f.style.width = w + 'px'; f.style.height = h + 'px';
+  $('#rotRect').setAttribute('width', ori === 'p' ? 10 : 17);
+  $('#rotRect').setAttribute('height', ori === 'p' ? 17 : 10);
+  $('#rotRect').setAttribute('x', ori === 'p' ? 7 : 3.5);
+  $('#rotRect').setAttribute('y', ori === 'p' ? 3.5 : 7);
+}
+$('#rot').onclick = () => { ori = ori === 'p' ? 'l' : 'p'; imgId = null; imgStreak = 0; lastRead = null; layoutFrame(); haptic(); };
 
 async function getWorker() {
   if (worker) return worker;
@@ -317,87 +509,80 @@ async function getWorker() {
 async function ocr(canvas, psm) {
   const w = await getWorker();
   await w.setParameters({ tessedit_pageseg_mode: String(psm) });
-  const r = await w.recognize(canvas);
-  return r.data.text || '';
+  return (await w.recognize(canvas)).data.text || '';
 }
 function binarize(src, flip) {
-  const w = src.width, h = src.height;
-  const ctx = src.getContext('2d');
-  const img = ctx.getImageData(0, 0, w, h), d = img.data;
+  const w = src.width, h = src.height, ctx = src.getContext('2d');
+  const d = ctx.getImageData(0, 0, w, h).data;
   const g = new Uint8Array(w * h), hist = new Array(256).fill(0);
   for (let i = 0, j = 0; i < d.length; i += 4, j++) { const v = (d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000 | 0; g[j] = v; hist[v]++; }
-  // Otsu
   const tot = g.length; let sum = 0; for (let t = 0; t < 256; t++) sum += t * hist[t];
   let sB = 0, wB = 0, best = 0, thr = 128;
   for (let t = 0; t < 256; t++) {
     wB += hist[t]; if (!wB) continue; const wF = tot - wB; if (!wF) break;
-    sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF;
-    const v = wB * wF * (mB - mF) * (mB - mF); if (v > best) { best = v; thr = t; }
+    sB += t * hist[t]; const mB = sB / wB, mF = (sum - sB) / wF, v = wB * wF * (mB - mF) * (mB - mF);
+    if (v > best) { best = v; thr = t; }
   }
   let dark = 0; for (let j = 0; j < g.length; j++) if (g[j] <= thr) dark++;
-  let invert = dark > g.length / 2;      // text should be the minority
-  if (flip) invert = !invert;
-  const pad = 14, out = document.createElement('canvas');
-  out.width = w + pad * 2; out.height = h + pad * 2;
-  const oc = out.getContext('2d');
-  oc.fillStyle = '#fff'; oc.fillRect(0, 0, out.width, out.height);
+  let invert = dark > g.length / 2; if (flip) invert = !invert;
+  const pad = 14, out = document.createElement('canvas'); out.width = w + pad * 2; out.height = h + pad * 2;
+  const oc = out.getContext('2d'); oc.fillStyle = '#fff'; oc.fillRect(0, 0, out.width, out.height);
   const oi = oc.getImageData(pad, pad, w, h), od = oi.data;
   for (let i = 0, j = 0; i < od.length; i += 4, j++) {
     let isDark = g[j] <= thr; if (invert) isDark = !isDark;
     const v = isDark ? 0 : 255; od[i] = od[i + 1] = od[i + 2] = v; od[i + 3] = 255;
   }
-  oc.putImageData(oi, pad, pad);
-  return out;
+  oc.putImageData(oi, pad, pad); return out;
 }
-function grabCrop() {
+function grabRegion(el, mode) {
   const vw = vid.videoWidth, vh = vid.videoHeight; if (!vw) return null;
-  const vr = vid.getBoundingClientRect(), fr = $('#frame').getBoundingClientRect();
+  const vr = vid.getBoundingClientRect(), fr = el.getBoundingClientRect();
   const s = Math.max(vr.width / vw, vr.height / vh);
   const ox = (vw * s - vr.width) / 2, oy = (vh * s - vr.height) / 2;
   const sx = (fr.left - vr.left + ox) / s, sy = (fr.top - vr.top + oy) / s, sw = fr.width / s, sh = fr.height / s;
-  const k = Math.min(4, Math.max(0.6, 110 / sh));
-  const c = document.createElement('canvas');
-  c.width = Math.round(sw * k); c.height = Math.round(sh * k);
-  c.getContext('2d').drawImage(vid, sx, sy, sw, sh, 0, 0, c.width, c.height);
-  return c;
+  const k = mode === 'num' ? Math.min(4, Math.max(.6, 110 / sh)) : Math.min(1, 320 / Math.max(sw, sh));
+  const c = document.createElement('canvas'); c.width = Math.max(8, Math.round(sw * k)); c.height = Math.max(8, Math.round(sh * k));
+  c.getContext('2d').drawImage(vid, sx, sy, sw, sh, 0, 0, c.width, c.height); return c;
 }
 function parseText(text) {
-  const t = text.toUpperCase();
   const found = [];
-  for (const m of t.matchAll(/T\s?(\d{1,2})|(\d{1,3})/g)) {
+  for (const m of text.toUpperCase().matchAll(/T\s?(\d{1,2})|(\d{1,3})/g)) {
     const id = m[1] ? 'T' + m[1].padStart(2, '0') : String(+m[2]);
     if (ids.includes(id) && !found.includes(id)) found.push(id);
   }
   return found;
 }
 async function readFrame(manual) {
-  if (busy || !stream) return;
-  busy = true;
+  if (busy || !stream) return; busy = true;
   try {
-    const crop = grabCrop(); if (!crop) return;
-    const polarities = manual ? [false, true] : [tick++ % 2 === 1];
+    const card = grabRegion($('#frame'), 'card'), num = grabRegion($('#numbox'), 'num');
+    if (!card || !num) return;
+    const im = matchImage(card, ori);
     let found = [];
-    for (const flip of polarities) {
-      found = parseText(await ocr(binarize(crop, flip), 7));
-      if (found.length) break;
+    for (const flip of (manual ? [false, true] : [tick++ % 2 === 1])) {
+      found = parseText(await ocr(binarize(num, flip), 7)); if (found.length) break;
     }
     if (manual) {
-      if (found.length) { showResult(found[0], found); setStatus('Готово — проверь номер'); }
-      else setStatus('Не распознал. Ближе, ровнее, без бликов — или введи вручную.');
+      const c = [...found]; if (im && !c.includes(im.id)) c.push(im.id);
+      if (c.length) { showResult(c[0], c, card, found.length ? 'по номеру' : 'по картинке карты'); setStatus('Проверь номер и подтверди'); }
+      else setStatus('Не распознал. Ближе, ровнее, без бликов — или введи номер вручную.');
       return;
     }
-    const id = found[0];
-    if (!id) { lastRead = null; lastAdded = null; return; }
-    if (id === lastAdded) return;
-    if (id === lastRead) { lastRead = null; showResult(id, found); haptic(); }
-    else lastRead = id;
+    const o = found[0] || null;
+    if (!o && !im) { lastRead = null; lastAdded = null; imgId = null; imgStreak = 0; return; }
+    if (im && im.id === imgId) imgStreak++; else { imgId = im ? im.id : null; imgStreak = im ? 1 : 0; }
+    const pick = o || (imgStreak >= 3 ? imgId : null);
+    if (!pick || pick === lastAdded) return;
+    if (o) {
+      if (o === lastRead) { lastRead = null; showResult(o, [o].concat(im && im.id !== o ? [im.id] : []), card, 'по номеру'); haptic(); }
+      else lastRead = o;
+    } else { showResult(pick, [pick], card, 'по картинке карты'); haptic(); }
   } catch (e) {
-    setStatus('Ошибка распознавания (нужен интернет для первой загрузки). Введи номер вручную.');
+    setStatus('Ошибка распознавания (нужен интернет при первом запуске). Введи номер вручную.');
   } finally { busy = false; }
 }
 async function loop() {
-  clearTimeout(loopT);
-  if (!stream) return;
+  clearTimeout(loopT); if (!stream) return;
   if (!pending && $('#auto').checked && !busy) await readFrame(false);
   loopT = setTimeout(loop, 450);
 }
@@ -406,36 +591,28 @@ async function startCam() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
     vid.srcObject = stream; await vid.play();
-    setStatus('Наведи рамку на номер карты');
+    setStatus(`Наведи камеру на карту · в памяти карт: ${Object.keys(imgs).length}`);
     getWorker().catch(() => setStatus('Не загрузился модуль распознавания — доступен ручной ввод.'));
     loop();
-  } catch (e) {
-    stream = null;
-    setStatus('Нет доступа к камере. Нажми «Фото» или введи номер вручную.');
-  }
+  } catch (e) { stream = null; setStatus('Нет доступа к камере. Нажми значок фото слева или введи номер вручную.'); }
 }
 function stopCam() {
   clearTimeout(loopT);
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = null; vid.srcObject = null;
 }
-$('#shot').onclick = () => { if (stream) { setStatus('Распознаю…'); readFrame(true); } else toast('Камера недоступна — жми «Фото»'); };
+$('#shot').onclick = () => { if (stream) { setStatus('Распознаю…'); readFrame(true); } else toast('Камера недоступна'); };
 
-/* photo fallback: whole image, sparse-text mode */
 $('#photo').onchange = async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   setStatus('Распознаю фото…');
   try {
-    const bmp = await createImageBitmap(f);
-    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const bmp = await createImageBitmap(f), k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
     const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
     c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
     let found = [];
-    for (const flip of [false, true]) {
-      found = parseText(await ocr(binarize(c, flip), 11));
-      if (found.length) break;
-    }
-    if (found.length) { showResult(found[0], found); setStatus('Готово — проверь номер'); }
+    for (const flip of [false, true]) { found = parseText(await ocr(binarize(c, flip), 11)); if (found.length) break; }
+    if (found.length) { showResult(found[0], found, null, 'по номеру на фото'); setStatus('Проверь номер и подтверди'); }
     else setStatus('На фото номер не нашёл. Сфотографируй ближе или введи вручную.');
   } catch (err) { setStatus('Не получилось распознать фото. Введи номер вручную.'); }
 };
@@ -448,29 +625,35 @@ function updateRes() {
   const n = cnt(id);
   $('#resMsg').textContent = n === 0 ? '🆕 Этой карты ещё нет' : `🔁 Уже есть ×${n} — станет дублем`;
 }
-function showResult(id, cands) {
-  pending = true;
+function showResult(id, cands, card, src) {
+  pending = true; resCard = card; resSrc = src || '';
   $('#resId').value = id;
-  $('#resCands').innerHTML = (cands && cands.length > 1) ? cands.map(c => `<button class="chip" data-c="${c}">${c}</button>`).join('') : '';
+  const ri = $('#resImg');
+  if (card) ri.src = thumb(card, 120, .7); else ri.removeAttribute('src');
+  $('#resSrc').textContent = src ? 'Распознано ' + src : '';
+  $('#resCands').innerHTML = cands && cands.length > 1 ? cands.map(c => `<button data-c="${c}">${c}</button>`).join('') : '';
   $('#result').hidden = false; updateRes();
+  $('#result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-function hideResult() { pending = false; $('#result').hidden = true; }
+function hideResult() { pending = false; resCard = null; $('#result').hidden = true; }
 $('#resId').addEventListener('input', updateRes);
 $('#resCands').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { $('#resId').value = b.dataset.c; updateRes(); } });
 $('#resOk').onclick = () => {
   const id = normalize($('#resId').value); if (!id) return;
-  const n = cnt(id) + 1; setCount(id, n);
-  lastAdded = id; lastRead = null;
+  const n = cnt(id) + 1;
+  if (resCard && !imgs[id]) saveImage(id, resCard, ori);
+  setCount(id, n);
+  lastAdded = id; lastRead = null; imgStreak = 0;
   toast(n === 1 ? `✅ ${id} добавлена` : `🔁 ${id}: дубль, теперь ×${n}`);
   haptic('ok'); hideResult();
 };
-$('#resNo').onclick = () => { lastAdded = $('#resId').value ? normalize($('#resId').value) : null; hideResult(); };
-function manualAdd() { const id = normalize($('#manual').value); if (!id) { toast('Нет такого номера'); return; } $('#manual').value = ''; showResult(id, [id]); }
+$('#resNo').onclick = () => { lastAdded = normalize($('#resId').value); hideResult(); };
+function manualAdd() { const id = normalize($('#manual').value); if (!id) { toast('Нет такого номера'); return; } $('#manual').value = ''; showResult(id, [id], null, ''); }
 $('#manualBtn').onclick = manualAdd;
 $('#manual').addEventListener('keydown', e => { if (e.key === 'Enter') manualAdd(); });
 
 /* ---------- lists / share ---------- */
-function fullText(kind) { return (kind === 'miss' ? '🃏 Мне нужны: ' : '🔁 Могу обменять: ') + listText(kind); }
+const fullText = kind => (kind === 'miss' ? '🃏 Мне нужны: ' : '🔁 Могу обменять: ') + listText(kind);
 document.addEventListener('click', e => {
   const c = e.target.closest('[data-copy]'), s = e.target.closest('[data-share]');
   if (c) {
@@ -481,8 +664,7 @@ document.addEventListener('click', e => {
     });
   }
   if (s) {
-    const t = fullText(s.dataset.share);
-    const u = 'https://t.me/share/url?url=' + encodeURIComponent('Коллекция карт DC') + '&text=' + encodeURIComponent(t);
+    const u = 'https://t.me/share/url?url=' + encodeURIComponent('Коллекция DC · АТБ') + '&text=' + encodeURIComponent(fullText(s.dataset.share));
     if (tg && tg.openTelegramLink) tg.openTelegramLink(u); else window.open(u, '_blank');
   }
 });
@@ -494,16 +676,14 @@ $('#setSave').onclick = () => {
   cfg = { cards: c, stickers: st }; buildIds(); save(); render(); toast('Сохранено');
 };
 $('#bkExport').onclick = () => { $('#backup').value = encode(); $('#backup').select(); };
-$('#bkImport').onclick = () => {
-  if (decode($('#backup').value.trim())) { save(); render(); toast('Альбом загружен'); } else toast('Неверный код');
-};
+$('#bkImport').onclick = () => { if (decode($('#backup').value.trim())) { save(); render(); toast('Альбом загружен'); } else toast('Неверный код'); };
 $('#reset').onclick = () => {
   const go = () => { have = {}; save(); render(); toast('Альбом очищен'); };
-  if (tg && tg.showConfirm) tg.showConfirm('Удалить все пометки в альбоме?', ok => ok && go()); else if (confirm('Удалить все пометки?')) go();
+  if (tg && tg.showConfirm) tg.showConfirm('Удалить все пометки в альбоме? Картинки останутся.', ok => ok && go()); else if (confirm('Удалить все пометки?')) go();
 };
 
 /* ---------- init ---------- */
-(async function () { await load(); render(); })();
+(async function () { await loadCounts(); render(); await loadImages(); render(); })();
 </script>
 </body>
 </html>
